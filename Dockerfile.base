@@ -1,0 +1,15 @@
+# This only builds an image with rust, trunk, diesel, and dependencies
+
+FROM rust:latest
+
+WORKDIR /usr/src/sumi
+# Install dependencies
+RUN cargo install trunk
+RUN rustup target add wasm32-unknown-unknown
+RUN apt-get install -y libpq-dev
+RUN cargo install diesel_cli --no-default-features --features postgres
+RUN cargo install --locked wasm-bindgen-cli
+
+# Clear dependency cache
+RUN cargo install cargo-cache
+RUN cargo cache -a

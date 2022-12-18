@@ -1,0 +1,6 @@
+/data
+.env
+target
+/dist
+*/dist
+*.pem
