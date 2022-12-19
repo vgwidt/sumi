@@ -11,6 +11,6 @@ COPY . .
 RUN trunk build -d dist ./frontend/index.html --release
 RUN cargo build --manifest-path ./backend/Cargo.toml --release
 # move binary otherwise cargo clean will wipe it
-RUN mv ./target/release/backend ./sumi
+RUN mv ./target/release/sumi-backend ./sumi
 RUN cargo clean
 RUN cargo cache -a
