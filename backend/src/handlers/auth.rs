@@ -66,5 +66,13 @@ pub enum LoginError {
 #[post("/logout")]
 pub async fn logout(session: TypedSession) -> Result<HttpResponse, InternalError<DbError>> {
     session.log_out();
-    Ok(HttpResponse::Ok().finish())
+
+    //We could check to confirm if the session still exists or not and return a response accordingly
+
+    let response = Response {
+        success: true,
+        message: "Logout successful".to_string(),
+    };
+    
+    Ok(HttpResponse::Ok().json(response))
 }

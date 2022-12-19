@@ -13,6 +13,6 @@ pub async fn login(login_info: &LoginInfo) -> Result<SuccessResponse, Error> {
     response
 }
 
-pub async fn logout() -> Result<(), Error> {
-    request_post::<(), ()>("/logout".to_string(), ()).await
+pub async fn logout() -> Result<SuccessResponse, Error> {
+    request_post::<(), SuccessResponse>("/logout".to_string(), ()).await
 }
