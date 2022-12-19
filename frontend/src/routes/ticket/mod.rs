@@ -82,11 +82,11 @@ pub fn ticket(props: &Props) -> Html {
             <div class={style}>
                 <div class="ticket-detail">
                     <div class="header">
-                            <span class="ticket-id">{"(#"}{&ticket.ticket_id}{") "}</span>
-                            <span class="title">{&ticket.title}</span>
-                            <span>
-                            <TicketMenu ticket_id={props.ticket_id} ticket_status={ticket.status.clone()}/>
-                            </span>
+                        <span class="ticket-id">{"(#"}{&ticket.ticket_id}{") "}</span>
+                        <span class="title">{&ticket.title}</span>
+                        <span>
+                        <TicketMenu ticket_id={props.ticket_id} ticket_status={ticket.status.clone()}/>
+                        </span>
                     </div>
                     <div class="assignee">
                         { "Assigned to: " }
@@ -97,8 +97,8 @@ pub fn ticket(props: &Props) -> Html {
                         { ticket.created_at.format("%Y-%m-%d %H:%M").to_string() }
                     </div>
                     <div class="updated-date">
-                    { "Updated " }
-                    { ticket.created_at.format("%Y-%m-%d %H:%M").to_string() }
+                        { "Updated " }
+                        { ticket.updated_at.format("%Y-%m-%d %H:%M").to_string() }
                     </div>
                     <div class="description">
                         { markdown_to_html(&ticket.description) }
