@@ -1,3 +1,4 @@
+use stylist::yew::use_style;
 use stylist::{style, yew::styled_component};
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -14,6 +15,13 @@ pub fn navigation() -> Html {
     let language = use_language_context();
     let theme = use_theme();
 
+    //when use_route changes, we change the active tabs style to selected
+    let route = match use_route::<AppRoute>() {
+        Some(route) => route,
+        None => AppRoute::Home,
+    };
+
+
     let style = style!(
         r#"
         .sidenav {
@@ -25,7 +33,7 @@ pub fn navigation() -> Html {
             left: 0;
             overflow-x: hidden;
             padding-top: 20px;
-            background-color: ${bg};
+            background-color: ${nav_bg};
             color: ${text};
             display:flex; 
             flex-direction:column;
@@ -54,6 +62,10 @@ pub fn navigation() -> Html {
           .sidenav a {
             display: block;
           }
+          .sidenav .nav-link:hover {
+            border: 1px solid ${border};
+            border-radius: 8px;
+          }
           .nav-link {
             font-size: 20px;
             margin-left: 8px;
@@ -61,9 +73,8 @@ pub fn navigation() -> Html {
             padding-top: 8px;
             padding-bottom: 8px;
             padding-left: 16px;
-          }
-          .sidenav a:hover {
-            color: #f1f1f1;
+            text-decoration: none;
+            border: 1px solid transparent;
           }
           .nav-theme-toggle {
             font-size: 16px;
@@ -75,11 +86,19 @@ pub fn navigation() -> Html {
             display: flex;
             justify-content: center;
           }
+          .selected {
+            border: 1px solid ${border};
+            border-radius: 8px;
+            background: ${bg};
+        }
         "#,
-        bg = theme.secondary_background.clone(),
-        text = theme.font_color.clone()
+        bg = theme.background.clone(),
+        nav_bg = theme.secondary_background.clone(),
+        text = theme.font_color.clone(),
+        border = theme.border.clone(),
     )
     .expect("Failed to parse style");
+
 
     if user_ctx.is_authenticated() {
         html! {
@@ -95,13 +114,31 @@ pub fn navigation() -> Html {
                         </Link<AppRoute>>
                     </div>
                     <div class="nav-headers">
-                        <Link<AppRoute> to={AppRoute::Home} classes="nav-link">
+                        <Link<AppRoute> to={AppRoute::Home} classes={
+                            if route == AppRoute::Home {
+                                "selected nav-link"
+                            } else {
+                                "nav-link"
+                            }
+                        }>
                             { language.get("Tickets") }
                         </Link<AppRoute>>
-                        <Link<AppRoute> to={AppRoute::WikiHome} classes="nav-link">
+                        <Link<AppRoute> to={AppRoute::WikiHome} classes={
+                            if route == AppRoute::WikiHome {
+                                "selected nav-link"
+                            } else {
+                                "nav-link"
+                            }
+                        }>
                             { language.get("Wiki") }
                         </Link<AppRoute>>
-                        <Link<AppRoute> to={AppRoute::Users} classes="nav-link">
+                        <Link<AppRoute> to={AppRoute::Users} classes={
+                            if route == AppRoute::Users {
+                                "selected nav-link"
+                            } else {
+                                "nav-link"
+                            }
+                        }>
                             { language.get("Users") }
                         </Link<AppRoute>>
                             //{ "Contacts" }
