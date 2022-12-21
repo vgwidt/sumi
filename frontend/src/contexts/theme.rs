@@ -16,23 +16,25 @@ impl ImplicitClone for ThemeKind {}
 impl ThemeKind {
     pub fn current(&self) -> &Theme {
         static LIGHT_THEME: Lazy<Theme> = Lazy::new(|| Theme {
-            font_color: "#212124".to_string(),
-            background_color: "#dededb".to_string(),
-            nav_background_color: "#cdcdce".to_string(),
+            font_color: "#222224".to_string(),
+            background: "#f6f6f2".to_string(),
+            secondary_background: "#f0f0ec".to_string(),
             link_color: "#282830".to_string(),
-            logo_inversion: "0%".to_string(),
-            table_header_color: "#d2d2d4".to_string(),
-            edit_background_color: "#ebebee".to_string(),
+            logo_inversion: "5%".to_string(),
+            input_background: "#F9F9F7".to_string(),
+            code_background: "#ebebe7".to_string(),
+            border: "#404752".to_string(),
         });
 
         static DARK_THEME: Lazy<Theme> = Lazy::new(|| Theme {
             font_color: "#dededb".to_string(),
-            background_color: "#212124".to_string(),
-            nav_background_color: "#171718".to_string(),
+            background: "#19191A".to_string(),
+            secondary_background: "#131313".to_string(),
             link_color: "rgb(175, 184, 221)".to_string(),
-            logo_inversion: "100%".to_string(),
-            table_header_color: "#1b1b1c".to_string(),
-            edit_background_color: "#191919".to_string(),
+            logo_inversion: "95%".to_string(),
+            input_background: "#111111".to_string(),
+            code_background: "#101010".to_string(),
+            border: "#404752".to_string(),
         });
 
         match self {
@@ -64,12 +66,13 @@ impl ThemeKind {
 #[derive(Debug, Clone)]
 pub(crate) struct Theme {
     pub font_color: String,
-    pub background_color: String,
-    pub nav_background_color: String,
+    pub background: String,
+    pub secondary_background: String,
     pub link_color: String,
     pub logo_inversion: String,
-    pub table_header_color: String,
-    pub edit_background_color: String,
+    pub input_background: String,
+    pub code_background: String,
+    pub border: String,
 }
 
 #[derive(Debug, Clone)]

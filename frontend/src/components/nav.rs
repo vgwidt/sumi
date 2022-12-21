@@ -76,7 +76,7 @@ pub fn navigation() -> Html {
             justify-content: center;
           }
         "#,
-        bg = theme.nav_background_color.clone(),
+        bg = theme.secondary_background.clone(),
         text = theme.font_color.clone()
     )
     .expect("Failed to parse style");

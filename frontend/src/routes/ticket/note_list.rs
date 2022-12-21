@@ -93,7 +93,7 @@ pub fn note_list(props: &Props) -> Html {
             color: #838383;
         }
         .note-header {
-            border-bottom: 1px solid #404752;
+            border-bottom: 1px solid ${border};
             align-items: center;
             display: flex;
             justify-content: space-between;
@@ -111,7 +111,8 @@ pub fn note_list(props: &Props) -> Html {
             color: #838383;
         }
         "#,
-        headerbg = theme.nav_background_color.clone(),
+        headerbg = theme.secondary_background.clone(),
+        border = theme.border.clone(),
     )
     .expect("Failed to parse style");
 

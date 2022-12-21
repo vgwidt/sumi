@@ -30,7 +30,7 @@ pub fn confirmation(props: &Props) -> Html {
             color: ${text};
         }
         "#,
-        bg = theme.nav_background_color.clone(),
+        bg = theme.secondary_background.clone(),
         text = theme.font_color.clone(),
     )
     .expect("Failed to parse style");

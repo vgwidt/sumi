@@ -36,7 +36,7 @@ pub fn global_style() -> Html {
                 color: ${text};
             }
             input {
-                background-color: ${edit_bg};
+                background-color: ${input_bg};
                 border-radius: 4px;
                 border: none;
                 color: ${text};
@@ -46,7 +46,7 @@ pub fn global_style() -> Html {
                 margin-bottom: 8px;
             }
             textarea {
-                background-color: ${edit_bg};
+                background-color: ${input_bg};
                 border-radius: 4px;
                 border: none;
                 color: ${text};
@@ -62,10 +62,10 @@ pub fn global_style() -> Html {
             .error {
                 color: #ed3434;
                 text-align: center;
-             }
-             .btn {
-                background-color: #39398e;
-                color: rgb(233, 231, 231);
+            }
+            .btn {
+                background-color: #35358a;
+                color: #e9e7e7;
                 border-radius: 4px;
                 padding: 6px;
                 margin: 4px;
@@ -76,28 +76,47 @@ pub fn global_style() -> Html {
                 min-width: 60px;
               }
               a.btn {
-                color: rgb(233, 231, 231);
+                color: #e9e7e7;
               }
-              .btn:hover {
-                  background-color: #343435;
-                  cursor: pointer;
-                }
+            .btn:hover {
+                background-color: #5c5c8d;
+                cursor: pointer;
+            }
             fieldset {
                 border: none;
+            }
+            code {
+                background: ${code_bg};
+                padding: 4px;
+                border-radius: 4px;
             }
             pre {
                 width: auto;
                 overflow-x: auto;
-                background: ${edit_bg};
+                background: ${code_bg};
                 padding: 10px;
                 border-radius: 4px;
-                }
+            }
+            pre code {
+                background: transparent;
+                padding: 0px;
+                border-radius: 0px;
+            }
+            select {
+                background: ${input_bg};
+                border: 1px solid ${border};
+                border-radius: 4px;
+                padding: 4px;
+                color: ${text};
+            }
             "#,
-            bg = theme.background_color.clone(),
+            bg = theme.background.clone(),
             text = theme.font_color.clone(),
             link = theme.link_color.clone(),
             logo_inversion = theme.logo_inversion.clone(),
-            edit_bg = theme.edit_background_color.clone()
+            input_bg = theme.input_background.clone(),
+            code_bg = theme.code_background.clone(),
+            border = theme.border.clone(),
         )} />
     }
 }

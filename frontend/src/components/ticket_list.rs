@@ -182,8 +182,8 @@ pub fn ticket_list() -> Html {
             padding-left: 2px;
           }
         "#,
-        table_header = theme.table_header_color.clone(),
-        bg = theme.background_color.clone(),
+        table_header = theme.secondary_background.clone(),
+        bg = theme.background.clone(),
     )
     .expect("Failed to parse style");
 
