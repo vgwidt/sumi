@@ -85,6 +85,13 @@ pub fn global_style() -> Html {
             fieldset {
                 border: none;
             }
+            pre {
+                width: auto;
+                overflow-x: auto;
+                background: ${edit_bg};
+                padding: 10px;
+                border-radius: 4px;
+                }
             "#,
             bg = theme.background_color.clone(),
             text = theme.font_color.clone(),
