@@ -66,6 +66,20 @@ pub fn wiki_document(props: &Props) -> Html {
         );
     }
 
+    //set edit_mode to false when props.document_id changes (i.e. clicks on a different document)
+    {
+        let edit_mode = edit_mode.clone();
+        use_effect_with_deps(
+            move |document_id| {
+                if document_id.is_some() {
+                    edit_mode.set(false);
+                }
+                || ()
+            },
+            props.document_id.clone(),
+        );
+    }
+
     //clear update_info when props.document_id changes
     {
         let update_info = update_info.clone();
@@ -261,17 +275,15 @@ pub fn wiki_document(props: &Props) -> Html {
                     html! {
                         <div class="wiki-document">
                             <div class="wiki-buttons">
+                                <button class="btn" onclick={onclick_create}
+                                    title={language.get("Create a new nested document")}>
+                                    {language.get("Create")}
+                                </button>
                                 <button class="btn" onclick={on_click_edit}>
                                     {language.get("Edit")}
                                 </button>
-                                <button class="btn" onclick={onclick_create}>
-                                    {language.get("Create")}
-                                </button>
-                                <DeleteItem
-                                    item_id={document_id.to_string()}
-                                    item_type={ItemTypes::Document}
-                                    callback={callback_deleted}
-                            />
+                                <DeleteItem item_id={document_id.to_string()} item_type={ItemTypes::Document}
+                                    callback={callback_deleted} />
                             </div>
                             <h1 class="wiki_title">
                                 {update_info.title.clone()}
