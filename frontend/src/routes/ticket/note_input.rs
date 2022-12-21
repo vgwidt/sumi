@@ -1,3 +1,4 @@
+use stylist::yew::{styled_component, use_style};
 use web_sys::HtmlInputElement;
 
 use yew::prelude::*;
@@ -12,7 +13,7 @@ pub struct Props {
     pub callback: Callback<NoteInfo>,
 }
 
-#[function_component(NoteInput)]
+#[styled_component(NoteInput)]
 pub fn note_input(props: &Props) -> Html {
     let create_info = use_state(NoteCreateInfo::default);
     let user_ctx = use_user_context();
@@ -95,8 +96,17 @@ pub fn note_input(props: &Props) -> Html {
         })
     };
 
+    let style = use_style! {
+        r#"
+        fieldset {
+            padding-left: 0px;
+            margin-left: 0px;
+        }
+        "#
+    };
+
     html! {
-        <form onsubmit={onsubmit}>
+        <form class={style} onsubmit={onsubmit}>
             <fieldset>
                 <legend>{language.get("Add a note")}</legend>
                 <div>

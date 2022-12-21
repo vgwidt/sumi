@@ -43,7 +43,6 @@ pub fn ticket(props: &Props) -> Html {
         margin: 0 auto;
         width: 95%;
         .ticket-detail {
-            margin-left: 16px;
             margin-bottom: 16px;
         }
           .header{
