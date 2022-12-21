@@ -73,6 +73,6 @@ pub async fn logout(session: TypedSession) -> Result<HttpResponse, InternalError
         success: true,
         message: "Logout successful".to_string(),
     };
-    
+
     Ok(HttpResponse::Ok().json(response))
 }

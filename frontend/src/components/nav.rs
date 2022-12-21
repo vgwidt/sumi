@@ -1,4 +1,3 @@
-use stylist::yew::use_style;
 use stylist::{style, yew::styled_component};
 use yew::prelude::*;
 use yew_router::prelude::*;
@@ -20,7 +19,6 @@ pub fn navigation() -> Html {
         Some(route) => route,
         None => AppRoute::Home,
     };
-
 
     let style = style!(
         r#"
@@ -99,64 +97,63 @@ pub fn navigation() -> Html {
     )
     .expect("Failed to parse style");
 
-
     if user_ctx.is_authenticated() {
         html! {
             <div class={style}>
                 <nav class="sidenav">
-                <div class="nav-main">
-                    <Link<AppRoute> to={AppRoute::Home} classes="navbar-brand">
-                        <img src="./img/Enso.svg" alt="Enso Logo" class="logo" />
-                    </Link<AppRoute>>
-                    <div class="nav-user" >
-                        <Link<AppRoute> to={AppRoute::Settings}>
-                            { user_ctx.display_name.clone() }
+                    <div class="nav-main">
+                        <Link<AppRoute> to={AppRoute::Home} classes="navbar-brand">
+                            <img src="./img/Enso.svg" alt="Enso Logo" class="logo" />
                         </Link<AppRoute>>
-                    </div>
-                    <div class="nav-headers">
-                        <Link<AppRoute> to={AppRoute::Home} classes={
-                            if route == AppRoute::Home {
+                        <div class="nav-user">
+                            <Link<AppRoute> to={AppRoute::Settings}>
+                                { user_ctx.display_name.clone() }
+                            </Link<AppRoute>>
+                        </div>
+                        <div class="nav-headers">
+                            <Link<AppRoute> to={AppRoute::Home} classes={
+                                if route == AppRoute::Home {
                                 "selected nav-link"
-                            } else {
+                                } else {
                                 "nav-link"
-                            }
-                        }>
-                            { language.get("Tickets") }
-                        </Link<AppRoute>>
-                        <Link<AppRoute> to={AppRoute::WikiHome} classes={
-                            if route == AppRoute::WikiHome {
+                                }
+                                }>
+                                { language.get("Tickets") }
+                            </Link<AppRoute>>
+                            <Link<AppRoute> to={AppRoute::WikiHome} classes={
+                                if route == AppRoute::WikiHome {
                                 "selected nav-link"
-                            } else {
+                                } else {
                                 "nav-link"
-                            }
-                        }>
-                            { language.get("Wiki") }
-                        </Link<AppRoute>>
-                        <Link<AppRoute> to={AppRoute::Users} classes={
-                            if route == AppRoute::Users {
+                                }
+                                }>
+                                { language.get("Wiki") }
+                            </Link<AppRoute>>
+                            <Link<AppRoute> to={AppRoute::Users} classes={
+                                if route == AppRoute::Users {
                                 "selected nav-link"
-                            } else {
+                                } else {
                                 "nav-link"
-                            }
-                        }>
-                            { language.get("Users") }
-                        </Link<AppRoute>>
+                                }
+                                }>
+                                { language.get("Users") }
+                            </Link<AppRoute>>
                             //{ "Contacts" }
                             //{ "Assets" }
                             //{ "Reports" }
-                    </div>
+                        </div>
                     </div>
                     <div class="nav-footer">
                         <div class="nav-theme-toggle">
-                          <ThemeToggle />
+                            <ThemeToggle />
                         </div>
                         <footer>
-                        <div class="container">
-                            <span class="footer">
-                                <a href="https://github.com/vgwidt/sumi"> { "Sumi Ticketing System" } </a>
-                            </span>
-                        </div>
-                    </footer>
+                            <div class="container">
+                                <span class="footer">
+                                    <a href="https://github.com/vgwidt/sumi"> { "Sumi Ticketing System" } </a>
+                                </span>
+                            </div>
+                        </footer>
                     </div>
                 </nav>
             </div>
