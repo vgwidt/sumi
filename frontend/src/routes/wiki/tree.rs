@@ -12,6 +12,7 @@ use crate::types::DocumentMetadata;
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
+    pub document_id: Option<Uuid>,
     pub uptodate: bool,
     pub updated: Callback<bool>,
 }
@@ -37,13 +38,13 @@ pub fn wiki_tree(props: &Props) -> Html {
     html! {
         <div class="wiki-tree">
             <ul>
-                {render_documents(&documents.as_ref().unwrap_or(&Vec::new()), None)}
+                {render_documents(&documents.as_ref().unwrap_or(&Vec::new()), None, &props)}
             </ul>
         </div>
     }
 }
 
-fn render_documents(documents: &Vec<DocumentMetadata>, parent_id: Option<Uuid>) -> Vec<VNode> {
+fn render_documents(documents: &Vec<DocumentMetadata>, parent_id: Option<Uuid>, props: &Props) -> Vec<VNode> {
     let mut children = Vec::new();
 
     //Loops through the documents, starting with the root documents
@@ -53,21 +54,33 @@ fn render_documents(documents: &Vec<DocumentMetadata>, parent_id: Option<Uuid>) 
         if document.parent_id == parent_id {
             let mut child = html! {
                 <li>
-                    <Link<AppRoute> to={AppRoute::WikiDoc { document_id: document.document_id.clone() }} classes="nav-link">
+                    <Link<AppRoute> to={AppRoute::WikiDoc { document_id: document.document_id.clone() }} classes={
+                        if props.document_id == Some(document.document_id) {
+                            "selected nav-link"
+                        } else {
+                            "nav-link"
+                        }
+                        }>
                         {&document.title}
                     </Link<AppRoute>>
                 </li>
             };
 
             //search subdocuments of the current document
-            let sub_children = render_documents(documents, Some(document.document_id));
+            let sub_children = render_documents(documents, Some(document.document_id), props);
 
             if !sub_children.is_empty() {
                 child = html! {
                     <li>
                         <details>
                             <summary>
-                                <Link<AppRoute> to={AppRoute::WikiDoc { document_id: document.document_id.clone() }} classes="nav-link">
+                                <Link<AppRoute> to={AppRoute::WikiDoc { document_id: document.document_id.clone() }} classes={
+                                    if props.document_id == Some(document.document_id) {
+                                        "selected nav-link"
+                                    } else {
+                                        "nav-link"
+                                    }
+                                    }>
                                     {&document.title}
                                 </Link<AppRoute>>
                             </summary>

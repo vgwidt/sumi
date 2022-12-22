@@ -6,6 +6,7 @@ use stylist::yew::styled_component;
 use uuid::Uuid;
 use yew::{html, use_state, Callback, Html, Properties};
 
+use crate::contexts::theme::use_theme;
 use crate::routes::wiki::document::WikiDocument;
 use crate::routes::wiki::tree::WikiTree;
 
@@ -16,6 +17,7 @@ pub struct Props {
 
 #[styled_component(Wiki)]
 pub fn wiki(props: &Props) -> Html {
+    let theme = use_theme();
     let uptodate = use_state(|| true);
 
     let style = style! {
@@ -46,7 +48,19 @@ pub fn wiki(props: &Props) -> Html {
         .wiki-tree summary {
             margin-left: -16px;
         }   
-        "#
+        .nav-link {
+            padding: 2px 8px;
+            text-decoration: none;
+            border: 1px solid transparent;
+          }
+          .selected {
+            border: 1px solid ${border};
+            border-radius: 8px;
+            background: ${bg};
+        }
+        "#,
+        bg = theme.background.clone(),
+        border = theme.border.clone(),
     }
     .expect("Failed to parse style");
 
@@ -63,7 +77,7 @@ pub fn wiki(props: &Props) -> Html {
     html! {
         <div class={style}>
             <div class="wiki">
-                <WikiTree uptodate={*uptodate} updated={callback_updated} />
+                <WikiTree document_id={props.document_id.clone()} uptodate={*uptodate} updated={callback_updated} />
                 <WikiDocument document_id={props.document_id.clone()} needs_update={callback_changed} />
             </div>
         </div>
