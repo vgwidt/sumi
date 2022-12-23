@@ -12,6 +12,7 @@ use crate::hooks::use_user_context;
 use crate::routes::AppRoute;
 use crate::services::{tickets::*, users::get_users};
 use crate::types::TicketListInfo;
+use crate::utils::timezone::display_time;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Filter {
@@ -260,12 +261,12 @@ pub fn ticket_list() -> Html {
                             </td>
                             <td>
                                 <span class="date">
-                                    { &ticket.created_at.format("%Y/%m/%d %H:%M") }
+                                    { display_time(&ticket.created_at, &user_ctx.timezone, "%Y/%m/%d %H:%M") }
                                 </span>
                             </td>
                             <td>
                                 <span class="date">
-                                    { &ticket.updated_at.format("%Y/%m/%d %H:%M") }
+                                    { display_time(&ticket.updated_at, &user_ctx.timezone, "%Y/%m/%d %H:%M") }
                                 </span>
                             </td>
                             <td>

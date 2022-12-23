@@ -32,6 +32,14 @@ impl UseUserContextHandle {
 
         self.inner.set(user);
     }
+
+    pub fn update_timezone(&self, timezone: String) {
+        let mut user = self.inner.deref().clone();
+
+        user.timezone = Some(timezone);
+
+        self.inner.set(user);
+    }
 }
 
 impl Deref for UseUserContextHandle {

@@ -5,6 +5,7 @@ use yew_router::prelude::use_navigator;
 
 use crate::components::logout::Logout;
 use crate::components::select_locale::SelectLanguage;
+use crate::components::select_timezone::SelectTimezone;
 use crate::hooks::{use_language_context, use_user_context};
 use crate::services::users::*;
 use crate::types::UserUpdateInfo;
@@ -206,6 +207,7 @@ pub fn settings(props: &Props) -> Html {
                 html! {
                     <div>
                         <SelectLanguage />
+                        <SelectTimezone />
                         <hr />
                         <Logout />
                     </div>

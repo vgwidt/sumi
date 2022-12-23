@@ -7,3 +7,4 @@ pub mod select_locale;
 pub mod select_theme;
 pub mod ticket_list;
 pub mod time_format;
+pub mod select_timezone;
