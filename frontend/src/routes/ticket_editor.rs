@@ -30,8 +30,6 @@ pub fn ticket_editor(props: &Props) -> Html {
     let error = use_state(|| String::new());
     let navigator = use_navigator().unwrap();
 
-    // Selecting Unassigned will set Uuid to Nil, which is then converted to none when updating ticket
-
     let userlist = match { use_future(|| async { get_users().await.unwrap_or_default() }) } {
         Ok(users) => users.clone(),
         Err(_) => vec![],
@@ -54,7 +52,12 @@ pub fn ticket_editor(props: &Props) -> Html {
                                     title: ticket.title.clone(),
                                     description: ticket.description.clone(),
                                     assignee: if let Some(assignee) = ticket.assignee {
-                                        Some(assignee.user_id)
+                                        //Selecting Unassigned will set Uuid to Nil, which is then converted to none when updating ticket
+                                        if assignee.user_id == Uuid::nil() {
+                                            None
+                                        } else {
+                                            Some(assignee.user_id)
+                                        }
                                     } else {
                                         None
                                     },
