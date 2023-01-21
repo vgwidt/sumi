@@ -16,13 +16,13 @@ impl ImplicitClone for ThemeKind {}
 impl ThemeKind {
     pub fn current(&self) -> &Theme {
         static LIGHT_THEME: Lazy<Theme> = Lazy::new(|| Theme {
-            font_color: "#222224".to_string(),
-            background: "#f6f6f2".to_string(),
-            secondary_background: "#f0f0ec".to_string(),
+            font_color: "#181820".to_string(),
+            background: "#fdfdfe".to_string(),
+            secondary_background: "#f1f1f6".to_string(),
             link_color: "#282830".to_string(),
             logo_inversion: "5%".to_string(),
-            input_background: "#F9F9F7".to_string(),
-            code_background: "#ebebe7".to_string(),
+            input_background: "#FFFFFF".to_string(),
+            code_background: "#eeeff7".to_string(),
             border: "#404752".to_string(),
         });
 
@@ -36,6 +36,18 @@ impl ThemeKind {
             code_background: "#101010".to_string(),
             border: "#404752".to_string(),
         });
+
+        // Old light theme
+        // static WASHI_THEME: Lazy<Theme> = Lazy::new(|| Theme {
+        //     font_color: "#222224".to_string(),
+        //     background: "#f6f6f2".to_string(),
+        //     secondary_background: "#f0f0ec".to_string(),
+        //     link_color: "#282830".to_string(),
+        //     logo_inversion: "5%".to_string(),
+        //     input_background: "#F9F9F7".to_string(),
+        //     code_background: "#ebebe7".to_string(),
+        //     border: "#404752".to_string(),
+        // });
 
         match self {
             ThemeKind::Dark => &DARK_THEME,

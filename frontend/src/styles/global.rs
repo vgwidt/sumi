@@ -38,7 +38,8 @@ pub fn global_style() -> Html {
             input {
                 background-color: ${input_bg};
                 border-radius: 4px;
-                border: none;
+                border-width: 1px;
+                border-style: solid;
                 color: ${text};
                 display: block;
                 padding: 8px;
@@ -48,7 +49,8 @@ pub fn global_style() -> Html {
             textarea {
                 background-color: ${input_bg};
                 border-radius: 4px;
-                border: none;
+                border-width: 1px;
+                border-style: solid;
                 color: ${text};
                 display: block;
                 padding: 8px;

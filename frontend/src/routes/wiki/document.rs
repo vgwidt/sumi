@@ -232,13 +232,11 @@ pub fn wiki_document(props: &Props) -> Html {
         }
         input {
             width: 95%;
-            border: none;
             padding: 12px;
             margin-bottom: 12px;
         }
         textarea {
             width: 95%;
-            border: none;
             padding: 12px;
         }
         "#
