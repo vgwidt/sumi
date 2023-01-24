@@ -75,6 +75,7 @@ pub struct MyUser {
     pub theme: Option<String>,
     pub locale: Option<String>,
     pub timezone: Option<String>,
+    pub custom_views: serde_json::Value,
 }
 
 // User Preferences
@@ -85,6 +86,7 @@ pub struct UserPreferences {
     pub theme: Option<String>,
     pub locale: Option<String>,
     pub timezone: Option<String>,
+    pub custom_views: serde_json::Value,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -92,12 +94,14 @@ pub struct UserPreferencesRepresentation {
     pub theme: Option<String>,
     pub locale: Option<String>,
     pub timezone: Option<String>,
+    pub custom_views: serde_json::Value,
 }
 
-#[derive(Debug, Insertable, AsChangeset, Deserialize)]
+#[derive(Debug, Insertable, AsChangeset, Deserialize, Serialize)]
 #[diesel(table_name = user_preferences)]
 pub struct UpdateUserPreferences {
     pub theme: Option<String>,
     pub locale: Option<String>,
     pub timezone: Option<String>,
+    pub custom_views: Option<serde_json::Value>,
 }

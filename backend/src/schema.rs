@@ -69,6 +69,7 @@ diesel::table! {
         theme -> Nullable<Text>,
         locale -> Nullable<Text>,
         timezone -> Nullable<Text>,
+        custom_views -> Jsonb,
     }
 }
 

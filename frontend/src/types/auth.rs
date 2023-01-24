@@ -62,4 +62,5 @@ pub struct MyUser {
     pub theme: Option<String>,
     pub locale: Option<String>,
     pub timezone: Option<String>,
+    pub custom_views: serde_json::Value,
 }

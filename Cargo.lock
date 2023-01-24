@@ -776,6 +776,7 @@ dependencies = [
  "itoa 1.0.3",
  "pq-sys",
  "r2d2",
+ "serde_json",
  "uuid",
 ]
 

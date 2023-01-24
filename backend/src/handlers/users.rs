@@ -7,6 +7,7 @@ use secrecy::ExposeSecret;
 use uuid::Uuid;
 
 use crate::models::session::TypedSession;
+use crate::schema::user_preferences::custom_views;
 use crate::{
     authentication::{check_password_reqs, compute_password_hash},
     models::users::{
@@ -248,6 +249,7 @@ pub fn get_my_info(id: Uuid, conn: &mut PgConnection) -> Result<MyUser, DbError>
             theme,
             locale,
             timezone,
+            custom_views,
         ))
         .first::<MyUser>(conn)?;
 

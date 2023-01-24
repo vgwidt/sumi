@@ -47,7 +47,7 @@ async fn update_preferences(
     }
 }
 
-fn get_user_preferences(
+pub fn get_user_preferences(
     id: Uuid,
     conn: &mut PgConnection,
 ) -> Result<UserPreferencesRepresentation, DbError> {
@@ -59,6 +59,7 @@ fn get_user_preferences(
         theme: preferences.theme,
         locale: preferences.locale,
         timezone: preferences.timezone,
+        custom_views: preferences.custom_views,
     };
 
     Ok(preferences)
@@ -70,6 +71,7 @@ fn update_user_preferences(
     conn: &mut PgConnection,
 ) -> Result<UserPreferences, DbError> {
     use crate::schema::user_preferences::dsl::*;
+
 
     let preferences = diesel::update(user_preferences.filter(user_id.eq(id)))
         .set(&payload)
