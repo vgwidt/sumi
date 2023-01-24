@@ -20,14 +20,14 @@ impl LanguageKind {
         match &self {
             LanguageKind::English => {
                 static ENGLISH_LANGUAGE: Lazy<Language> = Lazy::new(|| Language {
-                    strings: serde_json::from_str(include_str!("../i18n/en_US.json"))
+                    strings: serde_json::from_str(include_str!("../../i18n/en_US.json"))
                         .unwrap_or_default(),
                 });
                 &ENGLISH_LANGUAGE
             }
             LanguageKind::Japanese => {
                 static JAPANESE_LANGUAGE: Lazy<Language> = Lazy::new(|| Language {
-                    strings: serde_json::from_str(include_str!("../i18n/ja_JP.json"))
+                    strings: serde_json::from_str(include_str!("../../i18n/ja_JP.json"))
                         .unwrap_or_default(),
                 });
                 &JAPANESE_LANGUAGE
