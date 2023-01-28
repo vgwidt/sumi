@@ -99,12 +99,8 @@ async fn update(
         update_note(id.into_inner(), payload.into_inner(), &mut conn)
     })
     .await?
-    .map(|x| {
-        x.into_iter()
-            .map(NoteRepresentation::from)
-            .collect::<Vec<NoteRepresentation>>()
-    })
     .map_err(actix_web::error::ErrorInternalServerError)?;
+    
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -187,7 +183,7 @@ fn update_note(
     id: Uuid,
     payload: NotePayload,
     conn: &mut PgConnection,
-) -> Result<Vec<(Note, Option<User>)>, DbError> {
+) -> Result<NoteRepresentation, DbError> {
     use crate::schema::notes::dsl::*;
     use crate::schema::users::dsl::users;
 
@@ -195,10 +191,12 @@ fn update_note(
         .set(text.eq(payload.text))
         .get_result(conn)?;
 
-    let note: Vec<(Note, Option<User>)> = notes
+    let note: (Note, Option<User>) = notes
         .filter(note_id.eq(result.note_id))
         .left_join(users)
-        .load::<(Note, Option<User>)>(conn)?;
+        .first::<(Note, Option<User>)>(conn)?;
+
+    let note = NoteRepresentation::from(note);
 
     Ok(note)
 }

@@ -65,6 +65,22 @@ pub fn note_list(props: &Props) -> Html {
         })
     };
 
+    //Simple workaround to update the note list when a note is updated
+    //To-do: callback values will be used to update the note list without sending new API request
+    let callback_updated = {
+        let note_list = note_list.clone();
+        let props = props.clone();
+        Callback::from(move |_| {
+            let note_list = note_list.clone();
+            let props = props.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let notes = get_notes(props.ticket_id).await.unwrap();
+                note_list.set(notes);
+            });
+        })
+    };
+
+
     let inputnode = html! {
     <div>
         <NoteInput
@@ -127,7 +143,9 @@ pub fn note_list(props: &Props) -> Html {
                                 <Note
                                     ticket_id={props.ticket_id.clone()}
                                     note={note.clone()}
-                                    callback={callback_deleted.clone()} />
+                                    callback={callback_deleted.clone()} 
+                                    callback_updated={callback_updated.clone()}
+                                    />
                             }
                         })}
                     </div>
