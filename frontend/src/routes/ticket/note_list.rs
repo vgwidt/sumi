@@ -7,6 +7,7 @@ use super::note_input::NoteInput;
 use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::services::tickets::get_notes;
+use crate::types::NoteInfo;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -64,6 +65,20 @@ pub fn note_list(props: &Props) -> Html {
             });
         })
     };
+
+    let callback_updated = {
+        let note_list = note_list.clone();
+        let props = props.clone();
+        Callback::from(move |updated_note: NoteInfo| {
+            let note_list = note_list.clone();
+            let props = props.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let notes = get_notes(props.ticket_id).await.unwrap();
+                note_list.set(notes);
+            });
+        })
+    };
+
 
     let inputnode = html! {
     <div>
@@ -127,7 +142,9 @@ pub fn note_list(props: &Props) -> Html {
                                 <Note
                                     ticket_id={props.ticket_id.clone()}
                                     note={note.clone()}
-                                    callback={callback_deleted.clone()} />
+                                    callback={callback_deleted.clone()} 
+                                    callback_updated={callback_updated.clone()}
+                                    />
                             }
                         })}
                     </div>
