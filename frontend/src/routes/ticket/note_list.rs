@@ -7,7 +7,6 @@ use super::note_input::NoteInput;
 use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::services::tickets::get_notes;
-use crate::types::NoteInfo;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -66,10 +65,12 @@ pub fn note_list(props: &Props) -> Html {
         })
     };
 
+    //Simple workaround to update the note list when a note is updated
+    //To-do: callback values will be used to update the note list without sending new API request
     let callback_updated = {
         let note_list = note_list.clone();
         let props = props.clone();
-        Callback::from(move |updated_note: NoteInfo| {
+        Callback::from(move |_| {
             let note_list = note_list.clone();
             let props = props.clone();
             wasm_bindgen_futures::spawn_local(async move {

@@ -7,7 +7,7 @@ use crate::components::time_format::TimeFormat;
 use crate::services::notes::update_note;
 use crate::types::{NoteInfo, NoteCreateInfo};
 use crate::utils::markdown_to_html;
-use crate::hooks::{use_language_context, use_user_context};
+use crate::hooks::use_language_context;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -20,7 +20,6 @@ pub struct Props {
 #[styled_component(Note)]
 pub fn note(props: &Props) -> Html {
     let note = &props.note;
-    let user_ctx = use_user_context();
     let language = use_language_context();
     let edit_mode = use_state(|| false);
     let submitted = use_state(|| false);
