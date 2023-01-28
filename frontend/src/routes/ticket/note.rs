@@ -134,7 +134,6 @@ pub fn note(props: &Props) -> Html {
                             </button>
                             </div>
                         </form>
-
                     </div>
                 }
             } else {
