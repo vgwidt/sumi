@@ -18,6 +18,7 @@ pub fn ticket_menu(props: &Props) -> Html {
     let navigator = use_navigator().unwrap();
 
     let callback_deleted = {
+        let navigator = navigator.clone();
         Callback::from(move |_| {
             navigator.push(&AppRoute::Home);
         })
@@ -56,6 +57,14 @@ pub fn ticket_menu(props: &Props) -> Html {
     )
     .expect("Failed to parse style");
 
+    let onclick_edit = {
+        let ticket_id = props.ticket_id.clone();
+        let navigator = navigator.clone();
+        Callback::from(move |_| {
+            navigator.push(&AppRoute::Editor { ticket_id });
+        })
+    };
+
     html! {
         <span class={style}>
             <div class="dropdown">
@@ -63,10 +72,9 @@ pub fn ticket_menu(props: &Props) -> Html {
                 // { "Actions" }
                 // </span>
                 //<div class="dropdown-content">
-                    <Link<AppRoute> to={AppRoute::Editor { ticket_id: props.ticket_id.clone() }} classes="btn" >
-                        { "Edit Ticket" }
-                    </Link<AppRoute>>
-
+                <button class="btn" onclick={onclick_edit}>
+                { "Edit Ticket" }
+                </button>
                 //     <button class="btn" onclick={onclick_toggle_status}>
                 //         //if ticket_status is open, show close ticket, else show open ticket
                 //         { if props.ticket_status != "Closed" { "Close Ticket" } else { "Open Ticket" } }

@@ -76,10 +76,7 @@ pub fn global_style() -> Html {
                 border: none;
                 justify-content: center;
                 min-width: 60px;
-              }
-              a.btn {
-                color: #e9e7e7;
-              }
+            }
             .btn:hover {
                 background-color: #5c5c8d;
                 cursor: pointer;

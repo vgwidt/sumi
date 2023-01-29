@@ -5,6 +5,7 @@ use yew::prelude::*;
 use yew::suspense::use_future;
 use yew::suspense::use_future_with_deps;
 use yew_router::prelude::Link;
+use yew_router::prelude::use_navigator;
 
 use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
@@ -53,6 +54,7 @@ pub fn ticket_list() -> Html {
     let user_ctx = use_user_context();
     let language = use_language_context();
     let theme = use_theme();
+    let navigator = use_navigator().unwrap();
     //let ticket_list = use_state(|| TicketListInfo::default());
 
     //For auto-updating the ticket list
@@ -124,6 +126,13 @@ pub fn ticket_list() -> Html {
         })
     };
 
+    let onclick_new = {
+        let navigator = navigator.clone();
+        Callback::from(move |_| {
+            navigator.push(&AppRoute::EditorCreate);
+        })
+    };
+
     let ticket_table_style = style!(
         r#"
         table.ticket-table {
@@ -191,9 +200,9 @@ pub fn ticket_list() -> Html {
         <div style="margin: 2px 16px;">
             <div class="ticket-filters" style="display: flex; align-items: center;">
                 <div>
-                    <Link<AppRoute> to={AppRoute::EditorCreate} classes="btn">
+                    <button class="btn" onclick={onclick_new}>
                         { language.get("New Ticket") }
-                    </Link<AppRoute>>
+                    </button>
                 </div>
                 <div>
                     <label style="margin-left: 8px;" for="assignee">{"Assignee: "}</label>
