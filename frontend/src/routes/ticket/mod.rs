@@ -84,7 +84,7 @@ pub fn ticket(props: &Props) -> Html {
                         <span class="ticket-id">{"(#"}{&ticket.ticket_id}{") "}</span>
                         <span class="title">{&ticket.title}</span>
                         <span>
-                        <TicketMenu ticket_id={props.ticket_id} ticket_status={ticket.status.clone()}/>
+                        <TicketMenu ticket_id={props.ticket_id} ticket_status={ticket.status.clone() } />
                         </span>
                     </div>
                     <div class="assignee">

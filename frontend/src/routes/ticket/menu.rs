@@ -4,6 +4,8 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::components::delete::DeleteItem;
+use crate::contexts::theme::use_theme;
+use crate::hooks::use_language_context;
 use crate::routes::AppRoute;
 
 #[derive(Properties, Clone, PartialEq)]
@@ -15,7 +17,10 @@ pub struct Props {
 //Needs to be refactored to use new delete component
 #[styled_component(TicketMenu)]
 pub fn ticket_menu(props: &Props) -> Html {
+    let theme = use_theme();
     let navigator = use_navigator().unwrap();
+    let dropdown = use_state(|| false);
+    let language = use_language_context();
 
     let callback_deleted = {
         let navigator = navigator.clone();
@@ -23,37 +28,25 @@ pub fn ticket_menu(props: &Props) -> Html {
             navigator.push(&AppRoute::Home);
         })
     };
-
-    // let style = style!(
-    //     r#"
-    //     .dropdown {
-    //         position: relative;
-    //         float: right;
-    //         padding: 12px 16px;
-    //       }
-
-    //       .dropdown-content {
-    //         display: none;
-    //         position: absolute;
-    //         min-width: 160px;
-    //         padding: 12px 16px;
-    //         z-index: 1;
-    //       }
-    //       .dropdown:hover .dropdown-content {
-    //         display: block;
-    //       }
-    //       "#,
-    // )
-    // .expect("Failed to parse style");
-
+    // use display: none; if not using state
     let style = style!(
         r#"
         .dropdown {
             position: relative;
             float: right;
-            display: inline-block;
+          }
+        .dropdown-content .btn {
+            min-width: 100px;
+          }
+        .btn-action {
+            font-size: 16px;
+            min-width: 100px;
+          }
+        .btn-action:hover {
+            border: 1px solid ${border};
         }
-        "#,
+          "#,
+        border = theme.border.clone(),
     )
     .expect("Failed to parse style");
 
@@ -65,25 +58,39 @@ pub fn ticket_menu(props: &Props) -> Html {
         })
     };
 
+    let onclick_dropdown = {
+        let dropdown = dropdown.clone();
+        Callback::from(move |_| {
+            dropdown.set(!*dropdown);
+        })
+    };
+
     html! {
         <span class={style}>
             <div class="dropdown">
-                // <span>
-                // { "Actions" }
-                // </span>
-                //<div class="dropdown-content">
-                <button class="btn" onclick={onclick_edit}>
-                { "Edit Ticket" }
+                <button class="btn-action" onclick={onclick_dropdown}>
+                    { language.get("Actions") }
                 </button>
-                //     <button class="btn" onclick={onclick_toggle_status}>
-                //         //if ticket_status is open, show close ticket, else show open ticket
-                //         { if props.ticket_status != "Closed" { "Close Ticket" } else { "Open Ticket" } }
-                //     </button>
-                <DeleteItem
-                    item_id={props.ticket_id.to_string()}
-                    item_type={crate::components::delete::ItemTypes::Ticket}
-                    callback={callback_deleted}
-                />
+                { if *dropdown { html! {
+                <div class="dropdown-content">
+                    <div>
+                        <button class="btn" onclick={onclick_edit}>
+                        { language.get("Edit") }
+                        </button>
+                        // <button class="btn" onclick={onclick_toggle_status}>
+                        //     //if ticket_status is open, show close ticket, else show open ticket
+                        //     { if props.ticket_status != "Closed" { "Close Ticket" } else { "Open Ticket" } }
+                        // </button>
+                    </div>
+                    <div>
+                    <DeleteItem
+                        item_id={props.ticket_id.to_string()}
+                        item_type={crate::components::delete::ItemTypes::Ticket}
+                        callback={callback_deleted}
+                    />
+                    </div>
+                </div>
+                } } else { html! {} } }
             </div>
         </span>
 
