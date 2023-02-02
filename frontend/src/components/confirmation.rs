@@ -1,5 +1,6 @@
 use crate::contexts::theme;
 use stylist::{style, yew::styled_component};
+use wasm_bindgen::JsCast;
 use yew::prelude::*;
 
 #[derive(Properties, Clone, PartialEq)]
@@ -12,8 +13,21 @@ pub struct Props {
 pub fn confirmation(props: &Props) -> Html {
     let theme = theme::use_theme();
 
+    let page_cover = style!(
+        r#"
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 10;
+        "#,
+    ).expect("Failed to parse style");
+
     let style = style!(
         r#"
+        position: absolute;
         .confirmation {
             position: fixed;
             top: 50%;
@@ -28,6 +42,7 @@ pub fn confirmation(props: &Props) -> Html {
             font-size: 1.2rem;
             font-weight: 600;
             color: ${text};
+            z-index: 11;
         }
         "#,
         bg = theme.secondary_background.clone(),
@@ -50,7 +65,28 @@ pub fn confirmation(props: &Props) -> Html {
         })
     };
 
+    let onclick = {
+        let callback = props.callback.clone();
+        Callback::from(move |_| {
+            let element = web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .active_element()
+                .unwrap();
+            let element = element.dyn_into::<web_sys::HtmlElement>().unwrap();
+            let class = element.class_name();
+            if !class.contains("confirmation") {
+                callback.emit(false);
+            }
+        })
+    };
+
+
     html! {
+        //cover whole page with invisible div to close dropdown when clicking outside of it
+        <>
+        <div class={page_cover} onclick={onclick}></div>
         <div class={style}>
             <div class="confirmation">
                 <div class="confirmation-text">{&props.message}</div>
@@ -62,5 +98,6 @@ pub fn confirmation(props: &Props) -> Html {
                 </div>
               </div>
         </div>
+        </>
     }
 }
