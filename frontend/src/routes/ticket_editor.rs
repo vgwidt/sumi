@@ -145,7 +145,12 @@ pub fn ticket_editor(props: &Props) -> Html {
         Callback::from(move |e: Event| {
             let input: HtmlSelectElement = e.target_unchecked_into();
             let mut info = (*update_info).clone();
-            info.assignee = input.value().parse().ok();
+            //if Uuid is nil, assignee is set to None
+            if input.value() == Uuid::nil().to_string() {
+                info.assignee = None;
+            } else {
+                info.assignee = input.value().parse().ok();
+            }
             update_info.set(info);
         })
     };
