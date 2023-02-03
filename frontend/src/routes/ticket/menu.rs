@@ -39,6 +39,7 @@ pub fn ticket_menu(props: &Props) -> Html {
           }
         .dropdown-content .btn {
             min-width: 100px;
+            background-color: ${background};
           }
         .btn-action {
             font-size: 16px;
@@ -47,7 +48,11 @@ pub fn ticket_menu(props: &Props) -> Html {
         .btn-action:hover {
             border: 1px solid ${border};
         }
+        .btn-action-active {
+            border: 1px solid ${border};
+        }
           "#,
+        background = theme.menu_background.clone(),
         border = theme.border.clone(),
     )
     .expect("Failed to parse style");
@@ -71,6 +76,7 @@ pub fn ticket_menu(props: &Props) -> Html {
         let ticket_id = props.ticket_id.clone();
         let ticket_status = props.ticket_status.clone();
         Callback::from(move |_| {
+            let navigator = navigator.clone();
             let ticket = TicketStatusInfo {
                 status: if ticket_status == "Closed" {
                     "Open".to_string()
@@ -83,7 +89,7 @@ pub fn ticket_menu(props: &Props) -> Html {
                 let res = update_status(ticket_id, &ticket).await;
                 match res {
                     Ok(_) => {
-                        //navigator.push(&AppRoute::Ticket { ticket_id });
+                        navigator.push(&AppRoute::Home);
                     }
                     Err(e) => {
                         log::error!("Error updating ticket status: {}", e);
@@ -96,7 +102,8 @@ pub fn ticket_menu(props: &Props) -> Html {
     html! {
         <span class={style}>
             <div class="dropdown">
-                <button class="btn-action" onclick={onclick_dropdown}>
+                <button class={ if *dropdown { "btn-action btn-action-active" } else { "btn-action" } 
+                } onclick={onclick_dropdown}>
                     { language.get("Actions") }
                 </button>
                 { if *dropdown { html! {
@@ -108,7 +115,7 @@ pub fn ticket_menu(props: &Props) -> Html {
                     <div>
                         <button class="btn" onclick={onclick_toggle_status}>
                             //if ticket_status is open, show close ticket, else show open ticket
-                            { if props.ticket_status != "Closed" { "Close Ticket" } else { "Open Ticket" } }
+                            { if props.ticket_status != "Closed" { "Close Ticket" } else { "Re-open Ticket" } }
                         </button>
                     </div>
                     </div>

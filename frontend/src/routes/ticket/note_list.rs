@@ -102,7 +102,7 @@ pub fn note_list(props: &Props) -> Html {
             flex-direction: column;
             margin: 0.75rem 0;
             border-radius: 0.5rem;
-            border: 1px solid #404752;
+            border: 1px solid ${border};
         }
         .timeformat {
             font-size: 0.8rem;
