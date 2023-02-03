@@ -78,12 +78,12 @@ pub fn delete_item(props: &Props) -> Html {
         })
     };
 
-    let onclick_cancel = {
-        let confirmation_pending = confirmation_pending.clone();
-        Callback::from(move |_| {
-            confirmation_pending.set(false);
-        })
-    };
+    // let onclick_cancel = {
+    //     let confirmation_pending = confirmation_pending.clone();
+    //     Callback::from(move |_| {
+    //         confirmation_pending.set(false);
+    //     })
+    // };
 
     {
         let callback = props.callback.clone();
@@ -106,7 +106,7 @@ pub fn delete_item(props: &Props) -> Html {
             <button class="btn" onclick={onclick}>{language.get("Delete")}</button>
         { if *confirmation_pending {
             html! {
-                <span onclick={onclick_cancel.clone()}>
+                <span>
                 <Confirmation
                     message={message.clone()} callback={Callback::from(move |confirmed| {
                         if confirmed {

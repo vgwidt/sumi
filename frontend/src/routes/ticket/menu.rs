@@ -70,7 +70,6 @@ pub fn ticket_menu(props: &Props) -> Html {
     let onclick_toggle_status = {
         let ticket_id = props.ticket_id.clone();
         let ticket_status = props.ticket_status.clone();
-        let navigator = navigator.clone();
         Callback::from(move |_| {
             let ticket = TicketStatusInfo {
                 status: if ticket_status == "Closed" {

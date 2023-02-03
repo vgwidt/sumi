@@ -1,6 +1,5 @@
 use crate::contexts::theme;
 use stylist::{style, yew::styled_component};
-use wasm_bindgen::JsCast;
 use yew::prelude::*;
 
 #[derive(Properties, Clone, PartialEq)]
@@ -68,17 +67,7 @@ pub fn confirmation(props: &Props) -> Html {
     let onclick = {
         let callback = props.callback.clone();
         Callback::from(move |_| {
-            let element = web_sys::window()
-                .unwrap()
-                .document()
-                .unwrap()
-                .active_element()
-                .unwrap();
-            let element = element.dyn_into::<web_sys::HtmlElement>().unwrap();
-            let class = element.class_name();
-            if !class.contains("confirmation") {
-                callback.emit(false);
-            }
+            callback.emit(false);
         })
     };
 
@@ -93,7 +82,7 @@ pub fn confirmation(props: &Props) -> Html {
                 <div class="confirmation-buttons">
                 <form>
                     <button class="btn" type="submit" value="true" onclick={onclick_true}>{ "Yes" }</button>
-                    <button class="btn" type="submit" value ="false"  onclick={onclick_false.clone()}>{ "No" }</button>
+                    <button class="btn" type="submit" value ="false"  onclick={onclick_false}>{ "No" }</button>
                 </form>
                 </div>
               </div>
