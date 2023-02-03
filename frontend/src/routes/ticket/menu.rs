@@ -7,6 +7,8 @@ use crate::components::delete::DeleteItem;
 use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::routes::AppRoute;
+use crate::services::tickets::update_status;
+use crate::types::TicketStatusInfo;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -65,6 +67,33 @@ pub fn ticket_menu(props: &Props) -> Html {
         })
     };
 
+    let onclick_toggle_status = {
+        let ticket_id = props.ticket_id.clone();
+        let ticket_status = props.ticket_status.clone();
+        let navigator = navigator.clone();
+        Callback::from(move |_| {
+            let ticket = TicketStatusInfo {
+                status: if ticket_status == "Closed" {
+                    "Open".to_string()
+                } else {
+                    "Closed".to_string()
+                },
+            };
+            //async block
+            wasm_bindgen_futures::spawn_local(async move {
+                let res = update_status(ticket_id, &ticket).await;
+                match res {
+                    Ok(_) => {
+                        //navigator.push(&AppRoute::Ticket { ticket_id });
+                    }
+                    Err(e) => {
+                        log::error!("Error updating ticket status: {}", e);
+                    }
+                }
+            });
+        })
+    };
+
     html! {
         <span class={style}>
             <div class="dropdown">
@@ -77,10 +106,12 @@ pub fn ticket_menu(props: &Props) -> Html {
                         <button class="btn" onclick={onclick_edit}>
                         { language.get("Edit") }
                         </button>
-                        // <button class="btn" onclick={onclick_toggle_status}>
-                        //     //if ticket_status is open, show close ticket, else show open ticket
-                        //     { if props.ticket_status != "Closed" { "Close Ticket" } else { "Open Ticket" } }
-                        // </button>
+                    <div>
+                        <button class="btn" onclick={onclick_toggle_status}>
+                            //if ticket_status is open, show close ticket, else show open ticket
+                            { if props.ticket_status != "Closed" { "Close Ticket" } else { "Open Ticket" } }
+                        </button>
+                    </div>
                     </div>
                     <div>
                     <DeleteItem

@@ -91,3 +91,9 @@ pub async fn get_notes(ticket_id: i32) -> Result<Vec<NoteInfo>, Error> {
 
     Ok(notes)
 }
+
+//update status of a ticket
+pub async fn update_status(ticket_id: i32, status: &TicketStatusInfo) -> Result<TicketInfo, Error> {
+    request_put::<&TicketStatusInfo, TicketInfo>(format!("/tickets/{}", ticket_id), status)
+        .await
+}

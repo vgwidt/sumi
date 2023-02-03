@@ -58,6 +58,11 @@ impl TicketCreateUpdateInfo {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct TicketStatusInfo {
+    pub status: String,
+}
+
 //impl TicketStatus {
 //     pub fn to_string(&self) -> String {
 //         match self {

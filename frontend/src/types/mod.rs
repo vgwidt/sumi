@@ -5,7 +5,7 @@ mod response;
 mod tickets;
 mod users;
 
-pub use tickets::{TicketCreateUpdateInfo, TicketInfo, TicketInfoWrapper, TicketListInfo};
+pub use tickets::{TicketCreateUpdateInfo, TicketInfo, TicketInfoWrapper, TicketListInfo, TicketStatusInfo};
 
 pub use auth::{
     LoginInfo, MyUser, RegisterInfo, RegisterInfoWrapper, UserInfo, UserUpdateInfo,

@@ -128,7 +128,7 @@ pub fn global_style() -> Html {
                 transition: 0.1s;
             }
             .dropdown-content .btn {
-                background-color: ${nav_bg};
+                background-color: inherit;
                 color: ${text};
                 border: none;
                 padding: 6px;
