@@ -69,14 +69,20 @@ impl From<(Ticket, Option<User>)> for TicketRepresentation {
         Self {
             ticket_id: values.0.ticket_id,
             title: values.0.title,
-            assignee: Some(SomeUserRepresentation {
-                user_id: Some(values.1.clone().unwrap_or_default().user_id),
-                username: Some(values.1.clone().unwrap_or_default().username),
-                display_name: Some(values.1.clone().unwrap_or_default().display_name),
-                email: Some(values.1.clone().unwrap_or_default().email),
-                created_at: Some(values.1.clone().unwrap_or_default().created_at),
-                access: Some(values.1.clone().unwrap_or_default().access),
-            }),
+            assignee: {
+                if let Some(user) = values.1 {
+                    Some(SomeUserRepresentation {
+                        user_id: Some(user.user_id),
+                        username: Some(user.username),
+                        display_name: Some(user.display_name),
+                        email: Some(user.email),
+                        created_at: Some(user.created_at),
+                        access: Some(user.access),
+                    })
+                } else {
+                    None
+                }
+            },
             contact: values.0.contact,
             description: values.0.description,
             created_at: values.0.created_at,

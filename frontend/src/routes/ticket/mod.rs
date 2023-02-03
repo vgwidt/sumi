@@ -89,7 +89,11 @@ pub fn ticket(props: &Props) -> Html {
                     </div>
                     <div class="assignee">
                         { "Assigned to: " }
-                        { ticket.assignee.as_ref().unwrap().display_name.clone() }
+                        { if ticket.assignee.is_some() {
+                            html!  { ticket.assignee.as_ref().unwrap().display_name.clone() }
+                        } else {
+                            html! { "Unassigned" }
+                        } }
                     </div>
                     <div class="created-date">
                         { "Created " }

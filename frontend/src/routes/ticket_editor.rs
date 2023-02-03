@@ -52,12 +52,7 @@ pub fn ticket_editor(props: &Props) -> Html {
                                     title: ticket.title.clone(),
                                     description: ticket.description.clone(),
                                     assignee: if let Some(assignee) = ticket.assignee {
-                                        //Selecting Unassigned will set Uuid to Nil, which is then converted to none when updating ticket
-                                        if assignee.user_id == Uuid::nil() {
-                                            None
-                                        } else {
-                                            Some(assignee.user_id)
-                                        }
+                                       Some(assignee.user_id)
                                     } else {
                                         None
                                     },
