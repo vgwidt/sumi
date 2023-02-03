@@ -8,12 +8,13 @@ use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::routes::AppRoute;
 use crate::services::tickets::update_status;
-use crate::types::TicketStatusInfo;
+use crate::types::{TicketStatusInfo, TicketInfo};
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub ticket_id: i32,
     pub ticket_status: String,
+    pub callback: Callback<TicketInfo>,
 }
 
 //Needs to be refactored to use new delete component
@@ -38,12 +39,12 @@ pub fn ticket_menu(props: &Props) -> Html {
             float: right;
           }
         .dropdown-content .btn {
-            min-width: 100px;
+            min-width: 120px;
             background-color: ${background};
           }
         .btn-action {
             font-size: 16px;
-            min-width: 100px;
+            min-width: 120px;
           }
         .btn-action:hover {
             border: 1px solid ${border};
@@ -75,8 +76,9 @@ pub fn ticket_menu(props: &Props) -> Html {
     let onclick_toggle_status = {
         let ticket_id = props.ticket_id.clone();
         let ticket_status = props.ticket_status.clone();
+        let props = props.clone();
         Callback::from(move |_| {
-            let navigator = navigator.clone();
+            let props = props.clone();
             let ticket = TicketStatusInfo {
                 status: if ticket_status == "Closed" {
                     "Open".to_string()
@@ -86,10 +88,13 @@ pub fn ticket_menu(props: &Props) -> Html {
             };
             //async block
             wasm_bindgen_futures::spawn_local(async move {
+
                 let res = update_status(ticket_id, &ticket).await;
                 match res {
-                    Ok(_) => {
-                        navigator.push(&AppRoute::Home);
+                    Ok(ticket) => {
+                        //navigator.push(&AppRoute::Home);
+                        //callback to parent component
+                        props.callback.emit(ticket);
                     }
                     Err(e) => {
                         log::error!("Error updating ticket status: {}", e);

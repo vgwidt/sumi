@@ -70,9 +70,32 @@ pub fn ticket(props: &Props) -> Html {
         .note-list {
             margin-top: 16px;
         }
+        .status-badge {
+            margin-left: 6px;
+            padding: 4px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1px solid;
+        }
+        .status-Open {
+            background-color:rgba(0, 255, 0, 0.4);
+        }
+        .status-Closed {
+            background-color:rgba(255, 0, 0, 0.4);
+        }
           "#,
     )
     .expect("Failed to parse style");
+
+    let callback_updated = {
+        //we receive the new TicketInfo from callback, so we can just set it
+        let ticket = ticket.clone();
+        Callback::from(move |new_ticket: TicketInfo| {
+            ticket.set(new_ticket);
+        })
+    };
 
     //Default ticket id is 0, so we don't want to render anything until we have a valid ticket id
     //If we change this we need to fix our unwraps
@@ -83,8 +106,9 @@ pub fn ticket(props: &Props) -> Html {
                     <div class="header">
                         <span class="ticket-id">{"(#"}{&ticket.ticket_id}{") "}</span>
                         <span class="title">{&ticket.title}</span>
+                        <span class={format!("status-badge status-{}", ticket.status.clone())}>{&ticket.status}</span>
                         <span>
-                        <TicketMenu ticket_id={props.ticket_id} ticket_status={ticket.status.clone() } />
+                        <TicketMenu ticket_id={props.ticket_id} ticket_status={ticket.status.clone()} callback={callback_updated} />
                         </span>
                     </div>
                     <div class="assignee">
