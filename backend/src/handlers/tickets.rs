@@ -6,7 +6,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::models::{
-    tickets::{NewTicket, Ticket, TicketFilterPayload, TicketPayload, TicketRepresentation},
+    tickets::{NewTicket, Ticket, TicketFilterPayload, TicketPayload, TicketRepresentation, TicketUpdatePayload},
     users::User,
     Response,
 };
@@ -132,7 +132,7 @@ async fn show(id: web::Path<i32>, pool: web::Data<DbPool>) -> Result<HttpRespons
 #[put("/tickets/{id}")]
 async fn update(
     id: web::Path<i32>,
-    payload: web::Json<TicketPayload>,
+    payload: web::Json<TicketUpdatePayload>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
     let ticket = web::block(move || {
@@ -254,7 +254,7 @@ fn find_by_id(id: i32, conn: &mut PgConnection) -> Result<Vec<(Ticket, Option<Us
 
 fn update_ticket(
     id: i32,
-    ticket: TicketPayload,
+    ticket: TicketUpdatePayload,
     conn: &mut PgConnection,
 ) -> Result<Vec<(Ticket, Option<User>)>, DbError> {
     use crate::schema::tickets::dsl::*;
@@ -262,13 +262,8 @@ fn update_ticket(
 
     let result: Ticket = diesel::update(tickets.find(id))
         .set((
-            title.eq(&ticket.title),
-            assignee.eq(ticket.assignee),
-            contact.eq(ticket.contact),
-            description.eq(&ticket.description),
+            &ticket,
             updated_at.eq(chrono::Utc::now().naive_utc()),
-            priority.eq(&ticket.priority),
-            status.eq(&ticket.status),
         ))
         .get_result(conn)?;
 

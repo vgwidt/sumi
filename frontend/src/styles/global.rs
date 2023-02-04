@@ -38,8 +38,7 @@ pub fn global_style() -> Html {
             input {
                 background-color: ${input_bg};
                 border-radius: 4px;
-                border-width: 1px;
-                border-style: solid;
+                border: 1px solid ${border};
                 color: ${text};
                 display: block;
                 padding: 8px;
@@ -49,8 +48,7 @@ pub fn global_style() -> Html {
             textarea {
                 background-color: ${input_bg};
                 border-radius: 4px;
-                border-width: 1px;
-                border-style: solid;
+                border: 1px solid ${border};
                 color: ${text};
                 display: block;
                 padding: 8px;
@@ -72,10 +70,10 @@ pub fn global_style() -> Html {
                 padding: 6px;
                 margin: 4px;
                 display: inline-flex;
-                text-decoration: none;
                 border: none;
                 justify-content: center;
                 min-width: 60px;
+                vertical-align: middle;
             }
             .btn:hover {
                 background-color: #5c5c8d;
@@ -108,6 +106,46 @@ pub fn global_style() -> Html {
                 padding: 4px;
                 color: ${text};
             }
+            .btn-action {
+                padding: 4px;
+                background-color: ${bg};
+                color: ${text};
+                border: 1px solid transparent;
+                border-radius: 2px;
+                margin-left: auto;
+                margin-right: 0px;
+                display: block;
+            }
+            .btn-action:hover {
+                border: 1px solid ${border};
+            }
+            .btn-action-active {
+                border: 1px solid ${border};
+            }
+            .dropdown {
+                position: relative;
+                float: right;
+                display: inline-block;
+            }
+            .dropdown-content {
+                box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+                transition: 0.1s;
+            }
+            .dropdown-content .btn {
+                background-color: inherit;
+                color: ${text};
+                border: none;
+                margin: 0px;
+                border-radius: 0px;
+                font-size: 14px;
+                min-width: 120px;
+                background-color: ${menu_background};
+                padding: 8px 0px;
+            }
+            .dropdown-content .btn:hover {
+                background-color: #35358a;
+                color: #e9e7e7;
+            }
             "#,
             bg = theme.background.clone(),
             text = theme.font_color.clone(),
@@ -116,6 +154,7 @@ pub fn global_style() -> Html {
             input_bg = theme.input_background.clone(),
             code_bg = theme.code_background.clone(),
             border = theme.border.clone(),
+            menu_background = theme.menu_background.clone(),
         )} />
     }
 }

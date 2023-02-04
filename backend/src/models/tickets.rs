@@ -33,7 +33,8 @@ pub struct NewTicket<'a> {
     pub status: &'a str,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, AsChangeset)]
+#[diesel(table_name = tickets)]
 pub struct TicketPayload {
     pub title: String,
     pub assignee: Option<Uuid>,
@@ -42,6 +43,18 @@ pub struct TicketPayload {
     pub due_date: Option<chrono::NaiveDateTime>,
     pub priority: String,
     pub status: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, AsChangeset)]
+#[diesel(table_name = tickets)]
+pub struct TicketUpdatePayload {
+    pub title: Option<String>,
+    pub assignee: Option<Option<Uuid>>,
+    pub contact: Option<Option<Uuid>>,
+    pub description: Option<String>,
+    pub due_date: Option<chrono::NaiveDateTime>,
+    pub priority: Option<String>,
+    pub status: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
