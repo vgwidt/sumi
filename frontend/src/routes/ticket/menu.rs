@@ -38,23 +38,11 @@ pub fn ticket_menu(props: &Props) -> Html {
             position: relative;
             float: right;
           }
-        .dropdown-content .btn {
-            min-width: 120px;
-            background-color: ${background};
-          }
         .btn-action {
-            font-size: 16px;
-            min-width: 120px;
+            padding: 6px 8px;
+            font-size: 20px;
           }
-        .btn-action:hover {
-            border: 1px solid ${border};
-        }
-        .btn-action-active {
-            border: 1px solid ${border};
-        }
           "#,
-        background = theme.menu_background.clone(),
-        border = theme.border.clone(),
     )
     .expect("Failed to parse style");
 
@@ -109,7 +97,7 @@ pub fn ticket_menu(props: &Props) -> Html {
             <div class="dropdown">
                 <button class={ if *dropdown { "btn-action btn-action-active" } else { "btn-action" } 
                 } onclick={onclick_dropdown}>
-                    { language.get("Actions") }
+                    { language.get("•••") }
                 </button>
                 { if *dropdown { html! {
                 <div class="dropdown-content">

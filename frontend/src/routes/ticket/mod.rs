@@ -71,19 +71,20 @@ pub fn ticket(props: &Props) -> Html {
             margin-top: 16px;
         }
         .status-badge {
-            margin-left: 6px;
+            margin-left: 8px;
             padding: 4px 6px;
             border-radius: 8px;
             font-size: 10px;
             font-weight: bold;
             text-transform: uppercase;
             border: 1px solid;
+            position: absolute;
         }
         .status-Open {
-            background-color:rgba(0, 255, 0, 0.4);
+            background-color:rgba(63, 223, 63, 0.5);
         }
         .status-Closed {
-            background-color:rgba(255, 0, 0, 0.4);
+            background-color:rgba(255, 63, 63, 0.5);
         }
           "#,
     )
