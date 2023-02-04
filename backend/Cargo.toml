@@ -15,7 +15,7 @@ actix-files = "0.6.2"
 rustls = "0.20.7"
 rustls-pemfile = "1"
 serde = { version = "1.0.149", features = ["derive"] }
-serde_json = "1.0.89"
+serde_json = "1.0.91"
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.2.2", features= ["serde", "v4"]}
 env_logger = "0.10.0"
@@ -23,7 +23,7 @@ diesel = { version = "2.0.2", features = ["postgres", "r2d2", "chrono", "uuid"] 
 r2d2 = "0.8.10"
 dotenv = "0.15.0"
 derive_more = "0.99.17"
-anyhow = "1.0.66"
+anyhow = "1.0.68"
 thiserror = "1.0.37"
 rand = { version = "0.8", features=["std_rng"] }
 
