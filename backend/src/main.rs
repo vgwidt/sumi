@@ -28,6 +28,8 @@ async fn main() -> std::io::Result<()> {
 
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
+    let index_file = "./dist/index.html".to_string();
+
     let hostname = std::env::var("SERVER_FQDN").expect("HOSTNAME not set");
     let port = std::env::var("PORT").expect("PORT not set");
     let disable_https: bool = std::env::var("DISABLE_HTTPS")
@@ -40,6 +42,13 @@ async fn main() -> std::io::Result<()> {
         hostname,
         port
     );
+
+    //Inject environment variables used by frontend into index.html
+    let mut index = std::fs::read_to_string(&index_file).unwrap();
+    index = index.replace("__SERVER_FQDN__", &hostname);
+    index = index.replace("__PORT__", &port);
+    index = index.replace("__DISABLE_HTTPS__", &disable_https.to_string());
+    std::fs::write(&index_file, index).unwrap();
 
     let redis_uri: Secret<String> = Secret::new(
         std::env::var("REDIS_URL")
@@ -117,7 +126,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(
                 spa()
-                    .index_file("./dist/index.html")
+                    .index_file(index_file.clone())
                     .static_resources_mount("/")
                     .static_resources_location("./dist")
                     .finish(),
