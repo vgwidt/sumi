@@ -1,5 +1,4 @@
 use crate::types::Error;
-use dotenv_codegen::dotenv;
 use serde::{de::DeserializeOwned, Serialize};
 
 pub async fn request<B, T>(method: reqwest::Method, url: String, body: B) -> Result<T, Error>
@@ -7,9 +6,21 @@ where
     T: DeserializeOwned + 'static + std::fmt::Debug,
     B: Serialize + std::fmt::Debug,
 {
-    let hostname = dotenv!("SERVER_FQDN");
-    let port = dotenv!("PORT");
-    let disable_https: bool = dotenv!("DISABLE_HTTPS").parse().unwrap_or(false);
+     let hostname: String = js_sys::Reflect::get(&js_sys::global(), &"SERVER_FQDN".into())
+        .unwrap()
+        .as_string()
+        .unwrap();
+    let port: String = js_sys::Reflect::get(&js_sys::global(), &"PORT".into())
+        .unwrap()
+        .as_string()
+        .unwrap();
+    let disable_https: bool = js_sys::Reflect::get(&js_sys::global(), &"DISABLE_HTTPS".into())
+        .unwrap()
+        .as_string()
+        .unwrap()
+        .parse()
+        .unwrap();
+
     let url = format!(
         "{}://{}:{}/api{}",
         if disable_https { "http" } else { "https" },
