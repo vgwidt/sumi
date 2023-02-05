@@ -54,26 +54,19 @@ These are some features I'd like to see but will not get to at this stage:
 
 A base image (Dockerfile.base) is used to create an image with Rust and all the dependencies required (trunk, diesel, etc).  Dockerfile then uses this image, copies the files from the project folder, then compiles it.
 
-1. Generate and lace certificates in ./certificates/ folder (cert.pem & key.pem).  Sample command to generate self-signed cert:
+1. Generate and place certificates in ./certificates/ folder (cert.pem & key.pem).  Sample command to generate self-signed cert:
 ```
 openssl req -x509 -newkey rsa:4096 -nodes -keyout key.pem -out cert.pem -days 365 -subj /CN=localhost
 ```
 
 2. Set your environment variables in .env (refer to .env.sample).
 
-3. Build the base image:
-```
-docker build -f Dockerfile.base -t vgwidt/sumi-base .
-```
-
-:warning: You must setup your .env variables before the frontend compiles, as it uses the environment variables available to it at runtime.  Make sure it is set before running the next step.  Anytime you chance the .env variables that affect the frontend, you need to rebuild.
-
-4. Create the image that will actually build the app:
+3. Build the Docker image
 ```
 docker build -f Dockerfile -t vgwidt/sumi .
 ```
 
-5. Modify docker-compose.yml as needed and run:
+4. Modify docker-compose.yml as needed and run:
 ```
 docker-compose up -d
 ```
