@@ -1,5 +1,4 @@
 FROM rust:latest as base
-RUN cargo install cargo-chef
 RUN cargo install trunk
 RUN rustup target add wasm32-unknown-unknown
 
@@ -17,8 +16,9 @@ RUN cargo build --release
 
 FROM base as builder
 WORKDIR /usr/src/sumi
-COPY --from=cacher /usr/src/sumi/target target
 COPY . .
+COPY --from=cacher /usr/src/sumi/target target
+RUN touch -a -m ./backend/src/main.rs && touch -a -m ./frontend/src/lib.rs
 RUN trunk build -d dist ./frontend/index.html --release
 RUN cargo build --manifest-path ./backend/Cargo.toml --release
 
