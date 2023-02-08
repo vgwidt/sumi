@@ -230,7 +230,7 @@ pub fn wiki_document(props: &Props) -> Html {
             margin-left: 32px;
             margin-right: 32px;
         }
-        input {
+        .title-input {
             width: 95%;
             padding: 12px;
             margin-bottom: 12px;
@@ -252,7 +252,7 @@ pub fn wiki_document(props: &Props) -> Html {
                         <div class="wiki-document">
                             <form class="wiki-form" onsubmit={on_submit}>
                                 <fieldset style="border: none;">
-                                    <input type="text" placeholder="Title" value={update_info.title.clone()} oninput={oninput_title} />
+                                    <input class="title-input" type="text" placeholder="Title" value={update_info.title.clone()} oninput={oninput_title} />
                                     <div class="wiki-content">
                                         <textarea placeholder="Description (Markdown)" rows=12 value={update_info.content.clone()} oninput={oninput_content} />
                                         </div>

@@ -40,7 +40,6 @@ pub fn global_style() -> Html {
                 border-radius: 4px;
                 border: 1px solid ${border};
                 color: ${text};
-                display: block;
                 padding: 8px;
                 margin-top: 4px;
                 margin-bottom: 8px;

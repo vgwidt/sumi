@@ -114,30 +114,42 @@ pub fn new_user() -> Html {
             </div>
             <form {onsubmit}>
                 <fieldset>
+                    <div>
+                        <label>{ format!("{}:", language.get("Username")) }</label>
                         <input
                             type="text"
                             placeholder={language.get("Username")}
                             value={register_info.username.clone()}
                             oninput={oninput_username}
                             />
+                        </div>
+                    <div>
+                        <label>{ format!("{}:", language.get("Display Name")) }</label>
                         <input
                             type="text"
                             placeholder={language.get("Display Name")}
                             value={register_info.display_name.clone()}
                             oninput={oninput_display_name}
                             />
+                    </div>
+                    <div>
+                        <label>{ format!("{}:", language.get("E-mail")) }</label>
                         <input
                             type="email"
                             placeholder={language.get("Email")}
                             value={register_info.email.clone()}
                             oninput={oninput_email}
                             />
+                    </div>
+                    <div>
+                        <label>{ format!("{}:", language.get("Password")) }</label>
                         <input
                             type="password"
                             placeholder={language.get("Password")}
                             value={register_info.password.clone()}
                             oninput={oninput_password}
                             />
+                    </div>
                     <button
                         class="btn"
                         type="submit"
