@@ -64,3 +64,12 @@ pub struct DocumentTreeInfo {
     pub title: String,
     pub archived: bool,
 }
+
+#[derive(Debug, Serialize, Deserialize, Queryable)]
+pub struct DocumentRevision {
+    pub revision_id: Uuid,
+    pub document_id: Uuid,
+    pub content: String,
+    pub updated_by: Option<Uuid>,
+    pub updated_at: chrono::NaiveDateTime,
+}

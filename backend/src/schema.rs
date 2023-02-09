@@ -21,6 +21,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    document_revisions (revision_id) {
+        revision_id -> Uuid,
+        document_id -> Uuid,
+        content -> Text,
+        updated_by -> Nullable<Uuid>,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     documents (document_id) {
         document_id -> Uuid,
         parent_id -> Nullable<Uuid>,
@@ -43,6 +53,16 @@ diesel::table! {
         text -> Text,
         time -> Int4,
         created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    ticket_revisions (revision_id) {
+        revision_id -> Uuid,
+        ticket_id -> Int4,
+        description -> Text,
+        updated_by -> Nullable<Uuid>,
         updated_at -> Timestamp,
     }
 }
@@ -86,7 +106,11 @@ diesel::table! {
 
 diesel::joinable!(comments -> documents (document_id));
 diesel::joinable!(comments -> users (author));
+diesel::joinable!(document_revisions -> documents (document_id));
+diesel::joinable!(document_revisions -> users (updated_by));
 diesel::joinable!(notes -> users (owner));
+diesel::joinable!(ticket_revisions -> tickets (ticket_id));
+diesel::joinable!(ticket_revisions -> users (updated_by));
 diesel::joinable!(tickets -> contacts (contact));
 diesel::joinable!(tickets -> users (assignee));
 diesel::joinable!(user_preferences -> users (user_id));
@@ -94,8 +118,10 @@ diesel::joinable!(user_preferences -> users (user_id));
 diesel::allow_tables_to_appear_in_same_query!(
     comments,
     contacts,
+    document_revisions,
     documents,
     notes,
+    ticket_revisions,
     tickets,
     user_preferences,
     users,

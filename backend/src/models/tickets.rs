@@ -116,3 +116,12 @@ pub struct SomeUserRepresentation {
     pub created_at: Option<chrono::NaiveDateTime>,
     pub access: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Queryable)]
+pub struct TicketRevision {
+    pub revision_id: Uuid,
+    pub ticket_id: i32,
+    pub content: String,
+    pub updated_by: Option<Uuid>,
+    pub updated_at: chrono::NaiveDateTime,
+}
