@@ -7,10 +7,11 @@ use shared::models::response::Response;
 use uuid::Uuid;
 
 use crate::models::{
-    tickets::{NewTicket, Ticket, TicketFilterPayload, TicketPayload, TicketRepresentation, TicketUpdatePayload},
+    tickets::{NewTicket, Ticket, TicketFilterPayload, TicketPayload, TicketRepresentation, TicketUpdatePayload, TicketRevision, NewTicketRevision},
     users::User,
     SuccessResponse,
 };
+
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -189,6 +190,21 @@ async fn destroy(id: web::Path<i32>, pool: web::Data<DbPool>) -> Result<HttpResp
     }
 }
 
+#[get("/tickets/{id}/revisions")]
+async fn revisions(
+    ticket_id: web::Path<i32>,
+    pool: web::Data<DbPool>,
+) -> Result<HttpResponse, Error> {
+    let revisions = web::block(move || {
+        let mut conn = pool.get()?;
+        get_ticket_revisions(ticket_id.into_inner(), &mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(revisions))
+}
+
 fn add_a_ticket(
     payload: TicketPayload,
     conn: &mut PgConnection,
@@ -308,4 +324,30 @@ fn find_by_user_id(
         .load::<(Ticket, Option<User>)>(conn)?;
 
     Ok(items)
+}
+
+fn create_ticket_revision(
+    payload: NewTicketRevision,
+    conn: &mut PgConnection,
+) -> Result<TicketRevision, DbError> {
+    use crate::schema::ticket_revisions::dsl::*;
+
+    let result = diesel::insert_into(ticket_revisions)
+        .values(&payload)
+        .get_result::<TicketRevision>(conn)?;
+
+    Ok(result)
+}
+
+fn get_ticket_revisions(
+    id: i32,
+    conn: &mut PgConnection,
+) -> Result<Vec<TicketRevision>, DbError> {
+    use crate::schema::ticket_revisions::dsl::*;
+
+    let results = ticket_revisions
+        .filter(ticket_id.eq(id))
+        .load::<TicketRevision>(conn)?;
+
+    Ok(results)
 }

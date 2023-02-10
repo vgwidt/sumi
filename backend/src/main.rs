@@ -98,6 +98,7 @@ async fn main() -> std::io::Result<()> {
                     .service(handlers::tickets::show)
                     .service(handlers::tickets::update)
                     .service(handlers::tickets::destroy)
+                    .service(handlers::tickets::revisions)
                     .service(handlers::users::index)
                     .service(handlers::users::create)
                     .service(handlers::users::show)

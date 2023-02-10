@@ -127,6 +127,16 @@ pub struct TicketRevision {
     pub updated_at: chrono::NaiveDateTime,
 }
 
+#[derive(Debug, Insertable)]
+#[diesel(table_name = ticket_revisions)]
+pub struct NewTicketRevision {
+    pub revision_id: Uuid,
+    pub ticket_id: i32,
+    pub description: String,
+    pub updated_by: Option<Uuid>,
+    pub updated_at: chrono::NaiveDateTime,
+}
+
 //Ticket events
 #[derive(Debug, Serialize, Deserialize, Queryable)]
 pub struct TicketEvent {
