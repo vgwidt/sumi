@@ -1,5 +1,5 @@
 [workspace]
-members = ["frontend", "backend"]
+members = ["frontend", "backend", "shared"]
 default-members = ["backend"]
 
 [profile.release]

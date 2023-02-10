@@ -26,6 +26,7 @@ derive_more = "0.99.17"
 anyhow = "1.0.68"
 thiserror = "1.0.37"
 rand = { version = "0.8", features=["std_rng"] }
+shared = { path = "../shared" }
 
 # Auth
 argon2 = { version = "0.4", features = ["std"] }

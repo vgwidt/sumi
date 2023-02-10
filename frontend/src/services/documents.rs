@@ -2,6 +2,7 @@ use uuid::Uuid;
 
 use super::{request_delete, request_get, request_post, request_put};
 use crate::types::*;
+use shared::models::response::Response;
 
 //get list of documents for document tree
 pub async fn get_doc_tree() -> Result<Vec<DocumentMetadata>, Error> {
