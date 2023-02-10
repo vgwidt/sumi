@@ -101,6 +101,6 @@ pub struct UpdateDocument {
     pub title: Option<String>,
     pub content: Option<String>,
     pub updated_by: Option<Uuid>,
-    pub updated_at: chrono::NaiveDateTime,
+    pub updated_at: Option<chrono::NaiveDateTime>,
     pub archived: Option<bool>,
 }

@@ -231,8 +231,12 @@ fn update_document(
     let doc = UpdateDocument {
         parent_id: payload.parent_id,
         title: adjusted_title,
-        content: payload.content,
-        updated_at: chrono::Utc::now().naive_utc(),
+        content: payload.content.clone(),
+        updated_at: if payload.content.is_some() {
+            Some(chrono::Utc::now().naive_utc())
+        } else {
+            None
+        },
         updated_by: user_id,
         archived: payload.archived,
     };
