@@ -94,7 +94,6 @@ async fn update(
         //This ensures that the timestamp will not be updated
         //Creation of revision will also be skipped of content hasn't changed
         //Otherwise we can safely continue, because content is the only thing that will result in revision
-
         if payload.content.clone().unwrap() == old_document.content {
                 payload.content = None;
         } else {

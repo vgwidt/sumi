@@ -46,8 +46,7 @@ pub struct TicketPayload {
     pub status: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, AsChangeset)]
-#[diesel(table_name = tickets)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TicketUpdatePayload {
     pub title: Option<String>,
     pub assignee: Option<Option<Uuid>>,
@@ -56,7 +55,23 @@ pub struct TicketUpdatePayload {
     pub due_date: Option<chrono::NaiveDateTime>,
     pub priority: Option<String>,
     pub status: Option<String>,
+    pub version: Option<chrono::NaiveDateTime>,
 }
+
+//Struct used to update ticket in database
+#[derive(Debug, Insertable, AsChangeset, Deserialize)]
+#[diesel(table_name = tickets)]
+pub struct UpdateTicket { 
+    pub title: Option<String>,
+    pub assignee: Option<Option<Uuid>>,
+    pub contact: Option<Option<Uuid>>,
+    pub description: Option<String>,
+    pub updated_at: Option<chrono::NaiveDateTime>,
+    pub due_date: Option<chrono::NaiveDateTime>,
+    pub priority: Option<String>,
+    pub status: Option<String>,
+}
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TicketFilterPayload {

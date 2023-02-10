@@ -1,17 +1,20 @@
 use super::super::DbPool;
 
-use actix_web::{delete, get, options, post, put, web, Error, HttpResponse};
+use actix_web::{delete, error::InternalError, get, options, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
 use serde::Serialize;
 use shared::models::response::Response;
 use uuid::Uuid;
 
 use crate::models::{
-    tickets::{NewTicket, Ticket, TicketFilterPayload, TicketPayload, TicketRepresentation, TicketUpdatePayload, TicketRevision, NewTicketRevision},
+    session::TypedSession,
+    tickets::{
+        NewTicket, NewTicketRevision, Ticket, TicketFilterPayload, TicketPayload,
+        TicketRepresentation, TicketRevision, TicketUpdatePayload, UpdateTicket,
+    },
     users::User,
     SuccessResponse,
 };
-
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -140,9 +143,69 @@ async fn show(id: web::Path<i32>, pool: web::Data<DbPool>) -> Result<HttpRespons
 #[put("/tickets/{id}")]
 async fn update(
     id: web::Path<i32>,
-    payload: web::Json<TicketUpdatePayload>,
+    mut payload: web::Json<TicketUpdatePayload>,
     pool: web::Data<DbPool>,
+    session: TypedSession,
 ) -> Result<HttpResponse, Error> {
+    let user_id: Option<Uuid> = match session.get_user_id() {
+        Ok(id) => id,
+        Err(_) => {
+            return Err(InternalError::from_response(
+                "Unauthorized",
+                HttpResponse::Unauthorized().finish(),
+            )
+            .into())
+        }
+    };
+
+    if payload.description.is_some() {
+        let old_ticket: Ticket = {
+            let pool = pool.clone();
+            let id = id.clone();
+            web::block(move || {
+                let mut conn = pool.get()?;
+                get_ticket_by_id(id, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?
+        };
+
+        //Set payload to none if content is the same (to prevent revision and timestamp update) otherwise proceed
+        if payload.description.clone().unwrap() == old_ticket.description {
+            payload.description = None;
+        } else {
+            //If version is in the payload, it means check revision
+            if let Some(version) = payload.version {
+                //Get the latest revision
+                if version != old_ticket.updated_at {
+                    let response: Response<Ticket> = Response {
+                        success: false,
+                        message: Some("Ticket is out of date".to_string()),
+                        data: None,
+                    };
+                    return Ok(HttpResponse::Ok().json(response));
+                }
+            }
+
+            //create revision from old document
+            let revision = NewTicketRevision {
+                revision_id: Uuid::new_v4(),
+                ticket_id: old_ticket.ticket_id,
+                description: old_ticket.description,
+                updated_by: user_id,
+                updated_at: old_ticket.updated_at,
+            };
+
+            let pool = pool.clone();
+            web::block(move || {
+                let mut conn = pool.get()?;
+                create_ticket_revision(revision, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?;
+        }
+    }
+
     let ticket = web::block(move || {
         let mut conn = pool.get()?;
         update_ticket(id.into_inner(), payload.into_inner(), &mut conn)
@@ -269,6 +332,7 @@ fn find(
     Ok(items)
 }
 
+/// Find ticket by id and join with user
 fn find_by_id(id: i32, conn: &mut PgConnection) -> Result<Vec<(Ticket, Option<User>)>, DbError> {
     use crate::schema::tickets::dsl::*;
     use crate::schema::users::dsl::users;
@@ -281,19 +345,40 @@ fn find_by_id(id: i32, conn: &mut PgConnection) -> Result<Vec<(Ticket, Option<Us
     Ok(ticket)
 }
 
+/// Find ticket by ID with no join
+fn get_ticket_by_id(id: i32, conn: &mut PgConnection) -> Result<Ticket, DbError> {
+    use crate::schema::tickets::dsl::*;
+
+    let ticket = tickets.find(id).first::<Ticket>(conn)?;
+
+    Ok(ticket)
+}
+
 fn update_ticket(
     id: i32,
-    ticket: TicketUpdatePayload,
+    payload: TicketUpdatePayload,
     conn: &mut PgConnection,
 ) -> Result<Vec<(Ticket, Option<User>)>, DbError> {
     use crate::schema::tickets::dsl::*;
     use crate::schema::users::dsl::users;
 
+    let updated_ticket = UpdateTicket {
+        title: payload.title,
+        assignee: payload.assignee,
+        contact: payload.contact,
+        description: payload.description.clone(),
+        due_date: payload.due_date,
+        priority: payload.priority,
+        status: payload.status,
+        updated_at: if payload.description.is_some() {
+            Some(chrono::Utc::now().naive_utc())
+        } else {
+            None
+        },
+    };
+
     let result: Ticket = diesel::update(tickets.find(id))
-        .set((
-            &ticket,
-            updated_at.eq(chrono::Utc::now().naive_utc()),
-        ))
+        .set(&updated_ticket)
         .get_result(conn)?;
 
     let ticket: Vec<(Ticket, Option<User>)> = tickets
@@ -339,10 +424,7 @@ fn create_ticket_revision(
     Ok(result)
 }
 
-fn get_ticket_revisions(
-    id: i32,
-    conn: &mut PgConnection,
-) -> Result<Vec<TicketRevision>, DbError> {
+fn get_ticket_revisions(id: i32, conn: &mut PgConnection) -> Result<Vec<TicketRevision>, DbError> {
     use crate::schema::ticket_revisions::dsl::*;
 
     let results = ticket_revisions

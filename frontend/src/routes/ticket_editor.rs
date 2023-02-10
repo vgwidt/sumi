@@ -12,7 +12,7 @@ use crate::hooks::{use_language_context, use_user_context};
 use crate::routes::AppRoute;
 use crate::services::tickets::*;
 use crate::services::users::get_users;
-use crate::types::TicketCreateUpdateInfo;
+use crate::types::TicketCreateInfo;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -25,7 +25,7 @@ pub fn ticket_editor(props: &Props) -> Html {
     let user_ctx = use_user_context();
     let loading = use_state(|| true);
     let language = use_language_context();
-    let update_info = use_state(TicketCreateUpdateInfo::default);
+    let update_info = use_state(TicketCreateInfo::default);
     let submitted = use_state(|| false);
     let error = use_state(|| String::new());
     let navigator = use_navigator().unwrap();
@@ -48,7 +48,7 @@ pub fn ticket_editor(props: &Props) -> Html {
                         let result = get(ticket_id).await;
                         match result {
                             Ok(ticket) => {
-                                update_info.set(TicketCreateUpdateInfo {
+                                update_info.set(TicketCreateInfo {
                                     title: ticket.title.clone(),
                                     description: ticket.description.clone(),
                                     assignee: if let Some(assignee) = ticket.assignee {
