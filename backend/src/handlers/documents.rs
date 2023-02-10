@@ -75,7 +75,7 @@ async fn update(
         }
     };
 
-    //If it contains content, it means it's a new version
+    //If it contains content, it should mean a new revision
     if payload.content.is_some() {
         let old_document = 
         {
@@ -93,12 +93,10 @@ async fn update(
         //This ensures that the timestamp will not be updated
         //Creation of revision will also be skipped of content hasn't changed
         //Otherwise we can safely continue, because content is the only thing that will result in revision
-        if let Some(content) = payload.content.clone() {
-            if content == old_document.content {
-                payload.content = None;
-            }
-        } else {
 
+        if payload.content.clone().unwrap() == old_document.content {
+                payload.content = None;
+        } else {
             //If version is in the payload, it means check revision
             if let Some(version) = payload.version {
                 //Get the latest revision
@@ -172,6 +170,21 @@ async fn delete(
         };
         Ok(HttpResponse::Ok().json(response))
     }
+}
+
+#[get("/documents/{id}/revisions")]
+async fn revisions(
+    document_id: web::Path<Uuid>,
+    pool: web::Data<DbPool>,
+) -> Result<HttpResponse, Error> {
+    let revisions = web::block(move || {
+        let mut conn = pool.get()?;
+        get_document_revisions(document_id.into_inner(), &mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(revisions))
 }
 
 fn get_document_list(conn: &mut PgConnection) -> Result<Vec<DocumentTreeInfo>, DbError> {
@@ -309,4 +322,17 @@ fn create_document_revision(
         .get_result::<DocumentRevision>(conn)?;
 
     Ok(result)
+}
+
+fn get_document_revisions(
+    doc_id: Uuid,
+    conn: &mut PgConnection,
+) -> Result<Vec<DocumentRevision>, DbError> {
+    use crate::schema::document_revisions::dsl::*;
+
+    let results = document_revisions
+        .filter(document_id.eq(doc_id))
+        .load::<DocumentRevision>(conn)?;
+
+    Ok(results)
 }
