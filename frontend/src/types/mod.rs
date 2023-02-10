@@ -16,6 +16,6 @@ pub use notes::{NoteCreateInfo, NoteInfo, NoteListInfo};
 
 pub use users::{UserPreferences, UserRepresentation};
 
-pub use response::{Error, ErrorInfo, ErrorResponse, SuccessResponse};
+pub use response::{Error, ErrorInfo, ErrorResponse, SuccessResponse, Response};
 
 pub use documents::{DocumentCreateUpdateInfo, DocumentInfo, DocumentMetadata};

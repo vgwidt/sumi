@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::models::{
     tickets::{NewTicket, Ticket, TicketFilterPayload, TicketPayload, TicketRepresentation, TicketUpdatePayload},
     users::User,
-    Response,
+    SuccessResponse,
 };
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
@@ -162,13 +162,13 @@ async fn destroy(id: web::Path<i32>, pool: web::Data<DbPool>) -> Result<HttpResp
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
     if result > 1 {
-        let response = Response {
+        let response = SuccessResponse {
             success: true,
             message: "Note deleted".to_string(),
         };
         Ok(HttpResponse::Ok().json(response))
     } else {
-        let response = Response {
+        let response = SuccessResponse {
             success: false,
             message: "Note not found".to_string(),
         };

@@ -2,7 +2,7 @@ use super::super::DbPool;
 use crate::authentication::AuthError;
 use crate::authentication::{validate_credentials, Credentials};
 use crate::models::session::TypedSession;
-use crate::models::Response;
+use crate::models::SuccessResponse;
 use actix_web::error::InternalError;
 use actix_web::http::header::LOCATION;
 use actix_web::HttpResponse;
@@ -23,7 +23,7 @@ pub async fn login(
                 .insert_user_id(user_id)
                 .map_err(|e| login_redirect(LoginError::UnexpectedError(e.into())))?;
 
-            let response = Response {
+            let response = SuccessResponse {
                 success: true,
                 message: "Login successful".to_string(),
             };
@@ -36,7 +36,7 @@ pub async fn login(
             };
             let e = LoginError::UnexpectedError(e.into());
 
-            let response = Response {
+            let response = SuccessResponse {
                 success: false,
                 message: e.to_string(),
             };
@@ -69,7 +69,7 @@ pub async fn logout(session: TypedSession) -> Result<HttpResponse, InternalError
 
     //We could check to confirm if the session still exists or not and return a response accordingly
 
-    let response = Response {
+    let response = SuccessResponse {
         success: true,
         message: "Logout successful".to_string(),
     };

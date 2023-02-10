@@ -4,7 +4,7 @@ use actix_web::{delete, get, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::models::{documents::*, Response};
+use crate::models::{documents::*, SuccessResponse, Response};
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -20,7 +20,13 @@ async fn create(
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(document))
+    let response = Response {
+        success: true,
+        message: None,
+        data: Some(document),
+    };
+
+    Ok(HttpResponse::Ok().json(response))
 }
 
 /// Handler for GET /documents, returns documents for generating tree
@@ -72,9 +78,10 @@ async fn update(
             .map_err(actix_web::error::ErrorInternalServerError)?;
             
             if version != document.updated_at {
-                let response = Response {
+                let response: Response<Document> = Response {
                     success: false,
-                    message: "Document is out of date".to_string(),
+                    message: Some("Document is out of date".to_string()),
+                    data: None,
                 };
                 return Ok(HttpResponse::Ok().json(response));
             }
@@ -88,7 +95,13 @@ async fn update(
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(document))
+    let response = Response {
+        success: true,
+        message: None,
+        data: Some(document),
+    };
+
+    Ok(HttpResponse::Ok().json(response))
 }
 
 #[delete("/documents/{id}")]
@@ -104,13 +117,13 @@ async fn delete(
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
     if result > 1 {
-        let response = Response {
+        let response = SuccessResponse {
             success: true,
             message: "Document deleted".to_string(),
         };
         Ok(HttpResponse::Ok().json(response))
     } else {
-        let response = Response {
+        let response = SuccessResponse {
             success: false,
             message: "Document not found".to_string(),
         };

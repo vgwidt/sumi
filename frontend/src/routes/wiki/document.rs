@@ -138,13 +138,16 @@ pub fn wiki_document(props: &Props) -> Html {
                             }
                         };
                         if let Ok(document) = result {
-                            //pushes new document id to url when document_update gets a response
-                            edit_mode.set(false);
-                            is_new.set(false);
-                            props.needs_update.emit(true);
-                            navigator.push(&AppRoute::WikiDoc {
-                                document_id: document.document_id,
-                            });
+                            if document.success {
+                                edit_mode.set(false);
+                                is_new.set(false);
+                                props.needs_update.emit(true);
+                                navigator.push(&AppRoute::WikiDoc {
+                                    document_id: document.data.unwrap().document_id,
+                                });
+                            } else {
+                                error.set(document.message.unwrap_or("Unknown error".to_string()));
+                            }
                         } else {
                             error.set(result.err().unwrap().to_string());
                         }
