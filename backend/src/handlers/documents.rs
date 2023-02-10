@@ -1,17 +1,17 @@
 use super::super::DbPool;
 
-use actix_web::{delete, get, post, put, web, Error, HttpResponse};
+use actix_web::{delete, get, post, put, web, Error, HttpResponse, error::InternalError};
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::models::{documents::*, SuccessResponse, Response};
+use crate::models::{documents::*, SuccessResponse, Response, session::TypedSession};
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
 #[post("/documents")]
 async fn create(
     pool: web::Data<DbPool>,
-    payload: web::Json<DocumentPayload>,
+    payload: web::Json<DocumentCreatePayload>,
 ) -> Result<HttpResponse, Error> {
     let document = web::block(move || {
         let mut conn = pool.get()?;
@@ -60,24 +60,39 @@ async fn show(
 #[put("/documents/{id}")]
 async fn update(
     document_id: web::Path<Uuid>,
-    payload: web::Json<DocumentPayload>,
-    pool: web::Data<DbPool>,
+    payload: web::Json<DocumentUpdatePayload>,
+    pool: web::Data<DbPool>, session: TypedSession
 ) -> Result<HttpResponse, Error> {
-    
-    //If version is in the payload, it means check revision
-    if let Some(version) = payload.version {
-        //Get the latest revision
+
+    let user_id: Option<Uuid> = match session.get_user_id() {
+        Ok(id) => id,
+        Err(_) => {
+            return Err(InternalError::from_response(
+                "Unauthorized",
+                HttpResponse::Unauthorized().finish(),
+            )
+            .into())
+        }
+    };
+
+    //If it contains content, it means it's a new version
+    if payload.content.is_some() {
+        let old_document = 
         {
             let pool = pool.clone();
             let document_id = document_id.clone();
-            let document =  web::block(move || {
+            web::block(move || {
                 let mut conn = pool.get()?;
                 get_document_by_id(document_id, &mut conn)
             })
             .await?
-            .map_err(actix_web::error::ErrorInternalServerError)?;
-            
-            if version != document.updated_at {
+            .map_err(actix_web::error::ErrorInternalServerError)?
+        };
+
+        //If version is in the payload, it means check revision
+        if let Some(version) = payload.version {
+            //Get the latest revision
+            if version != old_document.updated_at {
                 let response: Response<Document> = Response {
                     success: false,
                     message: Some("Document is out of date".to_string()),
@@ -86,11 +101,28 @@ async fn update(
                 return Ok(HttpResponse::Ok().json(response));
             }
         }
+
+        //create revision from old document
+        let revision = NewDocumentRevision {
+            revision_id: Uuid::new_v4(),
+            document_id: old_document.document_id,
+            content: old_document.content,
+            updated_by: old_document.updated_by,
+            updated_at: old_document.updated_at,
+        };
+
+        let pool = pool.clone();
+        web::block(move || {
+            let mut conn = pool.get()?;
+            create_document_revision(revision, &mut conn)
+        })
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?;
     }
 
     let document = web::block(move || {
         let mut conn = pool.get()?;
-        update_document(document_id.into_inner(), payload.into_inner(), &mut conn)
+        update_document(document_id.into_inner(), payload.into_inner(), user_id, &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
@@ -149,7 +181,7 @@ fn get_document_by_id(id: Uuid, conn: &mut PgConnection) -> Result<Document, DbE
     Ok(result)
 }
 
-fn create_document(payload: DocumentPayload, conn: &mut PgConnection) -> Result<Document, DbError> {
+fn create_document(payload: DocumentCreatePayload, conn: &mut PgConnection) -> Result<Document, DbError> {
     use crate::schema::documents::dsl::*;
 
     let mut adjusted_title = payload.title;
@@ -179,28 +211,36 @@ fn create_document(payload: DocumentPayload, conn: &mut PgConnection) -> Result<
 
 fn update_document(
     id: Uuid,
-    payload: DocumentPayload,
+    payload: DocumentUpdatePayload, user_id: Option<Uuid>,
     conn: &mut PgConnection,
 ) -> Result<Document, DbError> {
     use crate::schema::documents::dsl::*;
 
-    let mut adjusted_title = payload.title;
-    if adjusted_title.is_empty() {
-        adjusted_title = "Untitled".to_string();
+    let adjusted_title = {
+        if let Some(title_value) = payload.title {
+            if title_value.is_empty() {
+                Some("Untitled".to_string())
+            } else {
+                Some(title_value)
+            }
+        } else {
+            None
+        }
+    };
+
+    let doc = UpdateDocument {
+        parent_id: payload.parent_id,
+        title: adjusted_title,
+        content: payload.content,
+        updated_at: chrono::Utc::now().naive_utc(),
+        updated_by: user_id,
+        archived: payload.archived,
     };
 
     let result = diesel::update(documents.find(id))
-        .set((
-            parent_id.eq(payload.parent_id),
-            //url.eq(payload.url),
-            title.eq(adjusted_title),
-            content.eq(payload.content),
-            updated_at.eq(chrono::Utc::now().naive_utc()),
-            updated_by.eq(payload.updated_by),
-            archived.eq(payload.archived),
-        ))
+        .set(&doc)
         .get_result::<Document>(conn)?;
-
+    
     Ok(result)
 }
 
@@ -241,4 +281,17 @@ fn generate_url() -> String {
             .collect();
 
     random_string
+}
+
+fn create_document_revision(
+    payload: NewDocumentRevision,
+    conn: &mut PgConnection,
+) -> Result<DocumentRevision, DbError> {
+    use crate::schema::document_revisions::dsl::*;
+
+    let result = diesel::insert_into(document_revisions)
+        .values(&payload)
+        .get_result::<DocumentRevision>(conn)?;
+
+    Ok(result)
 }
