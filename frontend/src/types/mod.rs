@@ -18,4 +18,4 @@ pub use users::{UserPreferences, UserRepresentation};
 
 pub use response::{Error, ErrorInfo, ErrorResponse, SuccessResponse};
 
-pub use documents::{DocumentCreateUpdateInfo, DocumentInfo, DocumentMetadata};
+pub use documents::{DocumentCreateInfo, DocumentUpdateInfo, DocumentInfo, DocumentMetadata};
