@@ -60,7 +60,7 @@ async fn show(
 #[put("/documents/{id}")]
 async fn update(
     document_id: web::Path<Uuid>,
-    payload: web::Json<DocumentUpdatePayload>,
+    mut payload: web::Json<DocumentUpdatePayload>,
     pool: web::Data<DbPool>, session: TypedSession
 ) -> Result<HttpResponse, Error> {
 
@@ -89,35 +89,46 @@ async fn update(
             .map_err(actix_web::error::ErrorInternalServerError)?
         };
 
-        //If version is in the payload, it means check revision
-        if let Some(version) = payload.version {
-            //Get the latest revision
-            if version != old_document.updated_at {
-                let response: Response<Document> = Response {
-                    success: false,
-                    message: Some("Document is out of date".to_string()),
-                    data: None,
-                };
-                return Ok(HttpResponse::Ok().json(response));
+        //Check if the content matches the old document, if so, set payload.content to None
+        //This ensures that the timestamp will not be updated
+        //Creation of revision will also be skipped of content hasn't changed
+        //Otherwise we can safely continue, because content is the only thing that will result in revision
+        if let Some(content) = payload.content.clone() {
+            if content == old_document.content {
+                payload.content = None;
             }
+        } else {
+
+            //If version is in the payload, it means check revision
+            if let Some(version) = payload.version {
+                //Get the latest revision
+                if version != old_document.updated_at {
+                    let response: Response<Document> = Response {
+                        success: false,
+                        message: Some("Document is out of date".to_string()),
+                        data: None,
+                    };
+                    return Ok(HttpResponse::Ok().json(response));
+                }
+            }
+
+            //create revision from old document
+            let revision = NewDocumentRevision {
+                revision_id: Uuid::new_v4(),
+                document_id: old_document.document_id,
+                content: old_document.content,
+                updated_by: old_document.updated_by,
+                updated_at: old_document.updated_at,
+            };
+
+            let pool = pool.clone();
+            web::block(move || {
+                let mut conn = pool.get()?;
+                create_document_revision(revision, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?;
         }
-
-        //create revision from old document
-        let revision = NewDocumentRevision {
-            revision_id: Uuid::new_v4(),
-            document_id: old_document.document_id,
-            content: old_document.content,
-            updated_by: old_document.updated_by,
-            updated_at: old_document.updated_at,
-        };
-
-        let pool = pool.clone();
-        web::block(move || {
-            let mut conn = pool.get()?;
-            create_document_revision(revision, &mut conn)
-        })
-        .await?
-        .map_err(actix_web::error::ErrorInternalServerError)?;
     }
 
     let document = web::block(move || {
