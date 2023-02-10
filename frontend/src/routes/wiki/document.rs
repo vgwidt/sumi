@@ -53,6 +53,7 @@ pub fn wiki_document(props: &Props) -> Html {
                                     created_by: document.created_by.clone(),
                                     updated_by: document.updated_by.clone(),
                                     archived: document.archived,
+                                    version: Some(document.updated_at),
                                 });
                             }
                         }
@@ -119,6 +120,7 @@ pub fn wiki_document(props: &Props) -> Html {
                                     created_by: update_info.created_by.clone(),
                                     updated_by: Some(user_ctx.user_id.clone()),
                                     archived: update_info.archived,
+                                    version: update_info.version,
                                 };
                                 update_document(&document_id.unwrap_or_default(), request).await
                             } else {
@@ -130,6 +132,7 @@ pub fn wiki_document(props: &Props) -> Html {
                                     created_by: update_info.created_by.clone(),
                                     updated_by: Some(user_ctx.user_id.clone()),
                                     archived: false,
+                                    version: None,
                                 };
                                 create_document(request).await
                             }
@@ -143,7 +146,7 @@ pub fn wiki_document(props: &Props) -> Html {
                                 document_id: document.document_id,
                             });
                         } else {
-                            error.set("Error updating document".to_string());
+                            error.set(result.err().unwrap().to_string());
                         }
                     });
                     submitted.set(false);
@@ -245,8 +248,10 @@ pub fn wiki_document(props: &Props) -> Html {
 
     html! {
         <div class={style}>
+            <div class="error">
+                {error.to_string()}
+            </div>        
             {
-
                 if *edit_mode {
                     html! {
                         <div class="wiki-document">

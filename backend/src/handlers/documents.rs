@@ -57,6 +57,30 @@ async fn update(
     payload: web::Json<DocumentPayload>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
+    
+    //If version is in the payload, it means check revision
+    if let Some(version) = payload.version {
+        //Get the latest revision
+        {
+            let pool = pool.clone();
+            let document_id = document_id.clone();
+            let document =  web::block(move || {
+                let mut conn = pool.get()?;
+                get_document_by_id(document_id, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?;
+            
+            if version != document.updated_at {
+                let response = Response {
+                    success: false,
+                    message: "Document is out of date".to_string(),
+                };
+                return Ok(HttpResponse::Ok().json(response));
+            }
+        }
+    }
+
     let document = web::block(move || {
         let mut conn = pool.get()?;
         update_document(document_id.into_inner(), payload.into_inner(), &mut conn)

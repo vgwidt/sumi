@@ -39,6 +39,7 @@ pub struct DocumentPayload {
     pub created_by: Option<Uuid>,
     pub updated_by: Option<Uuid>,
     pub archived: bool,
+    pub version: Option<chrono::NaiveDateTime>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable)]

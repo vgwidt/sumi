@@ -35,4 +35,8 @@ pub struct DocumentCreateUpdateInfo {
     pub created_by: Option<Uuid>,
     pub updated_by: Option<Uuid>,
     pub archived: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub version: Option<chrono::NaiveDateTime>,
 }
+
