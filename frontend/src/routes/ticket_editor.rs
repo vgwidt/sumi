@@ -92,10 +92,14 @@ pub fn ticket_editor(props: &Props) -> Html {
                             create(&update_info).await
                         };
                         match result {
-                            Ok(ticket) => {
-                                navigator.push(&AppRoute::Ticket {
-                                    ticket_id: ticket.ticket_id.clone(),
-                                });
+                            Ok(response) => {
+                                if response.success {
+                                    navigator.push(&AppRoute::Ticket {
+                                        ticket_id: response.data.unwrap().ticket_id,
+                                    });
+                                } else {
+                                    error.set(response.message.unwrap_or("Unknown error".to_string()));
+                                }
                             }
                             Err(e) => {
                                 error.set(e.to_string());

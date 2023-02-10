@@ -1,3 +1,4 @@
+use shared::models::response::Response;
 use uuid::Uuid;
 
 use super::{request_delete, request_get, request_post, request_put};
@@ -72,13 +73,13 @@ pub async fn get(ticket_id: i32) -> Result<TicketInfo, Error> {
     Ok(ticket)
 }
 
-pub async fn update(ticket_id: i32, ticket: &TicketCreateUpdateInfo) -> Result<TicketInfo, Error> {
-    request_put::<&TicketCreateUpdateInfo, TicketInfo>(format!("/tickets/{}", ticket_id), ticket)
+pub async fn update(ticket_id: i32, ticket: &TicketCreateUpdateInfo) -> Result<Response<TicketInfo>, Error> {
+    request_put::<&TicketCreateUpdateInfo, Response<TicketInfo>>(format!("/tickets/{}", ticket_id), ticket)
         .await
 }
 
-pub async fn create(ticket: &TicketCreateUpdateInfo) -> Result<TicketInfo, Error> {
-    request_post::<&TicketCreateUpdateInfo, TicketInfo>("/tickets".to_string(), ticket).await
+pub async fn create(ticket: &TicketCreateUpdateInfo) -> Result<Response<TicketInfo>, Error> {
+    request_post::<&TicketCreateUpdateInfo, Response<TicketInfo>>("/tickets".to_string(), ticket).await
 }
 
 //Get notes for a ticket by ticket_id

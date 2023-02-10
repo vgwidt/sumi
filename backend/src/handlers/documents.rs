@@ -2,9 +2,10 @@ use super::super::DbPool;
 
 use actix_web::{delete, get, post, put, web, Error, HttpResponse, error::InternalError};
 use diesel::prelude::*;
+use shared::models::response::Response;
 use uuid::Uuid;
 
-use crate::models::{documents::*, SuccessResponse, Response, session::TypedSession};
+use crate::models::{documents::*, SuccessResponse, session::TypedSession};
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 

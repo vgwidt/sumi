@@ -3,6 +3,7 @@ use super::super::DbPool;
 use actix_web::{delete, get, options, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
 use serde::Serialize;
+use shared::models::response::Response;
 use uuid::Uuid;
 
 use crate::models::{
@@ -43,7 +44,13 @@ async fn create(
 
     let ticket = ticket.first().unwrap();
 
-    Ok(HttpResponse::Ok().json(ticket))
+    let response = Response {
+        success: true,
+        message: None,
+        data: Some(ticket),
+    };
+
+    Ok(HttpResponse::Ok().json(response))
 }
 
 // All tickets with optional status filter (open, closed)
@@ -149,7 +156,13 @@ async fn update(
 
     let ticket = ticket.first().unwrap();
 
-    Ok(HttpResponse::Ok().json(ticket))
+    let response = Response {
+        success: true,
+        message: None,
+        data: Some(ticket),
+    };
+
+    Ok(HttpResponse::Ok().json(response))
 }
 
 #[delete("/tickets/{id}")]
