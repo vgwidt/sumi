@@ -1,4 +1,5 @@
-use crate::schema::tickets;
+use crate::schema::{tickets, ticket_revisions, ticket_events};
+use shared::models::tickets::TicketEventType;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -129,6 +130,18 @@ pub struct TicketRevision {
 //Ticket events
 #[derive(Debug, Serialize, Deserialize, Queryable)]
 pub struct TicketEvent {
+    pub event_id: Uuid,
+    pub ticket_id: i32,
+    pub event_type: TicketEventType,
+    pub event_data: String,
+    pub user_id: Option<Uuid>,
+    pub created_at: chrono::NaiveDateTime,
+}
+
+//New ticket event
+#[derive(Debug, Insertable)]
+#[diesel(table_name = ticket_events)]
+pub struct NewTicketEvent {
     pub event_id: Uuid,
     pub ticket_id: i32,
     pub event_type: String,
