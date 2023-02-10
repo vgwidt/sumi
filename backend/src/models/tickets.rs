@@ -125,3 +125,14 @@ pub struct TicketRevision {
     pub updated_by: Option<Uuid>,
     pub updated_at: chrono::NaiveDateTime,
 }
+
+//Ticket events
+#[derive(Debug, Serialize, Deserialize, Queryable)]
+pub struct TicketEvent {
+    pub event_id: Uuid,
+    pub ticket_id: i32,
+    pub event_type: String,
+    pub event_data: String,
+    pub user_id: Option<Uuid>,
+    pub created_at: chrono::NaiveDateTime,
+}
