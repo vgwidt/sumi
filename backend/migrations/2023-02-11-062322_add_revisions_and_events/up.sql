@@ -29,3 +29,28 @@ CREATE TABLE IF NOT EXISTS document_revisions (
 		REFERENCES users (user_id)
 		ON DELETE SET NULL
 );
+
+CREATE TABLE IF NOT EXISTS ticket_events (
+    event_id UUID PRIMARY KEY,
+    ticket_id INTEGER NOT NULL,
+    event_type TEXT NOT NULL,
+    event_data TEXT NOT NULL,
+    user_id UUID,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ticket_event_ticket
+        FOREIGN KEY (ticket_id)
+        REFERENCES tickets (ticket_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_ticket_event_user
+        FOREIGN KEY (user_id)
+        REFERENCES users (user_id)
+        ON DELETE SET NULL
+);
+
+ALTER TABLE tickets ADD COLUMN created_by UUID,
+    ADD COLUMN updated_by UUID,
+    ADD COLUMN revision TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN revision_by UUID;
+
+UPDATE tickets SET revision = updated_at;
+ALTER TABLE tickets ALTER COLUMN revision DROP DEFAULT;
