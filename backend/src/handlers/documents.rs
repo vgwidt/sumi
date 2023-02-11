@@ -1,11 +1,11 @@
 use super::super::DbPool;
 
-use actix_web::{delete, get, post, put, web, Error, HttpResponse, error::InternalError};
+use actix_web::{delete, error::InternalError, get, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
 use shared::models::response::Response;
 use uuid::Uuid;
 
-use crate::models::{documents::*, SuccessResponse, session::TypedSession};
+use crate::models::{documents::*, session::TypedSession, SuccessResponse};
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -62,9 +62,9 @@ async fn show(
 async fn update(
     document_id: web::Path<Uuid>,
     mut payload: web::Json<DocumentUpdatePayload>,
-    pool: web::Data<DbPool>, session: TypedSession
+    pool: web::Data<DbPool>,
+    session: TypedSession,
 ) -> Result<HttpResponse, Error> {
-
     let user_id: Option<Uuid> = match session.get_user_id() {
         Ok(id) => id,
         Err(_) => {
@@ -78,8 +78,7 @@ async fn update(
 
     //If it contains content, it should mean a new revision
     if payload.content.is_some() {
-        let old_document = 
-        {
+        let old_document = {
             let pool = pool.clone();
             let document_id = document_id.clone();
             web::block(move || {
@@ -95,7 +94,7 @@ async fn update(
         //Creation of revision will also be skipped of content hasn't changed
         //Otherwise we can safely continue, because content is the only thing that will result in revision
         if payload.content.clone().unwrap() == old_document.content {
-                payload.content = None;
+            payload.content = None;
         } else {
             //If version is in the payload, it means check revision
             if let Some(version) = payload.version {
@@ -131,7 +130,12 @@ async fn update(
 
     let document = web::block(move || {
         let mut conn = pool.get()?;
-        update_document(document_id.into_inner(), payload.into_inner(), user_id, &mut conn)
+        update_document(
+            document_id.into_inner(),
+            payload.into_inner(),
+            user_id,
+            &mut conn,
+        )
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
@@ -205,7 +209,10 @@ fn get_document_by_id(id: Uuid, conn: &mut PgConnection) -> Result<Document, DbE
     Ok(result)
 }
 
-fn create_document(payload: DocumentCreatePayload, conn: &mut PgConnection) -> Result<Document, DbError> {
+fn create_document(
+    payload: DocumentCreatePayload,
+    conn: &mut PgConnection,
+) -> Result<Document, DbError> {
     use crate::schema::documents::dsl::*;
 
     let mut adjusted_title = payload.title;
@@ -235,7 +242,8 @@ fn create_document(payload: DocumentCreatePayload, conn: &mut PgConnection) -> R
 
 fn update_document(
     id: Uuid,
-    payload: DocumentUpdatePayload, user_id: Option<Uuid>,
+    payload: DocumentUpdatePayload,
+    user_id: Option<Uuid>,
     conn: &mut PgConnection,
 ) -> Result<Document, DbError> {
     use crate::schema::documents::dsl::*;
@@ -268,7 +276,7 @@ fn update_document(
     let result = diesel::update(documents.find(id))
         .set(&doc)
         .get_result::<Document>(conn)?;
-    
+
     Ok(result)
 }
 

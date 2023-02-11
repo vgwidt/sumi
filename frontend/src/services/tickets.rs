@@ -73,9 +73,15 @@ pub async fn get(ticket_id: i32) -> Result<TicketInfo, Error> {
     Ok(ticket)
 }
 
-pub async fn update(ticket_id: i32, ticket: &TicketUpdateInfo) -> Result<Response<TicketInfo>, Error> {
-    request_put::<&TicketUpdateInfo, Response<TicketInfo>>(format!("/tickets/{}", ticket_id), ticket)
-        .await
+pub async fn update(
+    ticket_id: i32,
+    ticket: &TicketUpdateInfo,
+) -> Result<Response<TicketInfo>, Error> {
+    request_put::<&TicketUpdateInfo, Response<TicketInfo>>(
+        format!("/tickets/{}", ticket_id),
+        ticket,
+    )
+    .await
 }
 
 pub async fn create(ticket: &TicketCreateInfo) -> Result<Response<TicketInfo>, Error> {
@@ -95,6 +101,5 @@ pub async fn get_notes(ticket_id: i32) -> Result<Vec<NoteInfo>, Error> {
 
 //update status of a ticket
 pub async fn update_status(ticket_id: i32, status: &TicketStatusInfo) -> Result<TicketInfo, Error> {
-    request_put::<&TicketStatusInfo, TicketInfo>(format!("/tickets/{}", ticket_id), status)
-        .await
+    request_put::<&TicketStatusInfo, TicketInfo>(format!("/tickets/{}", ticket_id), status).await
 }

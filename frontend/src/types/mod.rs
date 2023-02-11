@@ -5,7 +5,10 @@ mod response;
 mod tickets;
 mod users;
 
-pub use tickets::{TicketCreateInfo, TicketInfo, TicketInfoWrapper, TicketListInfo, TicketStatusInfo, TicketUpdateInfo};
+pub use tickets::{
+    TicketCreateInfo, TicketInfo, TicketInfoWrapper, TicketListInfo, TicketStatusInfo,
+    TicketUpdateInfo,
+};
 
 pub use auth::{
     LoginInfo, MyUser, RegisterInfo, RegisterInfoWrapper, UserInfo, UserUpdateInfo,
@@ -18,4 +21,4 @@ pub use users::{UserPreferences, UserRepresentation};
 
 pub use response::{Error, ErrorInfo, ErrorResponse, SuccessResponse};
 
-pub use documents::{DocumentCreateInfo, DocumentUpdateInfo, DocumentInfo, DocumentMetadata};
+pub use documents::{DocumentCreateInfo, DocumentInfo, DocumentMetadata, DocumentUpdateInfo};

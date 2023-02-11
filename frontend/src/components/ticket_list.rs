@@ -4,8 +4,8 @@ use web_sys::HtmlSelectElement;
 use yew::prelude::*;
 use yew::suspense::use_future;
 use yew::suspense::use_future_with_deps;
-use yew_router::prelude::Link;
 use yew_router::prelude::use_navigator;
+use yew_router::prelude::Link;
 
 use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;

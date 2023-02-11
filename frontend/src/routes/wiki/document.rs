@@ -247,7 +247,7 @@ pub fn wiki_document(props: &Props) -> Html {
         <div class={style}>
             <div class="error">
                 {error.to_string()}
-            </div>        
+            </div>
             {
                 if *edit_mode {
                     html! {

@@ -80,7 +80,6 @@ pub fn note_list(props: &Props) -> Html {
         })
     };
 
-
     let inputnode = html! {
     <div>
         <NoteInput
@@ -143,7 +142,7 @@ pub fn note_list(props: &Props) -> Html {
                                 <Note
                                     ticket_id={props.ticket_id.clone()}
                                     note={note.clone()}
-                                    callback={callback_deleted.clone()} 
+                                    callback={callback_deleted.clone()}
                                     callback_updated={callback_updated.clone()}
                                     />
                             }

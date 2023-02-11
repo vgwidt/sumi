@@ -6,7 +6,7 @@ where
     T: DeserializeOwned + 'static + std::fmt::Debug,
     B: Serialize + std::fmt::Debug,
 {
-     let hostname: String = js_sys::Reflect::get(&js_sys::global(), &"SERVER_FQDN".into())
+    let hostname: String = js_sys::Reflect::get(&js_sys::global(), &"SERVER_FQDN".into())
         .unwrap()
         .as_string()
         .unwrap();

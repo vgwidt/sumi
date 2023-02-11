@@ -1,5 +1,5 @@
-use crate::schema::documents;
 use crate::schema::document_revisions;
+use crate::schema::documents;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

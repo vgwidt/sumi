@@ -21,8 +21,11 @@ pub async fn get_document(document_id: &Uuid) -> Result<DocumentInfo, Error> {
 }
 
 //create document
-pub async fn create_document(document: DocumentCreateInfo) -> Result<Response<DocumentInfo>, Error> {
-    request_post::<DocumentCreateInfo, Response<DocumentInfo>>(format!("/documents"), document).await
+pub async fn create_document(
+    document: DocumentCreateInfo,
+) -> Result<Response<DocumentInfo>, Error> {
+    request_post::<DocumentCreateInfo, Response<DocumentInfo>>(format!("/documents"), document)
+        .await
 }
 
 //update document

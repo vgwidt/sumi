@@ -112,7 +112,9 @@ pub fn ticket_editor(props: &Props) -> Html {
                                         ticket_id: response.data.unwrap().ticket_id,
                                     });
                                 } else {
-                                    error.set(response.message.unwrap_or("Unknown error".to_string()));
+                                    error.set(
+                                        response.message.unwrap_or("Unknown error".to_string()),
+                                    );
                                 }
                             }
                             Err(e) => {

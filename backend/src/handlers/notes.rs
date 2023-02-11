@@ -100,7 +100,6 @@ async fn update(
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
-    
 
     Ok(HttpResponse::Ok().json(note))
 }

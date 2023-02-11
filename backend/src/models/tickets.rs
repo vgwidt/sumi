@@ -1,4 +1,4 @@
-use crate::schema::{tickets, ticket_revisions, ticket_events};
+use crate::schema::{ticket_events, ticket_revisions, tickets};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -68,7 +68,7 @@ pub struct TicketUpdatePayload {
 //Struct used to update ticket in database
 #[derive(Debug, Insertable, AsChangeset, Deserialize, Default)]
 #[diesel(table_name = tickets)]
-pub struct UpdateTicket { 
+pub struct UpdateTicket {
     pub title: Option<String>,
     pub assignee: Option<Option<Uuid>>,
     pub contact: Option<Option<Uuid>>,
@@ -79,7 +79,6 @@ pub struct UpdateTicket {
     pub status: Option<String>,
     pub revision: Option<chrono::NaiveDateTime>,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TicketFilterPayload {
