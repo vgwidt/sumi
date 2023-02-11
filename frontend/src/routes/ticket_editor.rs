@@ -13,6 +13,8 @@ use crate::routes::AppRoute;
 use crate::services::tickets::*;
 use crate::services::users::get_users;
 use crate::types::TicketCreateInfo;
+use crate::types::TicketInfo;
+use crate::types::TicketUpdateInfo;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -29,18 +31,20 @@ pub fn ticket_editor(props: &Props) -> Html {
     let submitted = use_state(|| false);
     let error = use_state(|| String::new());
     let navigator = use_navigator().unwrap();
+    let retrieved_ticket = use_state(TicketInfo::default);
 
     let userlist = match { use_future(|| async { get_users().await.unwrap_or_default() }) } {
         Ok(users) => users.clone(),
         Err(_) => vec![],
     };
 
-    //If props.ticket_id is some, set update_info to ticket info from server
+    //If props.ticket_id is some, get ticket info from server (retrieved_ticket)
     {
         let loading = loading.clone();
         let error = error.clone();
-        let update_info = update_info.clone();
         let props = props.clone();
+        let update_info = update_info.clone();
+        let retrieved_ticket = retrieved_ticket.clone();
         use_effect_with_deps(
             move |_| {
                 wasm_bindgen_futures::spawn_local(async move {
@@ -48,18 +52,18 @@ pub fn ticket_editor(props: &Props) -> Html {
                         let result = get(ticket_id).await;
                         match result {
                             Ok(ticket) => {
+                                retrieved_ticket.set(ticket.clone());
                                 update_info.set(TicketCreateInfo {
-                                    title: ticket.title.clone(),
-                                    description: ticket.description.clone(),
+                                    title: ticket.title,
+                                    description: ticket.description,
                                     assignee: if let Some(assignee) = ticket.assignee {
-                                       Some(assignee.user_id)
+                                        Some(assignee.user_id)
                                     } else {
                                         None
                                     },
+                                    contact: ticket.contact,
                                     priority: ticket.priority,
                                     status: ticket.status,
-                                    contact: ticket.contact,
-                                    ..Default::default()
                                 });
                             }
                             Err(e) => {
@@ -82,12 +86,22 @@ pub fn ticket_editor(props: &Props) -> Html {
         let navigator = navigator.clone();
         let submitted = submitted.clone();
         let props = props.clone();
+        let retrieved_ticket = retrieved_ticket.clone();
         use_effect_with_deps(
             move |submitted| {
                 if **submitted {
                     wasm_bindgen_futures::spawn_local(async move {
                         let result = if let Some(ticket_id) = props.ticket_id {
-                            update(ticket_id, &update_info).await
+                            let request = TicketUpdateInfo {
+                                title: Some(update_info.title.clone()),
+                                description: Some(update_info.description.clone()),
+                                assignee: Some(update_info.assignee.clone()),
+                                contact: Some(update_info.contact.clone()),
+                                priority: Some(update_info.priority.clone()),
+                                status: Some(update_info.status.clone()),
+                                version: Some(retrieved_ticket.revision.clone()),
+                            };
+                            update(ticket_id, &request).await
                         } else {
                             create(&update_info).await
                         };

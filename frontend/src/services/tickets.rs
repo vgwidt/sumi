@@ -73,8 +73,8 @@ pub async fn get(ticket_id: i32) -> Result<TicketInfo, Error> {
     Ok(ticket)
 }
 
-pub async fn update(ticket_id: i32, ticket: &TicketCreateInfo) -> Result<Response<TicketInfo>, Error> {
-    request_put::<&TicketCreateInfo, Response<TicketInfo>>(format!("/tickets/{}", ticket_id), ticket)
+pub async fn update(ticket_id: i32, ticket: &TicketUpdateInfo) -> Result<Response<TicketInfo>, Error> {
+    request_put::<&TicketUpdateInfo, Response<TicketInfo>>(format!("/tickets/{}", ticket_id), ticket)
         .await
 }
 
