@@ -5,29 +5,21 @@ pub enum TicketEventType {
     Archived,
     Unarchived,
     Assigned,
-    StatusChanged,
-    PriorityChanged,
+    StatusUpdated,
+    PriorityUpdated,
+    TitleUpdated,
 }
 
-//impl to and from string for TicketEventType
-impl TicketEventType {
-    pub fn to_string(&self) -> String {
+//impl to string for storing in databaes (this_style)
+impl ToString for TicketEventType {
+    fn to_string(&self) -> String {
         match self {
-            TicketEventType::Archived => "Archived".to_string(),
-            TicketEventType::Unarchived => "Unarchived".to_string(),
-            TicketEventType::Assigned => "Assigned".to_string(),
-            TicketEventType::StatusChanged => "StatusChanged".to_string(),
-            TicketEventType::PriorityChanged => "PriorityChanged".to_string(),
-        }
-    }
-    pub fn from_string(s: &str) -> Result<TicketEventType, String> {
-        match s {
-            "Archived" => Ok(TicketEventType::Archived),
-            "Unarchived" => Ok(TicketEventType::Unarchived),
-            "Assigned" => Ok(TicketEventType::Assigned),
-            "StatusChanged" => Ok(TicketEventType::StatusChanged),
-            "PriorityChanged" => Ok(TicketEventType::PriorityChanged),
-            _ => Err(format!("{} is not a valid TicketEventType", s)),
+            TicketEventType::Archived => "archived".to_string(),
+            TicketEventType::Unarchived => "unarchived".to_string(),
+            TicketEventType::Assigned => "assigned".to_string(),
+            TicketEventType::StatusUpdated => "status_updated".to_string(),
+            TicketEventType::PriorityUpdated => "priority_updated".to_string(),
+            TicketEventType::TitleUpdated => "title_updated".to_string(),
         }
     }
 }

@@ -91,6 +91,10 @@ diesel::table! {
         priority -> Text,
         status -> Text,
         resolution -> Nullable<Uuid>,
+        created_by -> Nullable<Uuid>,
+        updated_by -> Nullable<Uuid>,
+        revision -> Timestamp,
+        revision_by -> Nullable<Uuid>,
     }
 }
 

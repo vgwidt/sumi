@@ -21,6 +21,10 @@ pub struct TicketInfo {
     pub updated_at: chrono::NaiveDateTime,
     pub priority: String,
     pub status: String,
+    pub created_by: Option<Uuid>,
+    pub updated_by: Option<Uuid>,
+    pub revision: chrono::NaiveDateTime,
+    pub revision_by: Option<Uuid>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

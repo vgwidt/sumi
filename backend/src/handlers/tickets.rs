@@ -3,14 +3,14 @@ use super::super::DbPool;
 use actix_web::{delete, error::InternalError, get, options, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
 use serde::Serialize;
-use shared::models::response::Response;
+use shared::models::{response::Response, tickets::TicketEventType};
 use uuid::Uuid;
 
 use crate::models::{
     session::TypedSession,
     tickets::{
-        NewTicket, NewTicketRevision, Ticket, TicketFilterPayload, TicketPayload,
-        TicketRepresentation, TicketRevision, TicketUpdatePayload, UpdateTicket,
+        NewTicket, NewTicketEvent, NewTicketRevision, Ticket, TicketEvent, TicketFilterPayload,
+        TicketPayload, TicketRepresentation, TicketRevision, TicketUpdatePayload, UpdateTicket,
     },
     users::User,
     SuccessResponse,
@@ -33,10 +33,39 @@ async fn options() -> Result<HttpResponse, Error> {
 async fn create(
     pool: web::Data<DbPool>,
     payload: web::Json<TicketPayload>,
+    session: TypedSession,
 ) -> Result<HttpResponse, Error> {
+    let time = chrono::Utc::now().naive_utc();
+    let user_id: Option<Uuid> = match session.get_user_id() {
+        Ok(id) => id,
+        Err(_) => {
+            return Err(InternalError::from_response(
+                "Unauthorized",
+                HttpResponse::Unauthorized().finish(),
+            )
+            .into())
+        }
+    };
+
+    let new_ticket = NewTicket {
+        title: payload.title.clone(),
+        assignee: payload.assignee,
+        contact: payload.contact,
+        description: payload.description.clone(),
+        created_at: time.clone(),
+        updated_at: time.clone(),
+        due_date: payload.due_date,
+        priority: payload.priority.clone(),
+        status: payload.status.clone(),
+        created_by: user_id.clone(),
+        updated_by: user_id.clone(),
+        revision: time.clone(),
+        revision_by: user_id.clone(),
+    };
+
     let ticket = web::block(move || {
         let mut conn = pool.get()?;
-        add_a_ticket(payload.into_inner(), &mut conn)
+        add_a_ticket(new_ticket, &mut conn)
     })
     .await?
     .map(|x| {
@@ -143,7 +172,7 @@ async fn show(id: web::Path<i32>, pool: web::Data<DbPool>) -> Result<HttpRespons
 #[put("/tickets/{id}")]
 async fn update(
     id: web::Path<i32>,
-    mut payload: web::Json<TicketUpdatePayload>,
+    payload: web::Json<TicketUpdatePayload>,
     pool: web::Data<DbPool>,
     session: TypedSession,
 ) -> Result<HttpResponse, Error> {
@@ -158,29 +187,47 @@ async fn update(
         }
     };
 
-    if payload.description.is_some() {
-        let old_ticket: Ticket = {
-            let pool = pool.clone();
-            let id = id.clone();
-            web::block(move || {
-                let mut conn = pool.get()?;
-                get_ticket_by_id(id, &mut conn)
-            })
-            .await?
-            .map_err(actix_web::error::ErrorInternalServerError)?
-        };
+    let old_ticket: Ticket = {
+        let pool = pool.clone();
+        let id = id.clone();
+        web::block(move || {
+            let mut conn = pool.get()?;
+            get_ticket_by_id(id, &mut conn)
+        })
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?
+    };
 
+    let time = chrono::Utc::now().naive_utc();
+
+    let mut updated_ticket = UpdateTicket {
+        title: payload.title.clone(),
+        assignee: payload.assignee,
+        contact: payload.contact,
+        description: payload.description.clone(),
+        due_date: payload.due_date,
+        priority: payload.priority.clone(),
+        status: payload.status.clone(),
+        updated_at: Some(time.clone()),
+        revision: if payload.description.is_some() {
+            Some(time.clone())
+        } else {
+            None
+        },
+    };
+
+    if updated_ticket.description.is_some() {
         //Set payload to none if content is the same (to prevent revision and timestamp update) otherwise proceed
-        if payload.description.clone().unwrap() == old_ticket.description {
-            payload.description = None;
+        if updated_ticket.description.clone().unwrap() == old_ticket.description {
+            updated_ticket.description = None;
         } else {
             //If version is in the payload, it means check revision
             if let Some(version) = payload.version {
                 //Get the latest revision
-                if version != old_ticket.updated_at {
+                if version != old_ticket.revision {
                     let response: Response<Ticket> = Response {
                         success: false,
-                        message: Some("Ticket is out of date".to_string()),
+                        message: Some("Ticket description is out of date".to_string()),
                         data: None,
                     };
                     return Ok(HttpResponse::Ok().json(response));
@@ -192,7 +239,7 @@ async fn update(
                 revision_id: Uuid::new_v4(),
                 ticket_id: old_ticket.ticket_id,
                 description: old_ticket.description,
-                updated_by: user_id,
+                updated_by: old_ticket.updated_by,
                 updated_at: old_ticket.updated_at,
             };
 
@@ -206,9 +253,98 @@ async fn update(
         }
     }
 
+    //For each status, priority, assignee, and title change, check if it is the same as old ticket and if not create an event for each
+    if payload.status.is_some() {
+        if payload.status.clone().unwrap() != old_ticket.status {
+            let event = NewTicketEvent {
+                event_id: Uuid::new_v4(),
+                ticket_id: old_ticket.ticket_id,
+                event_type: TicketEventType::StatusUpdated.to_string(),
+                event_data: payload.status.clone().unwrap(),
+                user_id: user_id.clone(),
+                created_at: time.clone(),
+            };
+
+            let pool = pool.clone();
+            web::block(move || {
+                let mut conn = pool.get()?;
+                create_ticket_event(event, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?;
+        }
+    }
+
+    if payload.priority.is_some() {
+        if payload.priority.clone().unwrap() != old_ticket.priority {
+            let event = NewTicketEvent {
+                event_id: Uuid::new_v4(),
+                ticket_id: old_ticket.ticket_id,
+                event_type: TicketEventType::PriorityUpdated.to_string(),
+                event_data: payload.priority.clone().unwrap(),
+                user_id: user_id.clone(),
+                created_at: time.clone(),
+            };
+
+            let pool = pool.clone();
+            web::block(move || {
+                let mut conn = pool.get()?;
+                create_ticket_event(event, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?;
+        }
+    }
+
+    if payload.assignee.is_some() {
+        if payload.assignee.clone().unwrap() != old_ticket.assignee {
+            let event = NewTicketEvent {
+                event_id: Uuid::new_v4(),
+                ticket_id: old_ticket.ticket_id,
+                event_type: TicketEventType::Assigned.to_string(),
+                event_data: if payload.assignee.clone().unwrap() == None {
+                    "".to_string()
+                } else {
+                    payload.assignee.clone().unwrap().unwrap().to_string()
+                },
+                user_id: user_id.clone(),
+                created_at: time.clone(),
+            };
+
+            let pool = pool.clone();
+            web::block(move || {
+                let mut conn = pool.get()?;
+                create_ticket_event(event, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?;
+        }
+    }
+
+    if payload.title.is_some() {
+        if payload.title.clone().unwrap() != old_ticket.title {
+            let event = NewTicketEvent {
+                event_id: Uuid::new_v4(),
+                ticket_id: old_ticket.ticket_id,
+                event_type: TicketEventType::TitleUpdated.to_string(),
+                event_data: payload.title.clone().unwrap(),
+                user_id: user_id.clone(),
+                created_at: time.clone(),
+            };
+
+            let pool = pool.clone();
+            web::block(move || {
+                let mut conn = pool.get()?;
+                create_ticket_event(event, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?;
+        }
+    }
+
     let ticket = web::block(move || {
         let mut conn = pool.get()?;
-        update_ticket(id.into_inner(), payload.into_inner(), &mut conn)
+        update_ticket(id.into_inner(), updated_ticket, &mut conn)
     })
     .await?
     .map(|x| {
@@ -269,26 +405,14 @@ async fn revisions(
 }
 
 fn add_a_ticket(
-    payload: TicketPayload,
+    payload: NewTicket,
     conn: &mut PgConnection,
 ) -> Result<Vec<(Ticket, Option<User>)>, DbError> {
     use crate::schema::tickets::dsl::*;
     use crate::schema::users::dsl::users;
 
-    let new_ticket = NewTicket {
-        title: &payload.title,
-        assignee: payload.assignee,
-        contact: payload.contact,
-        description: &payload.description,
-        created_at: chrono::Utc::now().naive_utc(),
-        updated_at: chrono::Utc::now().naive_utc(),
-        due_date: payload.due_date,
-        priority: &payload.priority,
-        status: &payload.status,
-    };
-
     let result: Ticket = diesel::insert_into(tickets)
-        .values(&new_ticket)
+        .values(&payload)
         .get_result(conn)?;
 
     let ticket: Vec<(Ticket, Option<User>)> = tickets
@@ -297,6 +421,18 @@ fn add_a_ticket(
         .load::<(Ticket, Option<User>)>(conn)?;
 
     Ok(ticket)
+}
+
+#[get("/tickets/{id}/events")]
+async fn events(ticket_id: web::Path<i32>, pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
+    let events = web::block(move || {
+        let mut conn = pool.get()?;
+        get_ticket_events(ticket_id.into_inner(), &mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(events))
 }
 
 fn find(
@@ -356,29 +492,14 @@ fn get_ticket_by_id(id: i32, conn: &mut PgConnection) -> Result<Ticket, DbError>
 
 fn update_ticket(
     id: i32,
-    payload: TicketUpdatePayload,
+    payload: UpdateTicket,
     conn: &mut PgConnection,
 ) -> Result<Vec<(Ticket, Option<User>)>, DbError> {
     use crate::schema::tickets::dsl::*;
     use crate::schema::users::dsl::users;
 
-    let updated_ticket = UpdateTicket {
-        title: payload.title,
-        assignee: payload.assignee,
-        contact: payload.contact,
-        description: payload.description.clone(),
-        due_date: payload.due_date,
-        priority: payload.priority,
-        status: payload.status,
-        updated_at: if payload.description.is_some() {
-            Some(chrono::Utc::now().naive_utc())
-        } else {
-            None
-        },
-    };
-
     let result: Ticket = diesel::update(tickets.find(id))
-        .set(&updated_ticket)
+        .set(&payload)
         .get_result(conn)?;
 
     let ticket: Vec<(Ticket, Option<User>)> = tickets
@@ -430,6 +551,29 @@ fn get_ticket_revisions(id: i32, conn: &mut PgConnection) -> Result<Vec<TicketRe
     let results = ticket_revisions
         .filter(ticket_id.eq(id))
         .load::<TicketRevision>(conn)?;
+
+    Ok(results)
+}
+
+fn create_ticket_event(
+    payload: NewTicketEvent,
+    conn: &mut PgConnection,
+) -> Result<TicketEvent, DbError> {
+    use crate::schema::ticket_events::dsl::*;
+
+    let result = diesel::insert_into(ticket_events)
+        .values(&payload)
+        .get_result::<TicketEvent>(conn)?;
+
+    Ok(result)
+}
+
+fn get_ticket_events(id: i32, conn: &mut PgConnection) -> Result<Vec<TicketEvent>, DbError> {
+    use crate::schema::ticket_events::dsl::*;
+
+    let results = ticket_events
+        .filter(ticket_id.eq(id))
+        .load::<TicketEvent>(conn)?;
 
     Ok(results)
 }

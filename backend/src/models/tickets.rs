@@ -1,5 +1,4 @@
 use crate::schema::{tickets, ticket_revisions, ticket_events};
-use shared::models::tickets::TicketEventType;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -18,20 +17,28 @@ pub struct Ticket {
     pub priority: String,
     pub status: String,
     pub resolution: Option<Uuid>,
+    pub created_by: Option<Uuid>,
+    pub updated_by: Option<Uuid>,
+    pub revision: chrono::NaiveDateTime,
+    pub revision_by: Option<Uuid>,
 }
 
 #[derive(Debug, Insertable)]
 #[diesel(table_name = tickets)]
-pub struct NewTicket<'a> {
-    pub title: &'a str,
+pub struct NewTicket {
+    pub title: String,
     pub assignee: Option<Uuid>,
     pub contact: Option<Uuid>,
-    pub description: &'a str,
+    pub description: String,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
     pub due_date: Option<chrono::NaiveDateTime>,
-    pub priority: &'a str,
-    pub status: &'a str,
+    pub priority: String,
+    pub status: String,
+    pub created_by: Option<Uuid>,
+    pub updated_by: Option<Uuid>,
+    pub revision: chrono::NaiveDateTime,
+    pub revision_by: Option<Uuid>,
 }
 
 #[derive(Debug, Serialize, Deserialize, AsChangeset)]
@@ -59,7 +66,7 @@ pub struct TicketUpdatePayload {
 }
 
 //Struct used to update ticket in database
-#[derive(Debug, Insertable, AsChangeset, Deserialize)]
+#[derive(Debug, Insertable, AsChangeset, Deserialize, Default)]
 #[diesel(table_name = tickets)]
 pub struct UpdateTicket { 
     pub title: Option<String>,
@@ -70,6 +77,7 @@ pub struct UpdateTicket {
     pub due_date: Option<chrono::NaiveDateTime>,
     pub priority: Option<String>,
     pub status: Option<String>,
+    pub revision: Option<chrono::NaiveDateTime>,
 }
 
 
@@ -91,6 +99,7 @@ pub struct TicketRepresentation {
     pub due_date: Option<chrono::NaiveDateTime>,
     pub priority: String,
     pub status: String,
+    pub revision: chrono::NaiveDateTime,
 }
 
 impl From<(Ticket, Option<User>)> for TicketRepresentation {
@@ -119,6 +128,7 @@ impl From<(Ticket, Option<User>)> for TicketRepresentation {
             due_date: values.0.due_date,
             priority: values.0.priority,
             status: values.0.status,
+            revision: values.0.revision,
         }
     }
 }
@@ -157,7 +167,7 @@ pub struct NewTicketRevision {
 pub struct TicketEvent {
     pub event_id: Uuid,
     pub ticket_id: i32,
-    pub event_type: TicketEventType,
+    pub event_type: String,
     pub event_data: String,
     pub user_id: Option<Uuid>,
     pub created_at: chrono::NaiveDateTime,
