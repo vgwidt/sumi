@@ -56,7 +56,7 @@ pub struct TicketPayload {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TicketUpdatePayload {
     pub title: Option<String>,
-    pub assignee: Option<Option<Uuid>>,
+    pub assignee: Option<String>,
     pub contact: Option<Option<Uuid>>,
     pub description: Option<String>,
     pub due_date: Option<chrono::NaiveDateTime>,

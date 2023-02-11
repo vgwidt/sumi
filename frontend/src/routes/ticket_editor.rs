@@ -95,7 +95,15 @@ pub fn ticket_editor(props: &Props) -> Html {
                             let request = TicketUpdateInfo {
                                 title: Some(update_info.title.clone()),
                                 description: Some(update_info.description.clone()),
-                                assignee: Some(update_info.assignee.clone()),
+                                assignee: match update_info.assignee {
+                                    Some(assignee) => if assignee == Uuid::nil() {
+                                        Some("".to_string())
+                                    } else {
+                                        Some(assignee.to_string())
+                                    },
+                                    //Workaround until we know if the field was actually changed and needs to be sent or not
+                                    None => Some("".to_string()),
+                                },
                                 contact: Some(update_info.contact.clone()),
                                 priority: Some(update_info.priority.clone()),
                                 status: Some(update_info.status.clone()),

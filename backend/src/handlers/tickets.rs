@@ -176,6 +176,7 @@ async fn update(
     pool: web::Data<DbPool>,
     session: TypedSession,
 ) -> Result<HttpResponse, Error> {
+    let time = chrono::Utc::now().naive_utc();
     let user_id: Option<Uuid> = match session.get_user_id() {
         Ok(id) => id,
         Err(_) => {
@@ -187,22 +188,9 @@ async fn update(
         }
     };
 
-    let old_ticket: Ticket = {
-        let pool = pool.clone();
-        let id = id.clone();
-        web::block(move || {
-            let mut conn = pool.get()?;
-            get_ticket_by_id(id, &mut conn)
-        })
-        .await?
-        .map_err(actix_web::error::ErrorInternalServerError)?
-    };
-
-    let time = chrono::Utc::now().naive_utc();
-
     let mut updated_ticket = UpdateTicket {
         title: payload.title.clone(),
-        assignee: payload.assignee,
+        assignee: None,
         contact: payload.contact,
         description: payload.description.clone(),
         due_date: payload.due_date,
@@ -215,6 +203,35 @@ async fn update(
             None
         },
     };
+    
+    //If assignee is None, set updated_ticket.assignee to None, If it is "", set it to Some(None), otherwise set it to Some(Some(assignee)) parsed as uuid
+    updated_ticket.assignee = match payload.assignee.clone() {
+        None => None,
+        Some(assignee) => {
+            if assignee == "" {
+                Some(None)
+            } else {
+                Some(Some(Uuid::parse_str(&assignee).unwrap()))
+            }
+        }
+    };
+
+
+    
+    let old_ticket: Ticket = {
+        let pool = pool.clone();
+        let id = id.clone();
+        web::block(move || {
+            let mut conn = pool.get()?;
+            get_ticket_by_id(id, &mut conn)
+        })
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?
+    };
+
+
+
+
 
     if updated_ticket.description.is_some() {
         //Set payload to none if content is the same (to prevent revision and timestamp update) otherwise proceed
@@ -295,17 +312,15 @@ async fn update(
             .map_err(actix_web::error::ErrorInternalServerError)?;
         }
     }
-
-    if payload.assignee.is_some() {
-        if payload.assignee.clone().unwrap() != old_ticket.assignee {
+    if let Some(assignee_uuid) = updated_ticket.assignee.clone() {
+        if assignee_uuid.clone() != old_ticket.assignee {
             let event = NewTicketEvent {
                 event_id: Uuid::new_v4(),
                 ticket_id: old_ticket.ticket_id,
                 event_type: TicketEventType::Assigned.to_string(),
-                event_data: if payload.assignee.clone().unwrap() == None {
-                    "".to_string()
-                } else {
-                    payload.assignee.clone().unwrap().unwrap().to_string()
+                event_data: match assignee_uuid {
+                    Some(assignee) => assignee.to_string(),
+                    None => "".to_string(),
                 },
                 user_id: user_id.clone(),
                 created_at: time.clone(),

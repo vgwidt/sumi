@@ -72,7 +72,7 @@ pub struct TicketUpdateInfo {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    pub assignee: Option<Option<Uuid>>,
+    pub assignee: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub contact: Option<Option<Uuid>>,
