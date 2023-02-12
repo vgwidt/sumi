@@ -67,6 +67,9 @@ pub fn ticket(props: &Props) -> Html {
             color: #838383;
             font-style: italic;
           }
+        .description {
+            word-wrap: break-word;
+        }
         .note-list {
             margin-top: 16px;
         }

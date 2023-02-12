@@ -224,6 +224,7 @@ pub fn wiki_document(props: &Props) -> Html {
         min-width: 400px;
         width: 100%;
         .wiki-document {
+            word-wrap: break-word;
             min-width: 300px;
             height: 100%;
             overflow: auto;
