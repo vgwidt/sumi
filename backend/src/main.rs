@@ -21,6 +21,7 @@ mod authentication;
 mod handlers;
 mod models;
 mod schema;
+pub mod utils;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

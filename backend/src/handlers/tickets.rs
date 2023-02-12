@@ -6,7 +6,7 @@ use serde::Serialize;
 use shared::models::{response::Response, tickets::TicketEventType};
 use uuid::Uuid;
 
-use crate::models::{
+use crate::{models::{
     session::TypedSession,
     tickets::{
         NewTicket, NewTicketEvent, NewTicketRevision, Ticket, TicketEvent, TicketFilterPayload,
@@ -14,7 +14,7 @@ use crate::models::{
     },
     users::User,
     SuccessResponse,
-};
+}, utils::parse_uuid};
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -191,7 +191,7 @@ async fn update(
     let mut updated_ticket = UpdateTicket {
         title: payload.title.clone(),
         assignee: None,
-        contact: payload.contact,
+        contact: None,
         description: payload.description.clone(),
         due_date: payload.due_date,
         priority: payload.priority.clone(),
@@ -204,20 +204,12 @@ async fn update(
         },
     };
     
-    //If assignee is None, set updated_ticket.assignee to None, If it is "", set it to Some(None), otherwise set it to Some(Some(assignee)) parsed as uuid
-    updated_ticket.assignee = match payload.assignee.clone() {
-        None => None,
-        Some(assignee) => {
-            if assignee == "" {
-                Some(None)
-            } else {
-                Some(Some(Uuid::parse_str(&assignee).unwrap()))
-            }
-        }
-    };
+    //If assignee is None (either not in payload or null), set updated_ticket.assignee to None, 
+    //If it is "", set it to Some(None) (means unassigned), 
+    //otherwise set it to Some(Some(assignee)) parsed as uuid
+    updated_ticket.assignee = parse_uuid(&payload.assignee)?;
+    updated_ticket.contact = parse_uuid(&payload.contact)?;
 
-
-    
     let old_ticket: Ticket = {
         let pool = pool.clone();
         let id = id.clone();
@@ -228,10 +220,6 @@ async fn update(
         .await?
         .map_err(actix_web::error::ErrorInternalServerError)?
     };
-
-
-
-
 
     if updated_ticket.description.is_some() {
         //Set payload to none if content is the same (to prevent revision and timestamp update) otherwise proceed

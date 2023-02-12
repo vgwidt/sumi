@@ -57,7 +57,7 @@ pub struct TicketPayload {
 pub struct TicketUpdatePayload {
     pub title: Option<String>,
     pub assignee: Option<String>,
-    pub contact: Option<Option<Uuid>>,
+    pub contact: Option<String>,
     pub description: Option<String>,
     pub due_date: Option<chrono::NaiveDateTime>,
     pub priority: Option<String>,

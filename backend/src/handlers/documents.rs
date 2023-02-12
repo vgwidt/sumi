@@ -5,7 +5,7 @@ use diesel::prelude::*;
 use shared::models::response::Response;
 use uuid::Uuid;
 
-use crate::models::{documents::*, session::TypedSession, SuccessResponse};
+use crate::{models::{documents::*, session::TypedSession, SuccessResponse}, utils::parse_uuid};
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -76,6 +76,31 @@ async fn update(
         }
     };
 
+    let adjusted_title = {
+        if let Some(title_value) = payload.title.clone() {
+            if title_value.is_empty() {
+                Some("Untitled".to_string())
+            } else {
+                Some(title_value)
+            }
+        } else {
+            None
+        }
+    };
+
+    let doc = UpdateDocument {
+        parent_id: parse_uuid(&payload.parent_id)?,
+        title: adjusted_title,
+        content: payload.content.clone(),
+        updated_at: if payload.content.is_some() {
+            Some(chrono::Utc::now().naive_utc())
+        } else {
+            None
+        },
+        updated_by: user_id,
+        archived: payload.archived,
+    };
+
     //If it contains content, it should mean a new revision
     if payload.content.is_some() {
         let old_document = {
@@ -132,8 +157,7 @@ async fn update(
         let mut conn = pool.get()?;
         update_document(
             document_id.into_inner(),
-            payload.into_inner(),
-            user_id,
+            doc,
             &mut conn,
         )
     })
@@ -242,36 +266,10 @@ fn create_document(
 
 fn update_document(
     id: Uuid,
-    payload: DocumentUpdatePayload,
-    user_id: Option<Uuid>,
+    doc: UpdateDocument,
     conn: &mut PgConnection,
 ) -> Result<Document, DbError> {
     use crate::schema::documents::dsl::*;
-
-    let adjusted_title = {
-        if let Some(title_value) = payload.title {
-            if title_value.is_empty() {
-                Some("Untitled".to_string())
-            } else {
-                Some(title_value)
-            }
-        } else {
-            None
-        }
-    };
-
-    let doc = UpdateDocument {
-        parent_id: payload.parent_id,
-        title: adjusted_title,
-        content: payload.content.clone(),
-        updated_at: if payload.content.is_some() {
-            Some(chrono::Utc::now().naive_utc())
-        } else {
-            None
-        },
-        updated_by: user_id,
-        archived: payload.archived,
-    };
 
     let result = diesel::update(documents.find(id))
         .set(&doc)

@@ -43,7 +43,7 @@ pub struct DocumentCreatePayload {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DocumentUpdatePayload {
-    pub parent_id: Option<Option<Uuid>>,
+    pub parent_id: Option<String>,
     pub title: Option<String>,
     pub content: Option<String>,
     pub archived: Option<bool>,
