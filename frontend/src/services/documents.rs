@@ -2,6 +2,7 @@ use uuid::Uuid;
 
 use super::{request_delete, request_get, request_post, request_put};
 use crate::types::*;
+use shared::models::response::Response;
 
 //get list of documents for document tree
 pub async fn get_doc_tree() -> Result<Vec<DocumentMetadata>, Error> {
@@ -20,16 +21,19 @@ pub async fn get_document(document_id: &Uuid) -> Result<DocumentInfo, Error> {
 }
 
 //create document
-pub async fn create_document(document: DocumentCreateUpdateInfo) -> Result<DocumentInfo, Error> {
-    request_post::<DocumentCreateUpdateInfo, DocumentInfo>(format!("/documents"), document).await
+pub async fn create_document(
+    document: DocumentCreateInfo,
+) -> Result<Response<DocumentInfo>, Error> {
+    request_post::<DocumentCreateInfo, Response<DocumentInfo>>(format!("/documents"), document)
+        .await
 }
 
 //update document
 pub async fn update_document(
     document_id: &Uuid,
-    document: DocumentCreateUpdateInfo,
-) -> Result<DocumentInfo, Error> {
-    request_put::<DocumentCreateUpdateInfo, DocumentInfo>(
+    document: DocumentUpdateInfo,
+) -> Result<Response<DocumentInfo>, Error> {
+    request_put::<DocumentUpdateInfo, Response<DocumentInfo>>(
         format!("/documents/{}", document_id),
         document,
     )

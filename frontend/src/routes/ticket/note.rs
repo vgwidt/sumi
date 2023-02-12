@@ -4,10 +4,10 @@ use yew::prelude::*;
 
 use crate::components::delete::{DeleteItem, ItemTypes};
 use crate::components::time_format::TimeFormat;
-use crate::services::notes::update_note;
-use crate::types::{NoteInfo, NoteCreateInfo};
-use crate::utils::markdown_to_html;
 use crate::hooks::use_language_context;
+use crate::services::notes::update_note;
+use crate::types::{NoteCreateInfo, NoteInfo};
+use crate::utils::markdown_to_html;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -26,7 +26,6 @@ pub fn note(props: &Props) -> Html {
     let update_info = use_state(|| note.clone());
     let error = use_state(|| String::new());
 
-
     //when submitted, send the note to the backend
     {
         let update_info = update_info.clone();
@@ -39,28 +38,27 @@ pub fn note(props: &Props) -> Html {
             move |submitted| {
                 if **submitted {
                     wasm_bindgen_futures::spawn_local(async move {
-                    let result = {
-                        let request = NoteCreateInfo {
-                            ticket: update_info.ticket,
-                            owner: Some(note_owner),
-                            text: update_info.text.clone(),
-                            time: update_info.time,
+                        let result = {
+                            let request = NoteCreateInfo {
+                                ticket: update_info.ticket,
+                                owner: Some(note_owner),
+                                text: update_info.text.clone(),
+                                time: update_info.time,
+                            };
+                            update_note(update_info.note_id, request).await
                         };
-                        update_note(update_info.note_id, request).await
-                        };
-                    
-                    match result {
-                        Ok(note) => {
-                            edit_mode.set(false);
-                            callback_updated.emit(note);
+
+                        match result {
+                            Ok(note) => {
+                                edit_mode.set(false);
+                                callback_updated.emit(note);
+                            }
+                            Err(e) => {
+                                error.set(e.to_string());
+                            }
                         }
-                        Err(e) => {
-                            error.set(e.to_string());
-                        }
-                    }
-                });
-                submitted.set(false);
-                
+                    });
+                    submitted.set(false);
                 }
                 || ()
             },
@@ -125,7 +123,7 @@ pub fn note(props: &Props) -> Html {
                     <div class="note-edit">
                         <form onsubmit={on_submit}>
                         <textarea placeholder="Text (Markdown)" rows=4 value={update_info.text.clone()} oninput={oninput_content} />
-                            <div> 
+                            <div>
                             <button class="btn" type="submit">
                                 { language.get("Submit") }
                             </button>

@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::models::{
     notes::{NewNote, Note, NotePayload, NoteRepresentation},
     users::User,
-    Response,
+    SuccessResponse,
 };
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
@@ -100,7 +100,6 @@ async fn update(
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
-    
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -115,13 +114,13 @@ async fn delete(id: web::Path<Uuid>, pool: web::Data<DbPool>) -> Result<HttpResp
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
     if result > 1 {
-        let response = Response {
+        let response = SuccessResponse {
             success: true,
             message: "Note deleted".to_string(),
         };
         Ok(HttpResponse::Ok().json(response))
     } else {
-        let response = Response {
+        let response = SuccessResponse {
             success: false,
             message: "Note not found".to_string(),
         };

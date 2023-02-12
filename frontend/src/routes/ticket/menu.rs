@@ -8,7 +8,7 @@ use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::routes::AppRoute;
 use crate::services::tickets::update_status;
-use crate::types::{TicketStatusInfo, TicketInfo};
+use crate::types::{TicketInfo, TicketStatusInfo};
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -76,7 +76,6 @@ pub fn ticket_menu(props: &Props) -> Html {
             };
             //async block
             wasm_bindgen_futures::spawn_local(async move {
-
                 let res = update_status(ticket_id, &ticket).await;
                 match res {
                     Ok(ticket) => {
@@ -95,7 +94,7 @@ pub fn ticket_menu(props: &Props) -> Html {
     html! {
         <span class={style}>
             <div class="dropdown">
-                <button class={ if *dropdown { "btn-action btn-action-active" } else { "btn-action" } 
+                <button class={ if *dropdown { "btn-action btn-action-active" } else { "btn-action" }
                 } onclick={onclick_dropdown}>
                     { language.get("•••") }
                 </button>

@@ -1,17 +1,21 @@
 use super::super::DbPool;
 
-use actix_web::{delete, get, post, put, web, Error, HttpResponse};
+use actix_web::{delete, error::InternalError, get, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
+use shared::models::response::Response;
 use uuid::Uuid;
 
-use crate::models::{documents::*, Response};
+use crate::{
+    models::{documents::*, session::TypedSession, SuccessResponse},
+    utils::parse_uuid,
+};
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
 #[post("/documents")]
 async fn create(
     pool: web::Data<DbPool>,
-    payload: web::Json<DocumentPayload>,
+    payload: web::Json<DocumentCreatePayload>,
 ) -> Result<HttpResponse, Error> {
     let document = web::block(move || {
         let mut conn = pool.get()?;
@@ -20,7 +24,13 @@ async fn create(
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(document))
+    let response = Response {
+        success: true,
+        message: None,
+        data: Some(document),
+    };
+
+    Ok(HttpResponse::Ok().json(response))
 }
 
 /// Handler for GET /documents, returns documents for generating tree
@@ -54,17 +64,112 @@ async fn show(
 #[put("/documents/{id}")]
 async fn update(
     document_id: web::Path<Uuid>,
-    payload: web::Json<DocumentPayload>,
+    mut payload: web::Json<DocumentUpdatePayload>,
     pool: web::Data<DbPool>,
+    session: TypedSession,
 ) -> Result<HttpResponse, Error> {
+    let user_id: Option<Uuid> = match session.get_user_id() {
+        Ok(id) => id,
+        Err(_) => {
+            return Err(InternalError::from_response(
+                "Unauthorized",
+                HttpResponse::Unauthorized().finish(),
+            )
+            .into())
+        }
+    };
+
+    let adjusted_title = {
+        if let Some(title_value) = payload.title.clone() {
+            if title_value.is_empty() {
+                Some("Untitled".to_string())
+            } else {
+                Some(title_value)
+            }
+        } else {
+            None
+        }
+    };
+
+    let doc = UpdateDocument {
+        parent_id: parse_uuid(&payload.parent_id)?,
+        title: adjusted_title,
+        content: payload.content.clone(),
+        updated_at: if payload.content.is_some() {
+            Some(chrono::Utc::now().naive_utc())
+        } else {
+            None
+        },
+        updated_by: user_id,
+        archived: payload.archived,
+    };
+
+    //If it contains content, it should mean a new revision
+    if payload.content.is_some() {
+        let old_document = {
+            let pool = pool.clone();
+            let document_id = document_id.clone();
+            web::block(move || {
+                let mut conn = pool.get()?;
+                get_document_by_id(document_id, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?
+        };
+
+        //Check if the content matches the old document, if so, set payload.content to None
+        //This ensures that the timestamp will not be updated
+        //Creation of revision will also be skipped of content hasn't changed
+        //Otherwise we can safely continue, because content is the only thing that will result in revision
+        if payload.content.clone().unwrap() == old_document.content {
+            payload.content = None;
+        } else {
+            //If version is in the payload, it means check revision
+            if let Some(version) = payload.version {
+                //Get the latest revision
+                if version != old_document.updated_at {
+                    let response: Response<Document> = Response {
+                        success: false,
+                        message: Some("Document is out of date".to_string()),
+                        data: None,
+                    };
+                    return Ok(HttpResponse::Ok().json(response));
+                }
+            }
+
+            //create revision from old document
+            let revision = NewDocumentRevision {
+                revision_id: Uuid::new_v4(),
+                document_id: old_document.document_id,
+                content: old_document.content,
+                updated_by: old_document.updated_by,
+                updated_at: old_document.updated_at,
+            };
+
+            let pool = pool.clone();
+            web::block(move || {
+                let mut conn = pool.get()?;
+                create_document_revision(revision, &mut conn)
+            })
+            .await?
+            .map_err(actix_web::error::ErrorInternalServerError)?;
+        }
+    }
+
     let document = web::block(move || {
         let mut conn = pool.get()?;
-        update_document(document_id.into_inner(), payload.into_inner(), &mut conn)
+        update_document(document_id.into_inner(), doc, &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(document))
+    let response = Response {
+        success: true,
+        message: None,
+        data: Some(document),
+    };
+
+    Ok(HttpResponse::Ok().json(response))
 }
 
 #[delete("/documents/{id}")]
@@ -80,18 +185,33 @@ async fn delete(
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
     if result > 1 {
-        let response = Response {
+        let response = SuccessResponse {
             success: true,
             message: "Document deleted".to_string(),
         };
         Ok(HttpResponse::Ok().json(response))
     } else {
-        let response = Response {
+        let response = SuccessResponse {
             success: false,
             message: "Document not found".to_string(),
         };
         Ok(HttpResponse::Ok().json(response))
     }
+}
+
+#[get("/documents/{id}/revisions")]
+async fn revisions(
+    document_id: web::Path<Uuid>,
+    pool: web::Data<DbPool>,
+) -> Result<HttpResponse, Error> {
+    let revisions = web::block(move || {
+        let mut conn = pool.get()?;
+        get_document_revisions(document_id.into_inner(), &mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(revisions))
 }
 
 fn get_document_list(conn: &mut PgConnection) -> Result<Vec<DocumentTreeInfo>, DbError> {
@@ -112,7 +232,10 @@ fn get_document_by_id(id: Uuid, conn: &mut PgConnection) -> Result<Document, DbE
     Ok(result)
 }
 
-fn create_document(payload: DocumentPayload, conn: &mut PgConnection) -> Result<Document, DbError> {
+fn create_document(
+    payload: DocumentCreatePayload,
+    conn: &mut PgConnection,
+) -> Result<Document, DbError> {
     use crate::schema::documents::dsl::*;
 
     let mut adjusted_title = payload.title;
@@ -142,26 +265,13 @@ fn create_document(payload: DocumentPayload, conn: &mut PgConnection) -> Result<
 
 fn update_document(
     id: Uuid,
-    payload: DocumentPayload,
+    doc: UpdateDocument,
     conn: &mut PgConnection,
 ) -> Result<Document, DbError> {
     use crate::schema::documents::dsl::*;
 
-    let mut adjusted_title = payload.title;
-    if adjusted_title.is_empty() {
-        adjusted_title = "Untitled".to_string();
-    };
-
     let result = diesel::update(documents.find(id))
-        .set((
-            parent_id.eq(payload.parent_id),
-            //url.eq(payload.url),
-            title.eq(adjusted_title),
-            content.eq(payload.content),
-            updated_at.eq(chrono::Utc::now().naive_utc()),
-            updated_by.eq(payload.updated_by),
-            archived.eq(payload.archived),
-        ))
+        .set(&doc)
         .get_result::<Document>(conn)?;
 
     Ok(result)
@@ -204,4 +314,30 @@ fn generate_url() -> String {
             .collect();
 
     random_string
+}
+
+fn create_document_revision(
+    payload: NewDocumentRevision,
+    conn: &mut PgConnection,
+) -> Result<DocumentRevision, DbError> {
+    use crate::schema::document_revisions::dsl::*;
+
+    let result = diesel::insert_into(document_revisions)
+        .values(&payload)
+        .get_result::<DocumentRevision>(conn)?;
+
+    Ok(result)
+}
+
+fn get_document_revisions(
+    doc_id: Uuid,
+    conn: &mut PgConnection,
+) -> Result<Vec<DocumentRevision>, DbError> {
+    use crate::schema::document_revisions::dsl::*;
+
+    let results = document_revisions
+        .filter(document_id.eq(doc_id))
+        .load::<DocumentRevision>(conn)?;
+
+    Ok(results)
 }

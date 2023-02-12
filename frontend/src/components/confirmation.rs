@@ -22,7 +22,8 @@ pub fn confirmation(props: &Props) -> Html {
         background-color: rgba(0, 0, 0, 0.5);
         z-index: 10;
         "#,
-    ).expect("Failed to parse style");
+    )
+    .expect("Failed to parse style");
 
     let style = style!(
         r#"
@@ -70,7 +71,6 @@ pub fn confirmation(props: &Props) -> Html {
             callback.emit(false);
         })
     };
-
 
     html! {
         //cover whole page with invisible div to close dropdown when clicking outside of it

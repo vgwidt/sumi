@@ -21,6 +21,10 @@ pub struct TicketInfo {
     pub updated_at: chrono::NaiveDateTime,
     pub priority: String,
     pub status: String,
+    pub created_by: Option<Uuid>,
+    pub updated_by: Option<Uuid>,
+    pub revision: chrono::NaiveDateTime,
+    pub revision_by: Option<Uuid>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -35,7 +39,7 @@ pub struct TicketListInfo {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
-pub struct TicketCreateUpdateInfo {
+pub struct TicketCreateInfo {
     pub title: String,
     pub description: String,
     pub assignee: Option<Uuid>,
@@ -44,7 +48,7 @@ pub struct TicketCreateUpdateInfo {
     pub status: String,
 }
 
-impl TicketCreateUpdateInfo {
+impl TicketCreateInfo {
     pub fn default() -> Self {
         Self {
             title: "".to_string(),
@@ -56,6 +60,31 @@ impl TicketCreateUpdateInfo {
             ..Default::default()
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct TicketUpdateInfo {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub assignee: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub contact: Option<Option<Uuid>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub priority: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub version: Option<chrono::NaiveDateTime>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]

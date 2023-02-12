@@ -26,13 +26,30 @@ pub struct DocumentInfo {
     pub archived: bool,
 }
 
-//Update document info. Note that url will be generated in backend
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
-pub struct DocumentCreateUpdateInfo {
+pub struct DocumentCreateInfo {
     pub parent_id: Option<Uuid>,
     pub title: String,
     pub content: String,
-    pub created_by: Option<Uuid>,
-    pub updated_by: Option<Uuid>,
-    pub archived: bool,
+    pub created_by: Uuid,
+    pub updated_by: Uuid,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
+pub struct DocumentUpdateInfo {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub parent_id: Option<Option<Uuid>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub archived: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub version: Option<chrono::NaiveDateTime>,
 }

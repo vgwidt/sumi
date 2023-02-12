@@ -2518,6 +2518,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "signal-hook-registry"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2668,6 +2675,7 @@ dependencies = [
  "secrecy",
  "serde",
  "serde_json",
+ "shared",
  "thiserror",
  "uuid",
 ]
@@ -2689,6 +2697,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "shared",
  "stylist",
  "thiserror",
  "uuid",

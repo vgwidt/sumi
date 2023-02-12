@@ -21,6 +21,7 @@ mod authentication;
 mod handlers;
 mod models;
 mod schema;
+pub mod utils;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -98,6 +99,8 @@ async fn main() -> std::io::Result<()> {
                     .service(handlers::tickets::show)
                     .service(handlers::tickets::update)
                     .service(handlers::tickets::destroy)
+                    .service(handlers::tickets::revisions)
+                    .service(handlers::tickets::events)
                     .service(handlers::users::index)
                     .service(handlers::users::create)
                     .service(handlers::users::show)
@@ -122,6 +125,7 @@ async fn main() -> std::io::Result<()> {
                     .service(handlers::documents::show)
                     .service(handlers::documents::update)
                     .service(handlers::documents::delete)
+                    .service(handlers::documents::revisions)
                     .wrap(from_fn(reject_anonymous_users)),
             )
             .service(

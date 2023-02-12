@@ -9,7 +9,7 @@ pub mod tickets;
 pub mod users;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Response {
+pub struct SuccessResponse {
     pub success: bool,
     pub message: String,
 }

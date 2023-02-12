@@ -44,7 +44,11 @@ pub fn wiki_tree(props: &Props) -> Html {
     }
 }
 
-fn render_documents(documents: &Vec<DocumentMetadata>, parent_id: Option<Uuid>, props: &Props) -> Vec<VNode> {
+fn render_documents(
+    documents: &Vec<DocumentMetadata>,
+    parent_id: Option<Uuid>,
+    props: &Props,
+) -> Vec<VNode> {
     let mut children = Vec::new();
 
     //Loops through the documents, starting with the root documents

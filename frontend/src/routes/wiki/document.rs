@@ -10,7 +10,7 @@ use crate::components::delete::{DeleteItem, ItemTypes};
 use crate::hooks::{use_language_context, use_user_context};
 use crate::routes::AppRoute;
 use crate::services::documents::{create_document, get_document, update_document};
-use crate::types::DocumentCreateUpdateInfo;
+use crate::types::{DocumentCreateInfo, DocumentUpdateInfo};
 use crate::utils::markdown_to_html;
 
 #[derive(Clone, PartialEq, Properties)]
@@ -24,7 +24,7 @@ pub fn wiki_document(props: &Props) -> Html {
     let user_ctx = use_user_context();
     let language = use_language_context();
     let navigator = use_navigator().unwrap();
-    let update_info = use_state(DocumentCreateUpdateInfo::default);
+    let update_info = use_state(DocumentUpdateInfo::default);
     let submitted = use_state(|| false);
     let error = use_state(|| String::new());
     //is_new is set to true when create button is clicked (for using create vs update service)
@@ -46,18 +46,17 @@ pub fn wiki_document(props: &Props) -> Html {
                         } else {
                             let result = get_document(&id).await;
                             if let Ok(document) = result {
-                                update_info.set(DocumentCreateUpdateInfo {
-                                    title: document.title.clone(),
-                                    content: document.content.clone(),
-                                    parent_id: document.parent_id.clone(),
-                                    created_by: document.created_by.clone(),
-                                    updated_by: document.updated_by.clone(),
-                                    archived: document.archived,
+                                update_info.set(DocumentUpdateInfo {
+                                    title: Some(document.title.clone()),
+                                    content: Some(document.content.clone()),
+                                    parent_id: Some(document.parent_id.clone()),
+                                    archived: Some(document.archived),
+                                    version: Some(document.updated_at),
                                 });
                             }
                         }
                     } else {
-                        update_info.set(DocumentCreateUpdateInfo::default());
+                        update_info.set(DocumentUpdateInfo::default());
                     }
                 });
                 || ()
@@ -86,7 +85,7 @@ pub fn wiki_document(props: &Props) -> Html {
         use_effect_with_deps(
             move |document_id| {
                 if document_id.is_some() {
-                    update_info.set(DocumentCreateUpdateInfo::default());
+                    update_info.set(DocumentUpdateInfo::default());
                 }
                 || ()
             },
@@ -112,38 +111,39 @@ pub fn wiki_document(props: &Props) -> Html {
                         //If it is an existing document, we only adjust the updated_by field
                         let result = {
                             if *is_new == false {
-                                let request = DocumentCreateUpdateInfo {
+                                let request = DocumentUpdateInfo {
                                     title: update_info.title.clone(),
                                     content: update_info.content.clone(),
                                     parent_id: update_info.parent_id.clone(),
-                                    created_by: update_info.created_by.clone(),
-                                    updated_by: Some(user_ctx.user_id.clone()),
                                     archived: update_info.archived,
+                                    version: update_info.version,
                                 };
                                 update_document(&document_id.unwrap_or_default(), request).await
                             } else {
                                 //New document also gets created_by adjusted
-                                let request = DocumentCreateUpdateInfo {
-                                    title: update_info.title.clone(),
-                                    content: update_info.content.clone(),
-                                    parent_id: update_info.parent_id.clone(),
-                                    created_by: update_info.created_by.clone(),
-                                    updated_by: Some(user_ctx.user_id.clone()),
-                                    archived: false,
+                                let request = DocumentCreateInfo {
+                                    title: update_info.title.clone().unwrap_or_default(),
+                                    content: update_info.content.clone().unwrap_or_default(),
+                                    parent_id: update_info.parent_id.clone().unwrap_or_default(),
+                                    created_by: user_ctx.user_id.clone(),
+                                    updated_by: user_ctx.user_id.clone(),
                                 };
                                 create_document(request).await
                             }
                         };
                         if let Ok(document) = result {
-                            //pushes new document id to url when document_update gets a response
-                            edit_mode.set(false);
-                            is_new.set(false);
-                            props.needs_update.emit(true);
-                            navigator.push(&AppRoute::WikiDoc {
-                                document_id: document.document_id,
-                            });
+                            if document.success {
+                                edit_mode.set(false);
+                                is_new.set(false);
+                                props.needs_update.emit(true);
+                                navigator.push(&AppRoute::WikiDoc {
+                                    document_id: document.data.unwrap().document_id,
+                                });
+                            } else {
+                                error.set(document.message.unwrap_or("Unknown error".to_string()));
+                            }
                         } else {
-                            error.set("Error updating document".to_string());
+                            error.set(result.err().unwrap().to_string());
                         }
                     });
                     submitted.set(false);
@@ -159,7 +159,7 @@ pub fn wiki_document(props: &Props) -> Html {
         Callback::from(move |e: InputEvent| {
             let input: HtmlInputElement = e.target_unchecked_into();
             let mut info = (*update_info).clone();
-            info.title = input.value();
+            info.title = Some(input.value());
             update_info.set(info);
         })
     };
@@ -169,7 +169,7 @@ pub fn wiki_document(props: &Props) -> Html {
         Callback::from(move |e: InputEvent| {
             let input: HtmlInputElement = e.target_unchecked_into();
             let mut info = (*update_info).clone();
-            info.content = input.value();
+            info.content = Some(input.value());
             update_info.set(info);
         })
     };
@@ -202,8 +202,8 @@ pub fn wiki_document(props: &Props) -> Html {
         let edit_mode = edit_mode.clone();
         Callback::from(move |_| {
             is_new.set(true);
-            let info = DocumentCreateUpdateInfo {
-                parent_id: document_id,
+            let info = DocumentUpdateInfo {
+                parent_id: Some(document_id),
                 ..Default::default()
             };
             update_info.set(info);
@@ -245,8 +245,10 @@ pub fn wiki_document(props: &Props) -> Html {
 
     html! {
         <div class={style}>
+            <div class="error">
+                {error.to_string()}
+            </div>
             {
-
                 if *edit_mode {
                     html! {
                         <div class="wiki-document">
@@ -287,7 +289,7 @@ pub fn wiki_document(props: &Props) -> Html {
                                 {update_info.title.clone()}
                             </h1>
                             <div class="wiki_content">
-                                {markdown_to_html(&update_info.content)}
+                                {markdown_to_html(&update_info.content.clone().unwrap_or_default())}
                             </div>
 
                         </div>
