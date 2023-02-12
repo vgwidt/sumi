@@ -5,7 +5,10 @@ use diesel::prelude::*;
 use shared::models::response::Response;
 use uuid::Uuid;
 
-use crate::{models::{documents::*, session::TypedSession, SuccessResponse}, utils::parse_uuid};
+use crate::{
+    models::{documents::*, session::TypedSession, SuccessResponse},
+    utils::parse_uuid,
+};
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -155,11 +158,7 @@ async fn update(
 
     let document = web::block(move || {
         let mut conn = pool.get()?;
-        update_document(
-            document_id.into_inner(),
-            doc,
-            &mut conn,
-        )
+        update_document(document_id.into_inner(), doc, &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;

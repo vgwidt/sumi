@@ -96,11 +96,13 @@ pub fn ticket_editor(props: &Props) -> Html {
                                 title: Some(update_info.title.clone()),
                                 description: Some(update_info.description.clone()),
                                 assignee: match update_info.assignee {
-                                    Some(assignee) => if assignee == Uuid::nil() {
-                                        Some("".to_string())
-                                    } else {
-                                        Some(assignee.to_string())
-                                    },
+                                    Some(assignee) => {
+                                        if assignee == Uuid::nil() {
+                                            Some("".to_string())
+                                        } else {
+                                            Some(assignee.to_string())
+                                        }
+                                    }
                                     //Workaround until we know if the field was actually changed and needs to be sent or not
                                     None => Some("".to_string()),
                                 },

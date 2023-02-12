@@ -6,15 +6,18 @@ use serde::Serialize;
 use shared::models::{response::Response, tickets::TicketEventType};
 use uuid::Uuid;
 
-use crate::{models::{
-    session::TypedSession,
-    tickets::{
-        NewTicket, NewTicketEvent, NewTicketRevision, Ticket, TicketEvent, TicketFilterPayload,
-        TicketPayload, TicketRepresentation, TicketRevision, TicketUpdatePayload, UpdateTicket,
+use crate::{
+    models::{
+        session::TypedSession,
+        tickets::{
+            NewTicket, NewTicketEvent, NewTicketRevision, Ticket, TicketEvent, TicketFilterPayload,
+            TicketPayload, TicketRepresentation, TicketRevision, TicketUpdatePayload, UpdateTicket,
+        },
+        users::User,
+        SuccessResponse,
     },
-    users::User,
-    SuccessResponse,
-}, utils::parse_uuid};
+    utils::parse_uuid,
+};
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -203,9 +206,9 @@ async fn update(
             None
         },
     };
-    
-    //If assignee is None (either not in payload or null), set updated_ticket.assignee to None, 
-    //If it is "", set it to Some(None) (means unassigned), 
+
+    //If assignee is None (either not in payload or null), set updated_ticket.assignee to None,
+    //If it is "", set it to Some(None) (means unassigned),
     //otherwise set it to Some(Some(assignee)) parsed as uuid
     updated_ticket.assignee = parse_uuid(&payload.assignee)?;
     updated_ticket.contact = parse_uuid(&payload.contact)?;
