@@ -9,6 +9,7 @@ COPY ./Cargo.toml ./
 COPY ./frontend/Cargo.toml ./frontend/Cargo.toml
 COPY ./backend/Cargo.toml ./backend/Cargo.toml
 COPY ./frontend/.cargo ./frontend/.cargo
+COPY ./shared ./shared
 RUN mkdir ./backend/src && mkdir ./frontend/src && echo 'fn main() { println!("Dummy"); }' > ./backend/src/main.rs && echo 'fn main() { println!("Dummy"); } ' > ./frontend/src/lib.rs
 RUN cargo build --release --manifest-path ./backend/Cargo.toml
 WORKDIR /usr/src/sumi/frontend
@@ -18,6 +19,7 @@ FROM base as builder
 WORKDIR /usr/src/sumi
 COPY . .
 COPY --from=cacher /usr/src/sumi/target target
+RUN cargo build --manifest-path ./shared/Cargo.toml --release
 RUN touch -a -m ./backend/src/main.rs && touch -a -m ./frontend/src/lib.rs
 RUN trunk build -d dist ./frontend/index.html --release
 RUN cargo build --manifest-path ./backend/Cargo.toml --release
