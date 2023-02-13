@@ -35,6 +35,7 @@ pub fn navigation() -> Html {
             color: ${text};
             display:flex; 
             flex-direction:column;
+            box-shadow: 5px 0 10px rgba(0, 0, 0, 0.2);
         }
         .nav-main {
             flex:1;
