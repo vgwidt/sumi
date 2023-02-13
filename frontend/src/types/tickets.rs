@@ -92,6 +92,16 @@ pub struct TicketStatusInfo {
     pub status: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TicketEvent {
+    pub event_id: Uuid,
+    pub ticket_id: i32,
+    pub event_type: String,
+    pub event_data: String,
+    pub user_id: Option<Uuid>,
+    pub created_at: chrono::NaiveDateTime,
+}
+
 //impl TicketStatus {
 //     pub fn to_string(&self) -> String {
 //         match self {

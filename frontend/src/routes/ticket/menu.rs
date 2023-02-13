@@ -4,7 +4,6 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::components::delete::DeleteItem;
-use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::routes::AppRoute;
 use crate::services::tickets::update_status;
@@ -20,7 +19,6 @@ pub struct Props {
 //Needs to be refactored to use new delete component
 #[styled_component(TicketMenu)]
 pub fn ticket_menu(props: &Props) -> Html {
-    let theme = use_theme();
     let navigator = use_navigator().unwrap();
     let dropdown = use_state(|| false);
     let language = use_language_context();

@@ -7,7 +7,7 @@ mod users;
 
 pub use tickets::{
     TicketCreateInfo, TicketInfo, TicketInfoWrapper, TicketListInfo, TicketStatusInfo,
-    TicketUpdateInfo,
+    TicketUpdateInfo, TicketEvent
 };
 
 pub use auth::{

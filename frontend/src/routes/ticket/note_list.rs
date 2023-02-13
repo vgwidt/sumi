@@ -6,7 +6,7 @@ use super::note::Note;
 use super::note_input::NoteInput;
 use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
-use crate::services::tickets::get_notes;
+use crate::services::tickets::{get_notes, get_events};
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -20,6 +20,7 @@ pub fn note_list(props: &Props) -> Html {
     let language = use_language_context();
 
     let note_list = use_state(|| vec![]);
+    let event_list = use_state(|| vec![]);
 
     {
         let note_list = note_list.clone();
@@ -36,6 +37,23 @@ pub fn note_list(props: &Props) -> Html {
             props.ticket_id.clone(),
         )
     }
+
+    {
+        let event_list = event_list.clone();
+        let props = props.clone();
+        use_effect_with_deps(
+            move |_| {
+                let event_list = event_list.clone();
+                wasm_bindgen_futures::spawn_local(async move {
+                    let events = get_events(props.ticket_id).await.unwrap();
+                    event_list.set(events);
+                });
+                || ()
+            },
+            props.ticket_id.clone(),
+        )
+    }
+
 
     let callback_added = {
         let note_list = note_list.clone();
@@ -133,19 +151,24 @@ pub fn note_list(props: &Props) -> Html {
 
     let listnode = if note_list.len() > 0 {
         let note_list = &*note_list.clone();
+        let event_list = &*event_list.clone();
         html! {
                 <div class={liststyle}>
-                <h3>{language.get("Notes")}</h3>
+                    <h3>{language.get("Notes")}</h3>
                     <div class={notestyle}>
                         {for note_list.into_iter().map(|note| {
-                            html! {
-                                <Note
-                                    ticket_id={props.ticket_id.clone()}
-                                    note={note.clone()}
-                                    callback={callback_deleted.clone()}
-                                    callback_updated={callback_updated.clone()}
-                                    />
-                            }
+                        html! {
+                        <Note ticket_id={props.ticket_id.clone()} note={note.clone()}
+                            callback={callback_deleted.clone()} callback_updated={callback_updated.clone()} />
+                        }
+                        })}
+                    </div>
+                    <h3>{language.get("Events")}</h3>
+                    <div class="event-list">
+                        {for event_list.into_iter().map(|event| {
+                        html! {
+                            <p>{format!("{}: {}", event.created_at, event.event_type)}</p>
+                        }
                         })}
                     </div>
                 </div>

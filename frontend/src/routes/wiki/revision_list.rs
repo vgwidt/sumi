@@ -4,7 +4,7 @@ use stylist::{style, yew::styled_component};
 use uuid::Uuid;
 use yew::{prelude::*, suspense::use_future_with_deps};
 
-use crate::{services::documents::document_revisions, types::DocumentRevision, contexts::theme, utils::markdown_to_html};
+use crate::{services::documents::document_revisions, types::DocumentRevision, utils::markdown_to_html};
 
 //props accepts ID of document or ticket (since different types, use T)
 #[derive(Properties, Clone, PartialEq)]
@@ -14,17 +14,23 @@ pub struct Props {
 
 #[styled_component(Revisions)]
 pub fn revisions(props: &Props) -> Html {
-    let theme = theme::use_theme();
-
     let revisions: UseStateHandle<Vec<DocumentRevision>> = use_state(|| vec![]);
+    let error = use_state(|| String::new());
 
     {
         let revisions = revisions.clone();
         let props = props.clone();
         use_future_with_deps(
             move |_| async move {
-                let result = document_revisions(props.id).await.unwrap();
-                revisions.set(result);
+                let result = document_revisions(props.id).await;
+                match result {
+                    Ok(r) => {
+                        revisions.set(r);
+                    }
+                    Err(e) => {
+                        error.set(e.to_string());
+                    }
+                }
             },
             props.id.clone(),
         );

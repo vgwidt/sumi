@@ -103,3 +103,12 @@ pub async fn get_notes(ticket_id: i32) -> Result<Vec<NoteInfo>, Error> {
 pub async fn update_status(ticket_id: i32, status: &TicketStatusInfo) -> Result<TicketInfo, Error> {
     request_put::<&TicketStatusInfo, TicketInfo>(format!("/tickets/{}", ticket_id), status).await
 }
+
+pub async fn get_events(ticket_id: i32) -> Result<Vec<TicketEvent>, Error> {
+    let mut events: Vec<TicketEvent> =
+        request_get::<Vec<TicketEvent>>(format!("/tickets/{}/events", ticket_id)).await?;
+
+    events.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+
+    Ok(events)
+}
