@@ -221,16 +221,16 @@ pub fn wiki_document(props: &Props) -> Html {
         })
     };
 
-    let onclick_revisions = { //opens revisions component by setting view_revisions to true
-        let view_revisions = view_revisions.clone();
-        Callback::from(move |_| {
-            if *view_revisions {
-                view_revisions.set(false);
-            } else {
-                view_revisions.set(true);
-            }
-        })
-    };
+    // let onclick_revisions = { //opens revisions component by setting view_revisions to true
+    //     let view_revisions = view_revisions.clone();
+    //     Callback::from(move |_| {
+    //         if *view_revisions {
+    //             view_revisions.set(false);
+    //         } else {
+    //             view_revisions.set(true);
+    //         }
+    //     })
+    // };
 
         
 
@@ -300,9 +300,9 @@ pub fn wiki_document(props: &Props) -> Html {
                                 </button>
                                 <DeleteItem item_id={document_id.to_string()} item_type={ItemTypes::Document}
                                     callback={callback_deleted} />
-                                    <button class="btn" onclick={onclick_revisions}>
-                                    {language.get("Revisions")}
-                                </button>
+                                // <button class="btn" onclick={onclick_revisions}>
+                                //     {language.get("Revisions")}
+                                // </button>
                             </div>
                             <h1 class="wiki_title">
                                 {update_info.title.clone()}

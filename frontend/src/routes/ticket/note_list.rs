@@ -163,14 +163,14 @@ pub fn note_list(props: &Props) -> Html {
                         }
                         })}
                     </div>
-                    <h3>{language.get("Events")}</h3>
-                    <div class="event-list">
-                        {for event_list.into_iter().map(|event| {
-                        html! {
-                            <p>{format!("{}: {}", event.created_at, event.event_type)}</p>
-                        }
-                        })}
-                    </div>
+                    // <h3>{language.get("Events")}</h3>
+                    // <div class="event-list">
+                    //     {for event_list.into_iter().map(|event| {
+                    //     html! {
+                    //         <p>{format!("{}: {}", event.created_at, event.event_type)}</p>
+                    //     }
+                    //     })}
+                    // </div>
                 </div>
         }
     } else {
