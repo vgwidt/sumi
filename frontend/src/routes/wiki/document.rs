@@ -7,6 +7,7 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::components::delete::{DeleteItem, ItemTypes};
+use crate::routes::wiki::revision_list::Revisions;
 use crate::hooks::{use_language_context, use_user_context};
 use crate::routes::AppRoute;
 use crate::services::documents::{create_document, get_document, update_document};
@@ -30,6 +31,7 @@ pub fn wiki_document(props: &Props) -> Html {
     //is_new is set to true when create button is clicked (for using create vs update service)
     let is_new = use_state(|| false);
     let edit_mode = use_state(|| false);
+    let view_revisions = use_state(|| false);
 
     //Reruns on edit as a workaround for when editing is cancelled, since the html displays update_info
     //It might be better to have a different state that holds the original values
@@ -219,6 +221,19 @@ pub fn wiki_document(props: &Props) -> Html {
         })
     };
 
+    let onclick_revisions = { //opens revisions component by setting view_revisions to true
+        let view_revisions = view_revisions.clone();
+        Callback::from(move |_| {
+            if *view_revisions {
+                view_revisions.set(false);
+            } else {
+                view_revisions.set(true);
+            }
+        })
+    };
+
+        
+
     let style = style! {
         r#"
         min-width: 400px;
@@ -285,6 +300,9 @@ pub fn wiki_document(props: &Props) -> Html {
                                 </button>
                                 <DeleteItem item_id={document_id.to_string()} item_type={ItemTypes::Document}
                                     callback={callback_deleted} />
+                                    <button class="btn" onclick={onclick_revisions}>
+                                    {language.get("Revisions")}
+                                </button>
                             </div>
                             <h1 class="wiki_title">
                                 {update_info.title.clone()}
@@ -292,6 +310,13 @@ pub fn wiki_document(props: &Props) -> Html {
                             <div class="wiki_content">
                                 {markdown_to_html(&update_info.content.clone().unwrap_or_default())}
                             </div>
+                            { if *view_revisions {
+                                html! {
+                                    <Revisions id={document_id} />
+                                }
+                            } else {
+                                html! {}
+                            }}
 
                         </div>
                     }

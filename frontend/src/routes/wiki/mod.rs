@@ -1,5 +1,7 @@
 pub mod document;
 mod tree;
+mod revision_list;
+mod revision;
 
 use stylist::style;
 use stylist::yew::styled_component;

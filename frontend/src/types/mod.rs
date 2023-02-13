@@ -21,4 +21,4 @@ pub use users::{UserPreferences, UserRepresentation};
 
 pub use response::{Error, ErrorInfo, ErrorResponse, SuccessResponse};
 
-pub use documents::{DocumentCreateInfo, DocumentInfo, DocumentMetadata, DocumentUpdateInfo};
+pub use documents::{DocumentCreateInfo, DocumentInfo, DocumentMetadata, DocumentUpdateInfo, DocumentRevision};

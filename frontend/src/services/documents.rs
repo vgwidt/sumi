@@ -43,3 +43,7 @@ pub async fn update_document(
 pub async fn delete_document(document_id: Uuid) -> Result<SuccessResponse, Error> {
     request_delete::<SuccessResponse>(format!("/documents/{}", document_id)).await
 }
+
+pub async fn document_revisions(document_id: Uuid) -> Result<Vec<DocumentRevision>, Error> {
+    request_get::<Vec<DocumentRevision>>(format!("/documents/{}/revisions", document_id)).await
+}

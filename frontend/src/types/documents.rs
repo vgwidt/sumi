@@ -53,3 +53,12 @@ pub struct DocumentUpdateInfo {
     #[serde(default)]
     pub version: Option<chrono::NaiveDateTime>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DocumentRevision {
+    pub revision_id: Uuid,
+    pub document_id: Uuid,
+    pub content: String,
+    pub updated_by: Option<Uuid>,
+    pub updated_at: chrono::NaiveDateTime,
+}
