@@ -100,8 +100,8 @@ pub async fn get_notes(ticket_id: i32) -> Result<Vec<NoteInfo>, Error> {
 }
 
 //update status of a ticket
-pub async fn update_status(ticket_id: i32, status: &TicketStatusInfo) -> Result<TicketInfo, Error> {
-    request_put::<&TicketStatusInfo, TicketInfo>(format!("/tickets/{}", ticket_id), status).await
+pub async fn update_status(ticket_id: i32, status: &TicketStatusInfo) -> Result<Response<TicketInfo>, Error> {
+    request_put::<&TicketStatusInfo, Response<TicketInfo>>(format!("/tickets/{}", ticket_id), status).await
 }
 
 pub async fn get_events(ticket_id: i32) -> Result<Vec<TicketEvent>, Error> {

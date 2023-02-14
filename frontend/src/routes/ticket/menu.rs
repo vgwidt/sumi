@@ -76,10 +76,15 @@ pub fn ticket_menu(props: &Props) -> Html {
             wasm_bindgen_futures::spawn_local(async move {
                 let res = update_status(ticket_id, &ticket).await;
                 match res {
-                    Ok(ticket) => {
-                        //navigator.push(&AppRoute::Home);
-                        //callback to parent component
-                        props.callback.emit(ticket);
+                    Ok(result) => {
+                        match result.success {
+                            true => {
+                                props.callback.emit(result.data.unwrap());
+                            }
+                            false => {
+                                log::error!("Error updating ticket status: {}", result.message.unwrap_or("".to_string()));
+                            }
+                        }
                     }
                     Err(e) => {
                         log::error!("Error updating ticket status: {}", e);
