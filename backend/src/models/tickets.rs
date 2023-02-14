@@ -80,10 +80,20 @@ pub struct UpdateTicket {
     pub revision: Option<chrono::NaiveDateTime>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TicketFilterPayload {
     pub assignee: Option<Uuid>,
     pub status: Option<String>,
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TicketWrapper {
+    pub tickets: Vec<TicketRepresentation>,
+    pub page: i64,
+    pub total_pages: i64,
+    pub total_results: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Clone)]
