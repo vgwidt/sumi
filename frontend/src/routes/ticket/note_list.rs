@@ -1,3 +1,6 @@
+use std::any::Any;
+use std::cmp::Ordering;
+
 use stylist::style;
 use stylist::yew::styled_component;
 use yew::prelude::*;
@@ -6,7 +9,9 @@ use super::note::Note;
 use super::note_input::NoteInput;
 use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
+use crate::routes::ticket::event::EventCard;
 use crate::services::tickets::{get_notes, get_events};
+use crate::types::{NoteInfo, TicketEvent};
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
@@ -98,6 +103,41 @@ pub fn note_list(props: &Props) -> Html {
         })
     };
 
+    let mut items: Vec<Box<dyn Any>> = vec![];
+
+    {
+        let note_list = note_list.clone();
+        let event_list = event_list.clone();
+        for note in note_list.iter() {
+            items.push(Box::new(note.clone()));
+        }
+        for event in event_list.iter() {
+            items.push(Box::new(event.clone()));
+        }
+    }
+
+    items.sort_by(|a, b| {
+        if let Some(a) = a.downcast_ref::<NoteInfo>() {
+            if let Some(b) = b.downcast_ref::<NoteInfo>() {
+                b.created_at.cmp(&a.created_at)
+            } else if let Some(b) = b.downcast_ref::<TicketEvent>() {
+                b.created_at.cmp(&a.created_at)
+            } else {
+                Ordering::Equal
+            }
+        } else if let Some(a) = a.downcast_ref::<TicketEvent>() {
+            if let Some(b) = b.downcast_ref::<NoteInfo>() {
+                b.created_at.cmp(&a.created_at)
+            } else if let Some(b) = b.downcast_ref::<TicketEvent>() {
+                b.created_at.cmp(&a.created_at)
+            } else {
+                Ordering::Equal
+            }
+        } else {
+            Ordering::Equal
+        }
+    });
+
     let inputnode = html! {
     <div>
         <NoteInput
@@ -105,12 +145,6 @@ pub fn note_list(props: &Props) -> Html {
             callback={callback_added} />
      </div>
     };
-
-    let liststyle = style! {
-        r#"
-        "#,
-    }
-    .expect("Failed to parse style");
 
     let notestyle = style!(
         r#"
@@ -149,33 +183,40 @@ pub fn note_list(props: &Props) -> Html {
     )
     .expect("Failed to parse style");
 
-    let listnode = if note_list.len() > 0 {
-        let note_list = &*note_list.clone();
-        let event_list = &*event_list.clone();
+    let listnode = {
         html! {
-                <div class={liststyle}>
-                    <h3>{language.get("Notes")}</h3>
-                    <div class={notestyle}>
-                        {for note_list.into_iter().map(|note| {
-                        html! {
-                        <Note ticket_id={props.ticket_id.clone()} note={note.clone()}
+            { if items.len() > 0 {
+               html!{ <div class={notestyle}>
+                        <h3>{language.get("Notes")}</h3>
+                        { for items.into_iter().map(|item| {
+                            if let Some(note) = item.downcast_ref::<NoteInfo>() {
+                                html! {
+                                    <Note ticket_id={props.ticket_id.clone()} note={note.clone()}
                             callback={callback_deleted.clone()} callback_updated={callback_updated.clone()} />
-                        }
+                                }
+                            } else if let Some(event) = item.downcast_ref::<TicketEvent>() {
+                                html! {
+                                    <EventCard
+                                        event={event.clone()}
+                                    />
+                                }
+                            } else {
+                                html! {}
+                            }
                         })}
-                    </div>
-                    // <h3>{language.get("Events")}</h3>
-                    // <div class="event-list">
-                    //     {for event_list.into_iter().map(|event| {
-                    //     html! {
-                    //         <p>{format!("{}: {}", event.created_at, event.event_type)}</p>
-                    //     }
-                    //     })}
-                    // </div>
                 </div>
+                    }
+            } else {
+                html! {
+                    <div>
+                        <p>{language.get("no_notes")}</p>
+                    </div>
+                }
+            }}
         }
-    } else {
-        html! {}
     };
+
+
 
     html! {
         <div>

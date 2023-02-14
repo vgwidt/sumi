@@ -92,7 +92,7 @@ pub struct TicketStatusInfo {
     pub status: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct TicketEvent {
     pub event_id: Uuid,
     pub ticket_id: i32,

@@ -2,6 +2,7 @@ mod menu;
 mod note;
 mod note_input;
 mod note_list;
+mod event;
 
 use stylist::style;
 use stylist::yew::styled_component;
