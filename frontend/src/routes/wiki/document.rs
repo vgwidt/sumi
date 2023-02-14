@@ -247,12 +247,12 @@ pub fn wiki_document(props: &Props) -> Html {
             margin-right: 32px;
         }
         .title-input {
-            width: 95%;
+            width: 100%;
             padding: 12px;
             margin-bottom: 12px;
         }
         textarea {
-            width: 95%;
+            width: 100%;
             padding: 12px;
         }
         "#

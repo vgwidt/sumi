@@ -172,10 +172,16 @@ pub fn note_list(props: &Props) -> Html {
         .note-text{
             padding: 0rem 0.75rem;
         }
+        .note-edit {
+            padding: 0.25rem 0.5rem;
+        }
         .note-time {
             padding: 0.5rem 0.75rem;
             font-style: italic;
             color: #838383;
+        }
+        textarea {
+            width: 100%;
         }
         "#,
         headerbg = theme.secondary_background.clone(),
@@ -207,11 +213,7 @@ pub fn note_list(props: &Props) -> Html {
                 </div>
                     }
             } else {
-                html! {
-                    <div>
-                        <p>{language.get("no_notes")}</p>
-                    </div>
-                }
+                html! {}
             }}
         }
     };

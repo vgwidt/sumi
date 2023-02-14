@@ -43,6 +43,7 @@ pub fn global_style() -> Html {
                 padding: 8px;
                 margin-top: 4px;
                 margin-bottom: 8px;
+                box-sizing: border-box;
             }
             textarea {
                 background-color: ${input_bg};
@@ -52,6 +53,8 @@ pub fn global_style() -> Html {
                 display: block;
                 padding: 8px;
                 margin: 4px 0px;
+                box-sizing: border-box;
+                resize: vertical;
             }
             label {
                 display: inline-block;
