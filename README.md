@@ -6,7 +6,7 @@
 
 A multi-user issue tracking system built with Yew frontend and actix-web backend.
 
-This is a project for learning.  The app is in a working state, but it is relatively unstyled and does not yet display meaningful errors.  APIs and interfaces will change and break.  The database structure is not stable and migrations will need to be made manually.  Editing conflicts are not handled and there is very little input verification.
+This is a project for learning.  The app is in a working state, but it is relatively unstyled, does not yet display meaningful errors, and has little input verification.
 
 ## Features
 - [x] Create, edit, close, re-assign tickets
@@ -14,6 +14,7 @@ This is a project for learning.  The app is in a working state, but it is relati
 - [x] Filter tickets by user and status
 - [X] Nested-document style wiki
 - [x] Markdown support for ticket descriptions, notes, and wiki
+- [x] Editing conflict handling with revision history
 - [x] Multi-user support
 - [x] Local authentication with Argon2 hashing and salting
 - [x] REST-style API
@@ -27,13 +28,13 @@ These are some features I'm looking to add:
 - [ ] Custom landing page (i.e. set wiki instead of tickets)
 - [ ] Ability to filter for multiple assignees, statuses, etc.
 - [ ] Allow for custom sorting
+- [ ] Tasklists for tickets
 - [ ] Show number of notes and tasks for a ticket in ticket list
 - [ ] Show description preview for a ticket on ticket list
 - [ ] Add On Hold status for tickets
 - [ ] Time tracking
 - [ ] Implement due dates for tickets
 - [ ] Custom ticket tags
-- [ ] Editing conflict handling
 - [ ] Pagination
 - [ ] Recycle bin for deleted items
 - [ ] Contacts
@@ -51,8 +52,6 @@ These are some features I'd like to see but will not get to at this stage:
 - [ ] Custom Fields
 
 ## Quickstart with Docker
-
-A base image (Dockerfile.base) is used to create an image with Rust and all the dependencies required (trunk, diesel, etc).  Dockerfile then uses this image, copies the files from the project folder, then compiles it.
 
 1. Generate and place certificates in ./certificates/ folder (cert.pem & key.pem).  Sample command to generate self-signed cert:
 ```
