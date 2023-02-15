@@ -32,10 +32,12 @@ pub struct TicketInfoWrapper {
     pub ticket: TicketInfo,
 }
 
-//Arbitrarily decided to user a wrapper for list of tickets
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
 pub struct TicketListInfo {
     pub tickets: Vec<TicketInfo>,
+    pub page: i64,
+    pub total_pages: i64,
+    pub total_results: i64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]

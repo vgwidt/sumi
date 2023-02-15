@@ -1,5 +1,9 @@
+use gloo::utils::document;
+use shared::models::tickets::TicketFilterPayload;
 use stylist::{style, yew::styled_component};
 use uuid::Uuid;
+use wasm_bindgen::JsCast;
+use web_sys::HtmlInputElement;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
 use yew::suspense::use_future;
@@ -55,6 +59,12 @@ pub fn ticket_list() -> Html {
     let language = use_language_context();
     let theme = use_theme();
     let navigator = use_navigator().unwrap();
+    let filter = use_state(|| TicketFilterPayload {
+        assignee: Some(user_ctx.user_id.clone()),
+        status: Some(StatusFilter::Open.to_string()),
+        page: Some(1),
+        per_page: Some(1),
+    });
     //let ticket_list = use_state(|| TicketListInfo::default());
 
     //For auto-updating the ticket list
@@ -67,27 +77,13 @@ pub fn ticket_list() -> Html {
         Err(_) => vec![],
     };
 
-    let filter = use_state(|| Filter {
-        assignee: Some(user_ctx.user_id.clone()),
-        status: Some(StatusFilter::Open.to_string()),
-        priority: None,
-    });
-    //let sort = use_state(|| TicketListSort::ByTicketNoDesc);
-
     //API call to get (filtered) tickets
-    let ticket_list = use_future_with_deps(
-        |filter| async move {
-            let filter = &*filter.clone();
-            get_filtered(
-                filter.assignee.as_ref(),
-                filter.status.as_ref(),
-                filter.priority.as_ref(),
-            )
-            .await
-            .unwrap_or_default()
-        },
-        filter.clone(),
-    );
+    let ticket_list =
+    {
+        let filter = &*filter.clone();
+        use_future_with_deps(|filter| async move { get_filtered(&filter).await.unwrap_or_default() }, filter.clone())
+
+    };
 
     let ticket_list = match ticket_list {
         Ok(ticket_list) => ticket_list.clone(),
@@ -99,10 +95,11 @@ pub fn ticket_list() -> Html {
         Callback::from(move |e: Event| {
             let input: HtmlSelectElement = e.target_unchecked_into();
             let value = input.value();
-            let mut new_filter = Filter {
+            let mut new_filter = TicketFilterPayload {
                 assignee: filter.assignee.clone(),
                 status: filter.status.clone(),
-                priority: filter.priority.clone(),
+                page: filter.page.clone(),
+                per_page: filter.per_page.clone(),
             };
             if value == "unassigned".to_string() {
                 new_filter.assignee = Some(Uuid::nil());
@@ -118,10 +115,11 @@ pub fn ticket_list() -> Html {
         Callback::from(move |e: Event| {
             let input: HtmlSelectElement = e.target_unchecked_into();
             let value = input.value();
-            filter.set(Filter {
+            filter.set(TicketFilterPayload {
                 assignee: filter.assignee.clone(),
                 status: Some(value),
-                priority: filter.priority.clone(),
+                page: filter.page.clone(),
+                per_page: filter.per_page.clone(),
             });
         })
     };
@@ -195,6 +193,56 @@ pub fn ticket_list() -> Html {
         bg = theme.background.clone(),
     )
     .expect("Failed to parse style");
+
+let onclick_prev_page = {
+    let filter = filter.clone();
+    Callback::from(move |_| {
+        let mut new_filter = TicketFilterPayload {
+            assignee: filter.assignee.clone(),
+            status: filter.status.clone(),
+            page: filter.page.clone(),
+            per_page: filter.per_page.clone(),
+        };
+        if new_filter.page.unwrap() > 1 {
+            new_filter.page = Some(new_filter.page.unwrap() - 1);
+        }
+        filter.set(new_filter);
+    })
+};
+
+let onclick_next_page = {
+    let filter = filter.clone();
+    Callback::from(move |_| {
+        let mut new_filter = TicketFilterPayload {
+            assignee: filter.assignee.clone(),
+            status: filter.status.clone(),
+            page: filter.page.clone(),
+            per_page: filter.per_page.clone(),
+        };
+        new_filter.page = Some(new_filter.page.unwrap() + 1);
+        filter.set(new_filter);
+    })
+};
+
+let onclick_filter_per_page = {
+    let filter = filter.clone();
+    Callback::from(move |_| {
+        //get input from id perpage
+        let input: HtmlInputElement = document()
+            .get_element_by_id("perpage")
+            .unwrap()
+            .unchecked_into();
+        let value = input.value();
+        let mut new_filter = TicketFilterPayload {
+            assignee: filter.assignee.clone(),
+            status: filter.status.clone(),
+            page: filter.page.clone(),
+            per_page: filter.per_page.clone(),
+        };
+        new_filter.per_page = Some(value.parse::<i64>().unwrap());
+        filter.set(new_filter);
+    })
+};
 
     html! {
         <div style="margin: 2px 16px;">
@@ -306,6 +354,34 @@ pub fn ticket_list() -> Html {
                     }
 
                 </table>
+            </div>
+            <div class="pagination">
+                <button class="btn" onclick={onclick_prev_page} disabled={ticket_list.page == 1}>
+                    {language.get("Prev")}
+                </button>
+                <span style="margin: 0px 8px;">{format!("{} / {}", ticket_list.page, ticket_list.total_pages)}</span>
+                <button class="btn" onclick={onclick_next_page} disabled={ticket_list.page == ticket_list.total_pages}>
+                    {language.get("Next")}
+                </button>
+            </div>
+            //"Results: {} - {} of {}"
+            <div>
+                <span>{format!("{} - {} of {}", ticket_list.page * filter.per_page.unwrap() - filter.per_page.unwrap() + 1, 
+                if ticket_list.total_results > ticket_list.page * filter.per_page.unwrap() {
+                    ticket_list.page * filter.per_page.unwrap()
+                } else {
+                    ticket_list.total_results
+                }, 
+                ticket_list.total_results)}</span>
+            </div>
+            //allow user to select results per page (input field, show the current amount by default
+            <div>
+                <span>{language.get("Results per page: ")}</span>
+                //use button to submit
+                <input type="number" id="perpage" value={filter.per_page.unwrap().to_string()} />
+                <button class="btn" onclick={onclick_filter_per_page}>
+                    {language.get("Submit")}
+                </button>
             </div>
         </div>
     }

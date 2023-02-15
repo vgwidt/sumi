@@ -3,14 +3,14 @@ use super::super::DbPool;
 use actix_web::{delete, error::InternalError, get, options, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
 use serde::Serialize;
-use shared::models::{response::Response, tickets::TicketEventType};
+use shared::models::{response::Response, tickets::{TicketEventType, TicketFilterPayload}};
 use uuid::Uuid;
 
 use crate::{
     models::{
         session::TypedSession,
         tickets::{
-            NewTicket, NewTicketEvent, NewTicketRevision, Ticket, TicketEvent, TicketFilterPayload,
+            NewTicket, NewTicketEvent, NewTicketRevision, Ticket, TicketEvent,
             TicketPayload, TicketRepresentation, TicketRevision, TicketUpdatePayload, UpdateTicket, TicketWrapper},
         users::User,
         SuccessResponse,
