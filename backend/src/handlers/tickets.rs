@@ -2,7 +2,6 @@ use super::super::DbPool;
 
 use actix_web::{delete, error::InternalError, get, options, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
-use serde::Serialize;
 use shared::models::{response::Response, tickets::{TicketEventType, TicketFilterPayload}};
 use uuid::Uuid;
 
@@ -477,6 +476,15 @@ fn find(
     }
 
     let count = count_query.count().get_result::<i64>(conn)?;
+    
+    if count == 0 {
+        return Ok(TicketWrapper {
+            tickets: vec![],
+            page: page,
+            total_results: count,
+            total_pages: 0,
+        });
+    }
     let total_pages = (count as f64 / per_page as f64).ceil() as i64;
     
     //if page is greater than total pages, use the last page
@@ -495,8 +503,6 @@ fn find(
         .into_iter()
         .map(|(ticket, user)| TicketRepresentation::from((ticket, user)))
         .collect::<Vec<TicketRepresentation>>();
-
-    
 
     let wrapper = TicketWrapper {
         tickets: results,

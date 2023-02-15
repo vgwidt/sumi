@@ -63,7 +63,7 @@ pub fn ticket_list() -> Html {
         assignee: Some(user_ctx.user_id.clone()),
         status: Some(StatusFilter::Open.to_string()),
         page: Some(1),
-        per_page: Some(1),
+        per_page: Some(50),
     });
     //let ticket_list = use_state(|| TicketListInfo::default());
 
@@ -233,14 +233,17 @@ let onclick_filter_per_page = {
             .unwrap()
             .unchecked_into();
         let value = input.value();
-        let mut new_filter = TicketFilterPayload {
-            assignee: filter.assignee.clone(),
-            status: filter.status.clone(),
-            page: filter.page.clone(),
-            per_page: filter.per_page.clone(),
-        };
-        new_filter.per_page = Some(value.parse::<i64>().unwrap());
-        filter.set(new_filter);
+        //must be greater than 0
+        if value.parse::<i64>().unwrap() > 0 {
+            let mut new_filter = TicketFilterPayload {
+                assignee: filter.assignee.clone(),
+                status: filter.status.clone(),
+                page: filter.page.clone(),
+                per_page: filter.per_page.clone(),
+            };
+            new_filter.per_page = Some(value.parse::<i64>().unwrap());
+            filter.set(new_filter);
+        }
     })
 };
 
@@ -346,41 +349,45 @@ let onclick_filter_per_page = {
                     }
                     } else {
                         html! {
-                            <tr>
-                                <td colspan="7">{language.get("No tickets")}</td>
-                            </tr>
                         }
                     }
                     }
 
                 </table>
             </div>
-            <div class="pagination">
-                <button class="btn" onclick={onclick_prev_page} disabled={ticket_list.page == 1}>
-                    {language.get("Prev")}
-                </button>
-                <span style="margin: 0px 8px;">{format!("{} / {}", ticket_list.page, ticket_list.total_pages)}</span>
-                <button class="btn" onclick={onclick_next_page} disabled={ticket_list.page == ticket_list.total_pages}>
-                    {language.get("Next")}
-                </button>
-            </div>
-            //"Results: {} - {} of {}"
-            <div>
-                <span>{format!("{} - {} of {}", ticket_list.page * filter.per_page.unwrap() - filter.per_page.unwrap() + 1, 
-                if ticket_list.total_results > ticket_list.page * filter.per_page.unwrap() {
-                    ticket_list.page * filter.per_page.unwrap()
-                } else {
-                    ticket_list.total_results
-                }, 
-                ticket_list.total_results)}</span>
-            </div>
-            //allow user to select results per page (input field, show the current amount by default
+            { if ticket_list.total_results == 0 {
+                html!{ language.get("No results") }
+                }
+                else { 
+                    html! {
+                        <>
+                            <div class="pagination">
+                                <button class="btn" onclick={onclick_prev_page} disabled={ticket_list.page == 1}>
+                                    {"<"}
+                                </button>
+                                <span style="margin: 0px 8px;">{format!("{} / {}", ticket_list.page, ticket_list.total_pages)}</span>
+                                <button class="btn" onclick={onclick_next_page} disabled={ticket_list.page == ticket_list.total_pages}>
+                                    {">"}
+                                </button>
+                            </div>
+                            <div>   
+                                <span>{format!("{} - {} of {}", ticket_list.page * filter.per_page.unwrap() - filter.per_page.unwrap() + 1, 
+                                if ticket_list.total_results > ticket_list.page * filter.per_page.unwrap() {
+                                    ticket_list.page * filter.per_page.unwrap()
+                                } else {
+                                    ticket_list.total_results
+                                }, 
+                                ticket_list.total_results)}</span>
+                            </div>
+                        </>
+                    }
+                }
+            }
             <div>
                 <span>{language.get("Results per page: ")}</span>
-                //use button to submit
-                <input type="number" id="perpage" value={filter.per_page.unwrap().to_string()} />
+                <input style="width: 80px;" type="number" id="perpage" value={filter.per_page.unwrap().to_string()} />
                 <button class="btn" onclick={onclick_filter_per_page}>
-                    {language.get("Submit")}
+                    {"✔️"}
                 </button>
             </div>
         </div>
