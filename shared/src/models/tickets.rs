@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum TicketEventType {
@@ -22,4 +23,13 @@ impl ToString for TicketEventType {
             TicketEventType::TitleUpdated => "title_updated".to_string(),
         }
     }
+}
+
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct TicketFilterPayload {
+    pub assignee: Option<Uuid>,
+    pub status: Option<String>,
+    pub page: Option<i64>,
+    pub per_page: Option<i64>,
 }

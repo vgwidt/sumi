@@ -1,5 +1,4 @@
-use shared::models::response::Response;
-use uuid::Uuid;
+use shared::models::{response::Response, tickets::TicketFilterPayload};
 
 use super::{request_delete, request_get, request_post, request_put};
 use crate::types::*;
@@ -29,29 +28,35 @@ pub async fn by_author(author: String) -> Result<TicketListInfo, Error> {
 
 //get request that accepts optional status and assignee parameters
 pub async fn get_filtered(
-    assignee: Option<&Uuid>,
-    status: Option<&String>,
-    _priority: Option<&String>,
+    query: &TicketFilterPayload,
 ) -> Result<TicketListInfo, Error> {
-    let mut tickets: TicketListInfo = {
-        if let Some(status) = status {
-            if let Some(assignee) = assignee {
-                request_get::<TicketListInfo>(format!(
-                    "/tickets?status={}&assignee={}",
-                    status,
-                    assignee.to_string()
-                ))
-                .await?
-            } else {
-                request_get::<TicketListInfo>(format!("/tickets?status={}", status)).await?
-            }
-        } else if let Some(assignee) = assignee {
-            request_get::<TicketListInfo>(format!("/tickets?assignee={}", assignee)).await?
-        } else {
-            request_get::<TicketListInfo>(format!("/tickets")).await?
-        }
-    };
 
+    let mut params = String::new();
+    if let Some(status) = &query.status {
+        params.push_str(&format!("status={}", status));
+    }
+    if let Some(assignee) = query.assignee {
+        if params.len() > 0 {
+            params.push_str("&");
+        }
+        params.push_str(&format!("assignee={}", assignee));
+    }
+    if let Some(page) = query.page {
+        if params.len() > 0 {
+            params.push_str("&");
+        }
+        params.push_str(&format!("page={}", page));
+    }
+    if let Some(per_page) = query.per_page {
+        if params.len() > 0 {
+            params.push_str("&");
+        }
+        params.push_str(&format!("per_page={}", per_page));
+    }
+
+    let mut tickets: TicketListInfo = request_get::<TicketListInfo>(format!("/tickets?{}", params)).await?;
+
+    //temporary fix to sort tickets by ticket_id
     tickets
         .tickets
         .sort_by(|a, b| a.ticket_id.cmp(&b.ticket_id));

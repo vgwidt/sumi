@@ -74,7 +74,7 @@ pub fn global_style() -> Html {
                 display: inline-flex;
                 border: none;
                 justify-content: center;
-                min-width: 60px;
+                min-width: 32px;
                 vertical-align: middle;
             }
             .btn:hover {

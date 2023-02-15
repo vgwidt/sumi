@@ -94,7 +94,7 @@ async fn main() -> std::io::Result<()> {
                     .service(handlers::users::whoami)
                     .service(handlers::tickets::options)
                     .service(handlers::tickets::index)
-                    .service(handlers::tickets::by_assignee)
+                    //.service(handlers::tickets::by_assignee)
                     .service(handlers::tickets::create)
                     .service(handlers::tickets::show)
                     .service(handlers::tickets::update)

@@ -2,29 +2,23 @@ use super::super::DbPool;
 
 use actix_web::{delete, error::InternalError, get, options, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
-use serde::Serialize;
-use shared::models::{response::Response, tickets::TicketEventType};
+use shared::models::{response::Response, tickets::{TicketEventType, TicketFilterPayload}};
 use uuid::Uuid;
 
 use crate::{
     models::{
         session::TypedSession,
         tickets::{
-            NewTicket, NewTicketEvent, NewTicketRevision, Ticket, TicketEvent, TicketFilterPayload,
-            TicketPayload, TicketRepresentation, TicketRevision, TicketUpdatePayload, UpdateTicket,
-        },
+            NewTicket, NewTicketEvent, NewTicketRevision, Ticket, TicketEvent,
+            TicketPayload, TicketRepresentation, TicketRevision, TicketUpdatePayload, UpdateTicket, TicketWrapper},
         users::User,
         SuccessResponse,
     },
     utils::parse_uuid,
 };
 
-type DbError = Box<dyn std::error::Error + Send + Sync>;
 
-#[derive(Debug, Serialize)]
-struct TicketWrapper {
-    tickets: Vec<TicketRepresentation>,
-}
+type DbError = Box<dyn std::error::Error + Send + Sync>;
 
 //options
 #[options("/tickets")]
@@ -100,42 +94,35 @@ async fn index(
         find(&mut conn, Some(query.into_inner()))
     })
     .await?
-    .map(|x| {
-        x.into_iter()
-            .map(TicketRepresentation::from)
-            .collect::<Vec<TicketRepresentation>>()
-    })
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    let ticket_list: TicketWrapper = TicketWrapper { tickets };
-
-    Ok(HttpResponse::Ok().json(ticket_list))
+    Ok(HttpResponse::Ok().json(tickets))
 }
 
-#[get("/tickets/assignee/{assignee}")]
-async fn by_assignee(
-    pool: web::Data<DbPool>,
-    assignee: web::Path<String>,
-) -> Result<HttpResponse, Error> {
-    //convert assignee to Uuid
-    let assignee_uuid = Uuid::parse_str(&assignee).unwrap();
+// #[get("/tickets/assignee/{assignee}")]
+// async fn by_assignee(
+//     pool: web::Data<DbPool>,
+//     assignee: web::Path<String>,
+// ) -> Result<HttpResponse, Error> {
+//     //convert assignee to Uuid
+//     let assignee_uuid = Uuid::parse_str(&assignee).unwrap();
 
-    let tickets = web::block(move || {
-        let mut conn = pool.get()?;
-        find_by_user_id(assignee_uuid, &mut conn)
-    })
-    .await?
-    .map(|x| {
-        x.into_iter()
-            .map(TicketRepresentation::from)
-            .collect::<Vec<TicketRepresentation>>()
-    })
-    .map_err(actix_web::error::ErrorInternalServerError)?;
+//     let tickets = web::block(move || {
+//         let mut conn = pool.get()?;
+//         find_by_user_id(assignee_uuid, &mut conn)
+//     })
+//     .await?
+//     .map(|x| {
+//         x.into_iter()
+//             .map(TicketRepresentation::from)
+//             .collect::<Vec<TicketRepresentation>>()
+//     })
+//     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    let ticket_list: TicketWrapper = TicketWrapper { tickets };
+//     let ticket_list: TicketWrapper = TicketWrapper { tickets };
 
-    Ok(HttpResponse::Ok().json(ticket_list))
-}
+//     Ok(HttpResponse::Ok().json(ticket_list))
+// }
 
 //get tickets by user_id
 #[get("/tickets?user_id={user_id}")]
@@ -444,18 +431,23 @@ async fn events(ticket_id: web::Path<i32>, pool: web::Data<DbPool>) -> Result<Ht
 fn find(
     conn: &mut PgConnection,
     filters: Option<TicketFilterPayload>,
-) -> Result<Vec<(Ticket, Option<User>)>, DbError> {
+) -> Result<TicketWrapper, DbError> {
     use crate::schema::tickets::dsl::*;
     use crate::schema::users::dsl::users;
 
     let mut query = tickets.left_join(users).into_boxed();
+    let mut count_query = tickets.into_boxed();
+    let mut page = 1;  
+    let mut per_page = 50;
 
     if let Some(filters) = filters {
         if let Some(tassignee) = filters.assignee {
             if tassignee == Uuid::nil() {
                 query = query.filter(assignee.is_null());
+                count_query = count_query.filter(assignee.is_null());
             } else {
                 query = query.filter(assignee.eq(tassignee));
+                count_query = count_query.filter(assignee.eq(tassignee));
             }
         }
 
@@ -463,15 +455,63 @@ fn find(
             if tstatus == "open" || tstatus == "Open" {
                 //anything but closed for now
                 query = query.filter(status.ne("Closed"));
+                count_query = count_query.filter(status.ne("Closed"));
             } else if tstatus == "closed" || tstatus == "Closed" {
                 query = query.filter(status.eq("Closed"));
+                count_query = count_query.filter(status.eq("Closed"));
+            }
+        }
+        
+        if let Some(p) = filters.page {
+            if p > 0 {
+                page = p;
+            }
+        }
+
+        if let Some(pp) = filters.per_page {
+            if pp > 0 {
+             per_page = pp;
             }
         }
     }
 
-    let items = query.load::<(Ticket, Option<User>)>(conn)?;
+    let count = count_query.count().get_result::<i64>(conn)?;
+    
+    if count == 0 {
+        return Ok(TicketWrapper {
+            tickets: vec![],
+            page: page,
+            total_results: count,
+            total_pages: 0,
+        });
+    }
+    let total_pages = (count as f64 / per_page as f64).ceil() as i64;
+    
+    //if page is greater than total pages, use the last page
+    if page > total_pages {
+        page = total_pages;
+    }
 
-    Ok(items)
+    let offset = (page - 1) * per_page;
+    query = query.limit(per_page).offset(offset);
+
+    let items = query.load::<(Ticket, Option<User>)>(conn)?;
+    
+
+    //collect Vec<TicketRepresentation> from Vec<(Ticket, Option<User>)>
+    let results = items
+        .into_iter()
+        .map(|(ticket, user)| TicketRepresentation::from((ticket, user)))
+        .collect::<Vec<TicketRepresentation>>();
+
+    let wrapper = TicketWrapper {
+        tickets: results,
+        page: page,
+        total_results: count,
+        total_pages: total_pages,
+    };
+
+    Ok(wrapper)
 }
 
 /// Find ticket by id and join with user
@@ -583,3 +623,5 @@ fn get_ticket_events(id: i32, conn: &mut PgConnection) -> Result<Vec<TicketEvent
 
     Ok(results)
 }
+
+
