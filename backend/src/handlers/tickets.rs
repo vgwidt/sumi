@@ -2,7 +2,7 @@ use super::super::DbPool;
 
 use actix_web::{delete, error::InternalError, get, options, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
-use shared::models::{response::Response, tickets::{TicketEventType, TicketFilterPayload}};
+use shared::models::{response::Response, tickets::{TicketEventType, TicketFilterPayload}, MAX_TITLE_LENGTH};
 use uuid::Uuid;
 
 use crate::{
@@ -32,6 +32,16 @@ async fn create(
     payload: web::Json<TicketPayload>,
     session: TypedSession,
 ) -> Result<HttpResponse, Error> {
+
+    if payload.title.len() > MAX_TITLE_LENGTH {
+        let response: Response<TicketRepresentation> = Response {
+            success: false,
+            message: Some(format!("Title is too long, max length is {}", MAX_TITLE_LENGTH)),
+            data: None,
+        };
+        return Ok(HttpResponse::Ok().json(response));
+    }
+
     let time = chrono::Utc::now().naive_utc();
     let user_id: Option<Uuid> = match session.get_user_id() {
         Ok(id) => id,
@@ -166,6 +176,18 @@ async fn update(
     pool: web::Data<DbPool>,
     session: TypedSession,
 ) -> Result<HttpResponse, Error> {
+
+    if let Some(title) = payload.title.clone() {
+        if title.len() > MAX_TITLE_LENGTH {
+            let response: Response<TicketRepresentation> = Response {
+                success: false,
+                message: Some(format!("Title is too long, max length is {}", MAX_TITLE_LENGTH)),
+                data: None,
+            };
+            return Ok(HttpResponse::Ok().json(response));
+        }
+    }
+
     let time = chrono::Utc::now().naive_utc();
     let user_id: Option<Uuid> = match session.get_user_id() {
         Ok(id) => id,

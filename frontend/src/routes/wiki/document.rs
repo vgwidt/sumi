@@ -1,3 +1,4 @@
+use shared::models::MAX_TITLE_LENGTH;
 use stylist::style;
 use stylist::yew::styled_component;
 
@@ -270,7 +271,7 @@ pub fn wiki_document(props: &Props) -> Html {
                         <div class="wiki-document">
                             <form class="wiki-form" onsubmit={on_submit}>
                                 <fieldset style="border: none;">
-                                    <input class="title-input" type="text" placeholder="Title" value={update_info.title.clone()} oninput={oninput_title} />
+                                    <input class="title-input" type="text" placeholder="Title" value={update_info.title.clone()} oninput={oninput_title} maxlength={MAX_TITLE_LENGTH.to_string()}/>
                                     <div class="wiki-content">
                                         <textarea placeholder="Description (Markdown)" rows=12 value={update_info.content.clone()} oninput={oninput_content} />
                                         </div>

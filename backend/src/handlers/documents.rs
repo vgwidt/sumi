@@ -2,7 +2,7 @@ use super::super::DbPool;
 
 use actix_web::{delete, error::InternalError, get, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
-use shared::models::response::Response;
+use shared::models::{response::Response, MAX_TITLE_LENGTH};
 use uuid::Uuid;
 
 use crate::{
@@ -17,6 +17,16 @@ async fn create(
     pool: web::Data<DbPool>,
     payload: web::Json<DocumentCreatePayload>,
 ) -> Result<HttpResponse, Error> {
+
+    if payload.title.len() > MAX_TITLE_LENGTH {
+        let response: Response<Document> = Response {
+            success: false,
+            message: Some(format!("Title is too long, max length is {}", MAX_TITLE_LENGTH)),
+            data: None,
+        };
+        return Ok(HttpResponse::Ok().json(response));
+    }
+
     let document = web::block(move || {
         let mut conn = pool.get()?;
         create_document(payload.into_inner(), &mut conn)
@@ -78,6 +88,17 @@ async fn update(
             .into())
         }
     };
+
+    if let Some(title) = payload.title.clone() {
+        if title.len() > MAX_TITLE_LENGTH {
+            let response: Response<Document> = Response {
+                success: false,
+                message: Some(format!("Title is too long, max length is {}", MAX_TITLE_LENGTH)),
+                data: None,
+            };
+            return Ok(HttpResponse::Ok().json(response));
+        }
+    }
 
     let adjusted_title = {
         if let Some(title_value) = payload.title.clone() {
@@ -237,6 +258,8 @@ fn create_document(
     conn: &mut PgConnection,
 ) -> Result<Document, DbError> {
     use crate::schema::documents::dsl::*;
+
+    
 
     let mut adjusted_title = payload.title;
     if adjusted_title.is_empty() {

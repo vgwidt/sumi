@@ -1,3 +1,4 @@
+use shared::models::MAX_TITLE_LENGTH;
 use stylist::style;
 use stylist::yew::styled_component;
 use uuid::Uuid;
@@ -233,7 +234,7 @@ pub fn ticket_editor(props: &Props) -> Html {
                         <fieldset class="editor-text">
                             <legend>{language.get("Title")}</legend>
                             <input class="title" type="text" placeholder="Ticket Title"
-                                value={update_info.title.clone()} oninput={oninput_title} />
+                                value={update_info.title.clone()} oninput={oninput_title} maxlength={MAX_TITLE_LENGTH.to_string()}/>
                         </fieldset>
                         <fieldset class="editor-text">
                             <legend>{language.get("Description")}</legend>
