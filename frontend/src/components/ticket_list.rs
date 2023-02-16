@@ -67,6 +67,7 @@ pub fn ticket_list() -> Html {
         sort_by: Some("ticket_id".to_string()),
         sort_order: Some("asc".to_string()),
     });
+
     //let ticket_list = use_state(|| TicketListInfo::default());
 
     //For auto-updating the ticket list
@@ -144,6 +145,8 @@ pub fn ticket_list() -> Html {
         }
         th {
             background-color: ${table_header};
+            cursor: pointer;
+            user-select: none;
         }
         tr:nth-child(odd)
         {
@@ -245,19 +248,59 @@ let onclick_filter_per_page = {
         let value = input.value();
         //must be greater than 0
         if value.parse::<i64>().unwrap() > 0 {
-            let mut new_filter = TicketFilterPayload {
+            filter.set(TicketFilterPayload {
                 assignee: filter.assignee.clone(),
                 status: filter.status.clone(),
-                page: filter.page.clone(),
-                per_page: filter.per_page.clone(),
+                page: Some(1),
+                per_page: Some(value.parse::<i64>().unwrap()),
                 sort_by: filter.sort_by.clone(),
                 sort_order: filter.sort_order.clone(),
-            };
-            new_filter.per_page = Some(value.parse::<i64>().unwrap());
-            filter.set(new_filter);
+            });
         }
     })
 };
+
+let onclick_sort_by_id = {
+    let filter = filter.clone();
+    Callback::from(move |_| {
+        let mut new_filter = TicketFilterPayload {
+            assignee: filter.assignee.clone(),
+            status: filter.status.clone(),
+            page: filter.page.clone(),
+            per_page: filter.per_page.clone(),
+            sort_by: Some("ticket_id".to_string()),
+            sort_order: filter.sort_order.clone(),
+        };
+        if new_filter.sort_order.unwrap() == "asc" {
+            new_filter.sort_order = Some("desc".to_string());
+        } else {
+            new_filter.sort_order = Some("asc".to_string());
+        }
+        filter.set(new_filter);
+    })
+};
+
+let onclick_sort_by_updated_at = {
+    let filter = filter.clone();
+    Callback::from(move |_| {
+        let mut new_filter = TicketFilterPayload {
+            assignee: filter.assignee.clone(),
+            status: filter.status.clone(),
+            page: filter.page.clone(),
+            per_page: filter.per_page.clone(),
+            sort_by: Some("updated_at".to_string()),
+            sort_order: filter.sort_order.clone(),
+        };
+        if new_filter.sort_order.unwrap() == "asc" {
+            new_filter.sort_order = Some("desc".to_string());
+        } else {
+            new_filter.sort_order = Some("asc".to_string());
+        }
+        filter.set(new_filter);
+    })
+};
+
+
 
     html! {
         <div style="margin: 2px 16px;">
@@ -290,11 +333,11 @@ let onclick_filter_per_page = {
                 <table class="table ticket-table">
                     <thead>
                         <tr>
-                            <th scope="col">{language.get("Ticket No.")}</th>
+                            <th onclick={onclick_sort_by_id} scope="col">{language.get("Ticket No.")}{if filter.sort_by.clone().unwrap() == "ticket_id" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
                             <th scope="col">{language.get("Title")}</th>
                             <th scope="col">{language.get("Assignee")}</th>
                             <th scope="col">{language.get("Created")}</th>
-                            <th scope="col">{language.get("Updated")}</th>
+                            <th onclick={onclick_sort_by_updated_at} scope="col">{language.get("Updated")}{if filter.sort_by.clone().unwrap() == "updated_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
                             <th scope="col">{language.get("Priority")}</th>
                             <th scope="col"></th>
                         </tr>
