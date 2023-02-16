@@ -64,6 +64,8 @@ pub fn ticket_list() -> Html {
         status: Some(StatusFilter::Open.to_string()),
         page: Some(1),
         per_page: Some(50),
+        sort_by: Some("ticket_id".to_string()),
+        sort_order: Some("asc".to_string()),
     });
     //let ticket_list = use_state(|| TicketListInfo::default());
 
@@ -100,6 +102,8 @@ pub fn ticket_list() -> Html {
                 status: filter.status.clone(),
                 page: filter.page.clone(),
                 per_page: filter.per_page.clone(),
+                sort_by: filter.sort_by.clone(),
+                sort_order: filter.sort_order.clone(),
             };
             if value == "unassigned".to_string() {
                 new_filter.assignee = Some(Uuid::nil());
@@ -120,6 +124,8 @@ pub fn ticket_list() -> Html {
                 status: Some(value),
                 page: filter.page.clone(),
                 per_page: filter.per_page.clone(),
+                sort_by: filter.sort_by.clone(),
+                sort_order: filter.sort_order.clone(),
             });
         })
     };
@@ -202,6 +208,8 @@ let onclick_prev_page = {
             status: filter.status.clone(),
             page: filter.page.clone(),
             per_page: filter.per_page.clone(),
+            sort_by: filter.sort_by.clone(),
+            sort_order: filter.sort_order.clone(),
         };
         if new_filter.page.unwrap() > 1 {
             new_filter.page = Some(new_filter.page.unwrap() - 1);
@@ -218,6 +226,8 @@ let onclick_next_page = {
             status: filter.status.clone(),
             page: filter.page.clone(),
             per_page: filter.per_page.clone(),
+            sort_by: filter.sort_by.clone(),
+            sort_order: filter.sort_order.clone(),
         };
         new_filter.page = Some(new_filter.page.unwrap() + 1);
         filter.set(new_filter);
@@ -240,6 +250,8 @@ let onclick_filter_per_page = {
                 status: filter.status.clone(),
                 page: filter.page.clone(),
                 per_page: filter.per_page.clone(),
+                sort_by: filter.sort_by.clone(),
+                sort_order: filter.sort_order.clone(),
             };
             new_filter.per_page = Some(value.parse::<i64>().unwrap());
             filter.set(new_filter);
