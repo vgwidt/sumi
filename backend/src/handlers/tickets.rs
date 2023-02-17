@@ -545,6 +545,26 @@ fn find(
         } else {
             query = query.order(updated_at.desc());
         }
+    } else if sort_by == "status" {
+        if sort_order == "asc" {
+            query = query.order(status.asc());
+        } else {
+            query = query.order(status.desc());
+        }
+    } else if sort_by == "assignee" {
+        if sort_order == "asc" {
+            query = query.order(assignee.asc());
+        } else {
+            query = query.order(assignee.desc());
+        }
+    } else if sort_by == "title" {
+        if sort_order == "asc" {
+            query = query.order(title.asc());
+        } else {
+            query = query.order(title.desc());
+        }
+    } else {
+        query = query.order(ticket_id.asc());
     }
 
     let items = query.load::<(Ticket, Option<User>)>(conn)?;

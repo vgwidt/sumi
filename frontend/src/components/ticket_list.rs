@@ -294,11 +294,11 @@ let onclick_filter_per_page = {
                     <thead>
                         <tr>
                             <th onclick={onclick_sort_by("ticket_id", &filter)} scope="col">{language.get("Ticket No.")}{if filter.sort_by.clone().unwrap() == "ticket_id" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
-                            <th scope="col">{language.get("Title")}</th>
-                            <th scope="col">{language.get("Assignee")}</th>
-                            <th scope="col">{language.get("Created")}</th>
+                            <th onclick={onclick_sort_by("title", &filter)} scope="col">{language.get("Title")}{if filter.sort_by.clone().unwrap() == "title" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
+                            <th onclick={onclick_sort_by("assignee", &filter)} scope="col">{language.get("Assignee")}{if filter.sort_by.clone().unwrap() == "assignee" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
+                            <th onclick={onclick_sort_by("created_at", &filter)} scope="col">{language.get("Created")}{if filter.sort_by.clone().unwrap() == "created_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
                             <th onclick={onclick_sort_by("updated_at", &filter)} scope="col">{language.get("Updated")}{if filter.sort_by.clone().unwrap() == "updated_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
-                            <th scope="col">{language.get("Priority")}</th>
+                            <th onclick={onclick_sort_by("priority", &filter)} scope="col">{language.get("priority")}{if filter.sort_by.clone().unwrap() == "priority" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
