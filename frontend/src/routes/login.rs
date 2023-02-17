@@ -121,10 +121,10 @@ pub fn login_page() -> Html {
                 margin-bottom: 0px;
               }
             .form-input {
-                height: 24px;
+                height: 32px;
                 border: 0px;
                 display: block;
-                width: 95%;
+                width: 100%;
                 margin: 0 auto;
                 margin-bottom: 4px;
               }
