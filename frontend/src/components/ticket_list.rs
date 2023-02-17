@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use gloo::utils::document;
 use shared::models::tickets::TicketFilterPayload;
 use stylist::{style, yew::styled_component};
