@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use gloo::utils::document;
 use shared::models::tickets::TicketFilterPayload;
 use stylist::{style, yew::styled_component};
@@ -260,48 +262,6 @@ let onclick_filter_per_page = {
     })
 };
 
-let onclick_sort_by_id = {
-    let filter = filter.clone();
-    Callback::from(move |_| {
-        let mut new_filter = TicketFilterPayload {
-            assignee: filter.assignee.clone(),
-            status: filter.status.clone(),
-            page: filter.page.clone(),
-            per_page: filter.per_page.clone(),
-            sort_by: Some("ticket_id".to_string()),
-            sort_order: filter.sort_order.clone(),
-        };
-        if new_filter.sort_order.unwrap() == "asc" {
-            new_filter.sort_order = Some("desc".to_string());
-        } else {
-            new_filter.sort_order = Some("asc".to_string());
-        }
-        filter.set(new_filter);
-    })
-};
-
-let onclick_sort_by_updated_at = {
-    let filter = filter.clone();
-    Callback::from(move |_| {
-        let mut new_filter = TicketFilterPayload {
-            assignee: filter.assignee.clone(),
-            status: filter.status.clone(),
-            page: filter.page.clone(),
-            per_page: filter.per_page.clone(),
-            sort_by: Some("updated_at".to_string()),
-            sort_order: filter.sort_order.clone(),
-        };
-        if new_filter.sort_order.unwrap() == "asc" {
-            new_filter.sort_order = Some("desc".to_string());
-        } else {
-            new_filter.sort_order = Some("asc".to_string());
-        }
-        filter.set(new_filter);
-    })
-};
-
-
-
     html! {
         <div style="margin: 2px 16px;">
             <div class="ticket-filters" style="display: flex; align-items: center;">
@@ -333,11 +293,11 @@ let onclick_sort_by_updated_at = {
                 <table class="table ticket-table">
                     <thead>
                         <tr>
-                            <th onclick={onclick_sort_by_id} scope="col">{language.get("Ticket No.")}{if filter.sort_by.clone().unwrap() == "ticket_id" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
+                            <th onclick={onclick_sort_by("ticket_id", &filter)} scope="col">{language.get("Ticket No.")}{if filter.sort_by.clone().unwrap() == "ticket_id" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
                             <th scope="col">{language.get("Title")}</th>
                             <th scope="col">{language.get("Assignee")}</th>
                             <th scope="col">{language.get("Created")}</th>
-                            <th onclick={onclick_sort_by_updated_at} scope="col">{language.get("Updated")}{if filter.sort_by.clone().unwrap() == "updated_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
+                            <th onclick={onclick_sort_by("updated_at", &filter)} scope="col">{language.get("Updated")}{if filter.sort_by.clone().unwrap() == "updated_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
                             <th scope="col">{language.get("Priority")}</th>
                             <th scope="col"></th>
                         </tr>
@@ -447,4 +407,26 @@ let onclick_sort_by_updated_at = {
             </div>
         </div>
     }
+}
+
+fn onclick_sort_by(sort_by: &str, filter: &UseStateHandle<TicketFilterPayload>) -> Callback<MouseEvent> {
+    let filter = filter.clone();
+    let sort_by = sort_by.to_string();
+    Callback::from(move |_| {
+        let mut new_filter = TicketFilterPayload {
+            assignee: filter.assignee.clone(),
+            status: filter.status.clone(),
+            page: filter.page.clone(),
+            per_page: filter.per_page.clone(),
+            sort_by: Some(sort_by.clone()),
+            sort_order: filter.sort_order.clone(),
+        };
+        if new_filter.sort_order.unwrap() == "asc" {
+            new_filter.sort_order = Some("desc".to_string());
+        } else {
+            new_filter.sort_order = Some("asc".to_string());
+        }
+        filter.set(new_filter);
+
+    })
 }
