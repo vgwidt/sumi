@@ -71,9 +71,11 @@ pub fn wiki_document(props: &Props) -> Html {
     //set edit_mode to false when props.document_id changes (i.e. clicks on a different document)
     {
         let edit_mode = edit_mode.clone();
+        let is_new = is_new.clone();
         use_effect_with_deps(
             move |document_id| {
                 if document_id.is_some() {
+                    is_new.set(false);
                     edit_mode.set(false);
                 }
                 || ()
@@ -187,7 +189,9 @@ pub fn wiki_document(props: &Props) -> Html {
 
     let on_click_cancel = {
         let edit_mode = edit_mode.clone();
+        let is_new = is_new.clone();
         Callback::from(move |_| {
+            is_new.set(false);
             edit_mode.set(false);
         })
     };

@@ -69,7 +69,6 @@ pub fn ticket_list() -> Html {
         sort_order: Some("asc".to_string()),
     });
     let loading = use_state(|| false);
-    let throttle = use_state(|| 0);
 
     //let ticket_list = use_state(|| TicketListInfo::default());
 
