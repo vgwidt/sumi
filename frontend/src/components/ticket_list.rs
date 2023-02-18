@@ -125,6 +125,8 @@ pub fn ticket_list() -> Html {
             };
             if value == "unassigned".to_string() {
                 new_filter.assignee = Some(Uuid::nil());
+            } else if value == "all".to_string() {
+                new_filter.assignee = None;
             } else {
                 new_filter.assignee = Some(Uuid::parse_str(&value).unwrap());
             }
@@ -299,7 +301,8 @@ let onclick_filter_per_page = {
                     <select name="assignee" id="assignee" onchange={onclick_filter_assignee}>
                         <option value={user_ctx.user_id.to_string()} selected=true>{user_ctx.display_name.clone()}
                         </option>
-                        <option value="unassigned">{"Unassigned"}</option>
+                        <option value="all">{"(All)"}</option>
+                        <option value="unassigned">{"(Unassigned)"}</option>
                         { for userlist.iter().map(|user| html! {
                         if user.user_id != user_ctx.user_id {
                         <option value={user.user_id.to_string()}>{user.display_name.clone()}</option>

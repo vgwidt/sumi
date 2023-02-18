@@ -553,9 +553,19 @@ fn find(
         }
     } else if sort_by == "assignee" {
         if sort_order == "asc" {
-            query = query.order(assignee.asc());
+            query = query.order_by(sql::<(Integer, Text)>(&format!(
+                r#"
+                CASE WHEN assignee IS NULL THEN 0 ELSE 1 END,
+                LOWER(COALESCE((SELECT display_name FROM users WHERE users.user_id = tickets.assignee), ''))
+                "#,
+            )));
         } else {
-            query = query.order(assignee.desc());
+            query = query.order_by(sql::<(Integer, Text)>(&format!(
+                r#"
+                CASE WHEN assignee IS NULL THEN 1 ELSE 0 END,
+                LOWER(COALESCE((SELECT display_name FROM users WHERE users.user_id = tickets.assignee), ''))
+                "#,
+            )));
         }
     } else if sort_by == "title" {
         if sort_order == "asc" {
