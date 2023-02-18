@@ -148,6 +148,13 @@ pub fn global_style() -> Html {
                 background-color: #35358a;
                 color: #e9e7e7;
             }
+            .page-btn {
+                border: none;
+                border-radius: 4px;
+                color: ${text};
+                background-color: transparent;
+                cursor: pointer;
+              }
             "#,
             bg = theme.background.clone(),
             text = theme.font_color.clone(),

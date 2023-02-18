@@ -182,44 +182,42 @@ pub fn ticket_list() -> Html {
         {
             background-color: ${table_header};
         }
-        td {         
-        }
         td a { 
             display: block; 
             padding: 10px 0px;
-         }
-         .ticket-table {
+        }
+        .ticket-table {
             margin-top: 12px;
             width: 100%; 
-          }
-          th:nth-child(1) {
+        }
+        th:nth-child(1) {
             width: 7%;
-          }
-          th:nth-child(2) {
+        }
+        th:nth-child(2) {
             width: 48%;
-          }
-          th:nth-child(3) {
+        }
+        th:nth-child(3) {
             width: 10%;
-          }
-          th:nth-child(4) {
+        }
+        th:nth-child(4) {
             width: 12%;
-          }
-          th:nth-child(5) {
+        }
+        th:nth-child(5) {
             width: 12%;
-          }
-          th:nth-child(6) {
+        }
+        th:nth-child(6) {
             width: 7%;
-          }
-          th:nth-child(7) {
+        }
+        th:nth-child(7) {
             width: 4%;
-          }
-          tr {
+        }
+        tr {
             height: 32px;
-          }
-          td {
+        }
+        td {
             padding-left: 2px;
-          }
-        "#,
+        }
+    "#,
         table_header = theme.secondary_background.clone(),
         bg = theme.background.clone(),
     )
@@ -266,24 +264,27 @@ let onclick_next_page = {
 let onclick_filter_per_page = {
     let filter = filter.clone();
     let loading = loading.clone();
-    Callback::from(move |_| {
-        //get input from id perpage
+    Callback::from(move |e: SubmitEvent| {
+        e.prevent_default();
         let input: HtmlInputElement = document()
             .get_element_by_id("perpage")
             .unwrap()
             .unchecked_into();
-        let value = input.value();
-        loading.set(true);
-        //must be greater than 0
-        if value.parse::<i64>().unwrap() > 0 {
-            filter.set(TicketFilterPayload {
-                assignee: filter.assignee.clone(),
-                status: filter.status.clone(),
-                page: Some(1),
-                per_page: Some(value.parse::<i64>().unwrap()),
-                sort_by: filter.sort_by.clone(),
-                sort_order: filter.sort_order.clone(),
-            });
+        match input.value().parse::<i64>() {
+            Ok(value) => {
+                if value > 0 && value != filter.per_page.unwrap() {
+                    loading.set(true);
+                    filter.set(TicketFilterPayload {
+                        assignee: filter.assignee.clone(),
+                        status: filter.status.clone(),
+                        page: Some(1),
+                        per_page: Some(value),
+                        sort_by: filter.sort_by.clone(),
+                        sort_order: filter.sort_order.clone(),
+                    });
+                }
+            }
+            Err(_) => {}
         }
     })
 };
@@ -407,35 +408,37 @@ let onclick_filter_per_page = {
                 }
                 else { 
                     html! {
-                        <>
-                            <div class="pagination">
-                                <button class="btn" onclick={onclick_prev_page} disabled={ticket_list.page == 1}>
-                                    {"<"}
+                            <div class="pagination" style="display: flex; justify-content: space-between; margin-top: 6px;">
+                                <div style="text-align: left;"> 
+                                    <span>{format!("{} - {} of {}", ticket_list.page * filter.per_page.unwrap() - filter.per_page.unwrap() + 1, 
+                                    if ticket_list.total_results > ticket_list.page * filter.per_page.unwrap() {
+                                        ticket_list.page * filter.per_page.unwrap()
+                                    } else {
+                                        ticket_list.total_results
+                                    }, 
+                                    ticket_list.total_results)}</span>
+                                </div>
+                                <div style="text-align: center; flex: 1;">
+                                <button class="page-btn" onclick={onclick_prev_page} disabled={ticket_list.page == 1}>
+                                    {"❮"}
                                 </button>
                                 <span style="margin: 0px 8px;">{format!("{} / {}", ticket_list.page, ticket_list.total_pages)}</span>
-                                <button class="btn" onclick={onclick_next_page} disabled={ticket_list.page == ticket_list.total_pages}>
-                                    {">"}
+                                <button class="page-btn" onclick={onclick_next_page} disabled={ticket_list.page == ticket_list.total_pages}>
+                                    {"❯"}
                                 </button>
                             </div>
-                            <div>   
-                                <span>{format!("{} - {} of {}", ticket_list.page * filter.per_page.unwrap() - filter.per_page.unwrap() + 1, 
-                                if ticket_list.total_results > ticket_list.page * filter.per_page.unwrap() {
-                                    ticket_list.page * filter.per_page.unwrap()
-                                } else {
-                                    ticket_list.total_results
-                                }, 
-                                ticket_list.total_results)}</span>
                             </div>
-                        </>
                     }
                 }
             }
             <div>
+            <form style="display: inline;" onsubmit={onclick_filter_per_page}>
                 <span>{language.get("Results per page: ")}</span>
-                <input style="width: 80px;" type="number" id="perpage" value={filter.per_page.unwrap().to_string()} />
-                <button class="btn" onclick={onclick_filter_per_page}>
+                <input style="width: 64px; margin-right: 4px;" type="number" id="perpage" value={filter.per_page.unwrap().to_string()} />
+                <button class="page-btn" type="submit">
                     {"✔️"}
                 </button>
+            </form>
             </div>
         </div>
     }
