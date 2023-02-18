@@ -602,6 +602,11 @@ fn find(
         query = query.order(ticket_id.asc());
     }
 
+    if sort_by != "ticket_id" {
+        query = query.then_order_by(ticket_id.asc());
+    }
+
+
     let items = query.load::<(Ticket, Option<User>)>(conn)?;
     
 
