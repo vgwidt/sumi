@@ -10,8 +10,9 @@ This is a project for learning.  The app is in a working state, but it is relati
 
 ## Features
 - [x] Create, edit, close, re-assign tickets
+- [x] Ticket list with sorting and filtering
 - [x] Enter notes for a ticket
-- [x] Filter tickets by user and status
+- [x] Ticket event tracking (re-assignments, status changes, etc)
 - [X] Nested-document style wiki
 - [x] Markdown support for ticket descriptions, notes, and wiki
 - [x] Editing conflict handling with revision history
@@ -26,8 +27,6 @@ This is a project for learning.  The app is in a working state, but it is relati
 ### Down the pipe
 These are some features I'm looking to add:
 - [ ] Custom landing page (i.e. set wiki instead of tickets)
-- [ ] Ability to filter for multiple assignees, statuses, etc.
-- [ ] Allow for custom sorting
 - [ ] Tasklists for tickets
 - [ ] Show number of notes and tasks for a ticket in ticket list
 - [ ] Show description preview for a ticket on ticket list
