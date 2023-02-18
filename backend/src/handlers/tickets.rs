@@ -1,7 +1,7 @@
 use super::super::DbPool;
 
 use actix_web::{delete, error::InternalError, get, options, post, put, web, Error, HttpResponse};
-use diesel::prelude::*;
+use diesel::{prelude::*, dsl::sql, sql_types::{Integer, Text}};
 use shared::models::{response::Response, tickets::{TicketEventType, TicketFilterPayload}, MAX_TITLE_LENGTH};
 use uuid::Uuid;
 
@@ -563,6 +563,31 @@ fn find(
         } else {
             query = query.order(title.desc());
         }
+    } else if sort_by == "priority" {
+        if sort_order == "asc" { 
+            query = query.order_by(sql::<(Integer, Text)>(&format!(
+                r#"
+                CASE priority
+                    WHEN 'High' THEN 0
+                    WHEN 'Medium' THEN 1
+                    WHEN 'Low' THEN 3
+                    ELSE 2
+                END
+                "#,
+            )));
+    }
+        else {
+            query = query.order_by(sql::<(Integer, Text)>(&format!(
+                r#"
+                CASE priority
+                    WHEN 'High' THEN 3
+                    WHEN 'Medium' THEN 2
+                    WHEN 'Low' THEN 0
+                    ELSE 1
+                END
+                "#,
+            )));
+    }
     } else {
         query = query.order(ticket_id.asc());
     }
