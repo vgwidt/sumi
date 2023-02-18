@@ -141,11 +141,18 @@ fn add_a_note(
         owner: payload.owner,
         text: &payload.text,
         time: payload.time,
+        created_at: chrono::Utc::now().naive_utc(),
     };
 
     let result: Note = diesel::insert_into(notes)
         .values(&new_note)
         .get_result(conn)?;
+
+    //update updated_at field for the ticket
+    use crate::schema::tickets::dsl::*;
+    diesel::update(tickets.filter(ticket_id.eq(result.ticket)))
+        .set(crate::schema::tickets::updated_at.eq(result.created_at))
+        .execute(conn)?;
 
     let note: Vec<(Note, Option<User>)> = notes
         .filter(note_id.eq(result.note_id))

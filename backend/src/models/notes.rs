@@ -24,6 +24,7 @@ pub struct NewNote<'a> {
     pub owner: Option<Uuid>,
     pub text: &'a str,
     pub time: i32,
+    pub created_at: chrono::NaiveDateTime,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
