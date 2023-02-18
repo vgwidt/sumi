@@ -461,6 +461,8 @@ fn find(
     let mut count_query = tickets.into_boxed();
     let mut page = 1;  
     let mut per_page = 50;
+    let mut sort_by = "ticket_id".to_string();
+    let mut sort_order = "asc".to_string();
 
     if let Some(filters) = filters {
         if let Some(tassignee) = filters.assignee {
@@ -495,6 +497,13 @@ fn find(
              per_page = pp;
             }
         }
+
+        if let Some(sb) = filters.sort_by {
+            sort_by = sb;
+        }
+        if let Some(so) = filters.sort_order {
+            sort_order = so;
+        }
     }
 
     let count = count_query.count().get_result::<i64>(conn)?;
@@ -516,6 +525,47 @@ fn find(
 
     let offset = (page - 1) * per_page;
     query = query.limit(per_page).offset(offset);
+
+    //sort by
+    if sort_by == "ticket_id" {
+        if sort_order == "asc" {
+            query = query.order(ticket_id.asc());
+        } else {
+            query = query.order(ticket_id.desc());
+        }
+    } else if sort_by == "created_at" {
+        if sort_order == "asc" {
+            query = query.order(created_at.asc());
+        } else {
+            query = query.order(created_at.desc());
+        }
+    } else if sort_by == "updated_at" {
+        if sort_order == "asc" {
+            query = query.order(updated_at.asc());
+        } else {
+            query = query.order(updated_at.desc());
+        }
+    } else if sort_by == "status" {
+        if sort_order == "asc" {
+            query = query.order(status.asc());
+        } else {
+            query = query.order(status.desc());
+        }
+    } else if sort_by == "assignee" {
+        if sort_order == "asc" {
+            query = query.order(assignee.asc());
+        } else {
+            query = query.order(assignee.desc());
+        }
+    } else if sort_by == "title" {
+        if sort_order == "asc" {
+            query = query.order(title.asc());
+        } else {
+            query = query.order(title.desc());
+        }
+    } else {
+        query = query.order(ticket_id.asc());
+    }
 
     let items = query.load::<(Ticket, Option<User>)>(conn)?;
     

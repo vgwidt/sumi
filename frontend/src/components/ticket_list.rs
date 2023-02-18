@@ -11,6 +11,7 @@ use yew::suspense::use_future_with_deps;
 use yew_router::prelude::use_navigator;
 use yew_router::prelude::Link;
 
+use crate::components::loading::Loading;
 use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::hooks::use_user_context;
@@ -64,7 +65,12 @@ pub fn ticket_list() -> Html {
         status: Some(StatusFilter::Open.to_string()),
         page: Some(1),
         per_page: Some(50),
+        sort_by: Some("ticket_id".to_string()),
+        sort_order: Some("asc".to_string()),
     });
+    let loading = use_state(|| false);
+    let throttle = use_state(|| 0);
+
     //let ticket_list = use_state(|| TicketListInfo::default());
 
     //For auto-updating the ticket list
@@ -81,7 +87,21 @@ pub fn ticket_list() -> Html {
     let ticket_list =
     {
         let filter = &*filter.clone();
-        use_future_with_deps(|filter| async move { get_filtered(&filter).await.unwrap_or_default() }, filter.clone())
+        let loading = loading.clone();
+        use_future_with_deps(|filter| async move 
+            { 
+                let result = get_filtered(&filter).await;  
+                match result {
+                    Ok(ticket_list) => {
+                        loading.set(false);
+                        ticket_list
+                    },
+                    Err(_) => {
+                        loading.set(false);
+                        TicketListInfo::default()
+                    }
+                }
+            }, filter.clone())
 
     };
 
@@ -92,6 +112,7 @@ pub fn ticket_list() -> Html {
 
     let onclick_filter_assignee: Callback<Event> = {
         let filter = filter.clone();
+        let loading = loading.clone();
         Callback::from(move |e: Event| {
             let input: HtmlSelectElement = e.target_unchecked_into();
             let value = input.value();
@@ -100,26 +121,33 @@ pub fn ticket_list() -> Html {
                 status: filter.status.clone(),
                 page: filter.page.clone(),
                 per_page: filter.per_page.clone(),
+                sort_by: filter.sort_by.clone(),
+                sort_order: filter.sort_order.clone(),
             };
             if value == "unassigned".to_string() {
                 new_filter.assignee = Some(Uuid::nil());
             } else {
                 new_filter.assignee = Some(Uuid::parse_str(&value).unwrap());
             }
+            loading.set(true);
             filter.set(new_filter);
         })
     };
 
     let onclick_filter_status = {
         let filter = filter.clone();
+        let loading = loading.clone();
         Callback::from(move |e: Event| {
             let input: HtmlSelectElement = e.target_unchecked_into();
             let value = input.value();
+            loading.set(true);
             filter.set(TicketFilterPayload {
                 assignee: filter.assignee.clone(),
                 status: Some(value),
                 page: filter.page.clone(),
                 per_page: filter.per_page.clone(),
+                sort_by: filter.sort_by.clone(),
+                sort_order: filter.sort_order.clone(),
             });
         })
     };
@@ -138,6 +166,8 @@ pub fn ticket_list() -> Html {
         }
         th {
             background-color: ${table_header};
+            cursor: pointer;
+            user-select: none;
         }
         tr:nth-child(odd)
         {
@@ -196,36 +226,45 @@ pub fn ticket_list() -> Html {
 
 let onclick_prev_page = {
     let filter = filter.clone();
+    let loading = loading.clone();
     Callback::from(move |_| {
         let mut new_filter = TicketFilterPayload {
             assignee: filter.assignee.clone(),
             status: filter.status.clone(),
             page: filter.page.clone(),
             per_page: filter.per_page.clone(),
+            sort_by: filter.sort_by.clone(),
+            sort_order: filter.sort_order.clone(),
         };
         if new_filter.page.unwrap() > 1 {
             new_filter.page = Some(new_filter.page.unwrap() - 1);
         }
+        loading.set(true);
         filter.set(new_filter);
     })
 };
 
 let onclick_next_page = {
     let filter = filter.clone();
+    let loading = loading.clone();
     Callback::from(move |_| {
         let mut new_filter = TicketFilterPayload {
             assignee: filter.assignee.clone(),
             status: filter.status.clone(),
             page: filter.page.clone(),
             per_page: filter.per_page.clone(),
+            sort_by: filter.sort_by.clone(),
+            sort_order: filter.sort_order.clone(),
         };
         new_filter.page = Some(new_filter.page.unwrap() + 1);
+        loading.set(true);
         filter.set(new_filter);
     })
 };
 
 let onclick_filter_per_page = {
     let filter = filter.clone();
+    let loading = loading.clone();
     Callback::from(move |_| {
         //get input from id perpage
         let input: HtmlInputElement = document()
@@ -233,16 +272,17 @@ let onclick_filter_per_page = {
             .unwrap()
             .unchecked_into();
         let value = input.value();
+        loading.set(true);
         //must be greater than 0
         if value.parse::<i64>().unwrap() > 0 {
-            let mut new_filter = TicketFilterPayload {
+            filter.set(TicketFilterPayload {
                 assignee: filter.assignee.clone(),
                 status: filter.status.clone(),
-                page: filter.page.clone(),
-                per_page: filter.per_page.clone(),
-            };
-            new_filter.per_page = Some(value.parse::<i64>().unwrap());
-            filter.set(new_filter);
+                page: Some(1),
+                per_page: Some(value.parse::<i64>().unwrap()),
+                sort_by: filter.sort_by.clone(),
+                sort_order: filter.sort_order.clone(),
+            });
         }
     })
 };
@@ -278,12 +318,12 @@ let onclick_filter_per_page = {
                 <table class="table ticket-table">
                     <thead>
                         <tr>
-                            <th scope="col">{language.get("Ticket No.")}</th>
-                            <th scope="col">{language.get("Title")}</th>
-                            <th scope="col">{language.get("Assignee")}</th>
-                            <th scope="col">{language.get("Created")}</th>
-                            <th scope="col">{language.get("Updated")}</th>
-                            <th scope="col">{language.get("Priority")}</th>
+                            <th onclick={onclick_sort_by("ticket_id", &filter, &loading)} scope="col">{language.get("Ticket No.")}{if filter.sort_by.clone().unwrap() == "ticket_id" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("title", &filter, &loading)} scope="col">{language.get("Title")}{if filter.sort_by.clone().unwrap() == "title" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("assignee", &filter, &loading)} scope="col">{language.get("Assignee")}{if filter.sort_by.clone().unwrap() == "assignee" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("created_at", &filter, &loading)} scope="col">{language.get("Created")}{if filter.sort_by.clone().unwrap() == "created_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("updated_at", &filter, &loading)} scope="col">{language.get("Updated")}{if filter.sort_by.clone().unwrap() == "updated_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("priority", &filter, &loading)} scope="col">{language.get("Priority")}{if filter.sort_by.clone().unwrap() == "priority" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -355,7 +395,12 @@ let onclick_filter_per_page = {
 
                 </table>
             </div>
-            { if ticket_list.total_results == 0 {
+            { 
+                if *loading {
+                html! {
+                    <Loading />
+                }
+                } else if ticket_list.total_results == 0 {
                 html!{ language.get("No results") }
                 }
                 else { 
@@ -392,4 +437,30 @@ let onclick_filter_per_page = {
             </div>
         </div>
     }
+}
+
+fn onclick_sort_by(sort_by: &str, filter: &UseStateHandle<TicketFilterPayload>, loading: &UseStateHandle<bool>) -> Callback<MouseEvent> {
+    let filter = filter.clone();
+    let sort_by = sort_by.to_string();
+    let loading = loading.clone();
+    Callback::from(move |_| {
+        if !*loading {
+        let mut new_filter = TicketFilterPayload {
+            assignee: filter.assignee.clone(),
+            status: filter.status.clone(),
+            page: filter.page.clone(),
+            per_page: filter.per_page.clone(),
+            sort_by: Some(sort_by.clone()),
+            sort_order: filter.sort_order.clone(),
+        };
+        if new_filter.sort_order.unwrap() == "asc" {
+            new_filter.sort_order = Some("desc".to_string());
+        } else {
+            new_filter.sort_order = Some("asc".to_string());
+        }
+        loading.set(true);
+        filter.set(new_filter);
+    }
+
+    })
 }

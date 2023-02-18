@@ -4,27 +4,27 @@ use super::{request_delete, request_get, request_post, request_put};
 use crate::types::*;
 
 //Get all tickets
-pub async fn all() -> Result<TicketListInfo, Error> {
-    let mut tickets: TicketListInfo = request_get::<TicketListInfo>(format!("/tickets")).await?;
+// pub async fn all() -> Result<TicketListInfo, Error> {
+//     let mut tickets: TicketListInfo = request_get::<TicketListInfo>(format!("/tickets")).await?;
 
-    tickets
-        .tickets
-        .sort_by(|a, b| a.ticket_id.cmp(&b.ticket_id));
+//     tickets
+//         .tickets
+//         .sort_by(|a, b| a.ticket_id.cmp(&b.ticket_id));
 
-    Ok(tickets)
-}
+//     Ok(tickets)
+// }
 
-//Get tickets for a specific user
-pub async fn by_author(author: String) -> Result<TicketListInfo, Error> {
-    let mut tickets: TicketListInfo =
-        request_get::<TicketListInfo>(format!("/tickets/assignee/{}", author)).await?;
+// //Get tickets for a specific user
+// pub async fn by_author(author: String) -> Result<TicketListInfo, Error> {
+//     let mut tickets: TicketListInfo =
+//         request_get::<TicketListInfo>(format!("/tickets/assignee/{}", author)).await?;
 
-    tickets
-        .tickets
-        .sort_by(|a, b| a.ticket_id.cmp(&b.ticket_id));
+//     tickets
+//         .tickets
+//         .sort_by(|a, b| a.ticket_id.cmp(&b.ticket_id));
 
-    Ok(tickets)
-}
+//     Ok(tickets)
+// }
 
 //get request that accepts optional status and assignee parameters
 pub async fn get_filtered(
@@ -53,13 +53,20 @@ pub async fn get_filtered(
         }
         params.push_str(&format!("per_page={}", per_page));
     }
+    if let Some(sort_by) = &query.sort_by {
+        if params.len() > 0 {
+            params.push_str("&");
+        }
+        params.push_str(&format!("sort_by={}", sort_by));
+    }
+    if let Some(sort_order) = &query.sort_order {
+        if params.len() > 0 {
+            params.push_str("&");
+        }
+        params.push_str(&format!("sort_order={}", sort_order));
+    }
 
-    let mut tickets: TicketListInfo = request_get::<TicketListInfo>(format!("/tickets?{}", params)).await?;
-
-    //temporary fix to sort tickets by ticket_id
-    tickets
-        .tickets
-        .sort_by(|a, b| a.ticket_id.cmp(&b.ticket_id));
+    let tickets: TicketListInfo = request_get::<TicketListInfo>(format!("/tickets?{}", params)).await?;
 
     Ok(tickets)
 }
