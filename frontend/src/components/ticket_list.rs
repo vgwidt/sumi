@@ -11,6 +11,7 @@ use yew::suspense::use_future_with_deps;
 use yew_router::prelude::use_navigator;
 use yew_router::prelude::Link;
 
+use crate::components::loading::Loading;
 use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::hooks::use_user_context;
@@ -67,6 +68,8 @@ pub fn ticket_list() -> Html {
         sort_by: Some("ticket_id".to_string()),
         sort_order: Some("asc".to_string()),
     });
+    let loading = use_state(|| false);
+    let throttle = use_state(|| 0);
 
     //let ticket_list = use_state(|| TicketListInfo::default());
 
@@ -84,7 +87,21 @@ pub fn ticket_list() -> Html {
     let ticket_list =
     {
         let filter = &*filter.clone();
-        use_future_with_deps(|filter| async move { get_filtered(&filter).await.unwrap_or_default() }, filter.clone())
+        let loading = loading.clone();
+        use_future_with_deps(|filter| async move 
+            { 
+                let result = get_filtered(&filter).await;  
+                match result {
+                    Ok(ticket_list) => {
+                        loading.set(false);
+                        ticket_list
+                    },
+                    Err(_) => {
+                        loading.set(false);
+                        TicketListInfo::default()
+                    }
+                }
+            }, filter.clone())
 
     };
 
@@ -95,6 +112,7 @@ pub fn ticket_list() -> Html {
 
     let onclick_filter_assignee: Callback<Event> = {
         let filter = filter.clone();
+        let loading = loading.clone();
         Callback::from(move |e: Event| {
             let input: HtmlSelectElement = e.target_unchecked_into();
             let value = input.value();
@@ -111,15 +129,18 @@ pub fn ticket_list() -> Html {
             } else {
                 new_filter.assignee = Some(Uuid::parse_str(&value).unwrap());
             }
+            loading.set(true);
             filter.set(new_filter);
         })
     };
 
     let onclick_filter_status = {
         let filter = filter.clone();
+        let loading = loading.clone();
         Callback::from(move |e: Event| {
             let input: HtmlSelectElement = e.target_unchecked_into();
             let value = input.value();
+            loading.set(true);
             filter.set(TicketFilterPayload {
                 assignee: filter.assignee.clone(),
                 status: Some(value),
@@ -205,6 +226,7 @@ pub fn ticket_list() -> Html {
 
 let onclick_prev_page = {
     let filter = filter.clone();
+    let loading = loading.clone();
     Callback::from(move |_| {
         let mut new_filter = TicketFilterPayload {
             assignee: filter.assignee.clone(),
@@ -217,12 +239,14 @@ let onclick_prev_page = {
         if new_filter.page.unwrap() > 1 {
             new_filter.page = Some(new_filter.page.unwrap() - 1);
         }
+        loading.set(true);
         filter.set(new_filter);
     })
 };
 
 let onclick_next_page = {
     let filter = filter.clone();
+    let loading = loading.clone();
     Callback::from(move |_| {
         let mut new_filter = TicketFilterPayload {
             assignee: filter.assignee.clone(),
@@ -233,12 +257,14 @@ let onclick_next_page = {
             sort_order: filter.sort_order.clone(),
         };
         new_filter.page = Some(new_filter.page.unwrap() + 1);
+        loading.set(true);
         filter.set(new_filter);
     })
 };
 
 let onclick_filter_per_page = {
     let filter = filter.clone();
+    let loading = loading.clone();
     Callback::from(move |_| {
         //get input from id perpage
         let input: HtmlInputElement = document()
@@ -246,6 +272,7 @@ let onclick_filter_per_page = {
             .unwrap()
             .unchecked_into();
         let value = input.value();
+        loading.set(true);
         //must be greater than 0
         if value.parse::<i64>().unwrap() > 0 {
             filter.set(TicketFilterPayload {
@@ -291,12 +318,12 @@ let onclick_filter_per_page = {
                 <table class="table ticket-table">
                     <thead>
                         <tr>
-                            <th onclick={onclick_sort_by("ticket_id", &filter)} scope="col">{language.get("Ticket No.")}{if filter.sort_by.clone().unwrap() == "ticket_id" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
-                            <th onclick={onclick_sort_by("title", &filter)} scope="col">{language.get("Title")}{if filter.sort_by.clone().unwrap() == "title" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
-                            <th onclick={onclick_sort_by("assignee", &filter)} scope="col">{language.get("Assignee")}{if filter.sort_by.clone().unwrap() == "assignee" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
-                            <th onclick={onclick_sort_by("created_at", &filter)} scope="col">{language.get("Created")}{if filter.sort_by.clone().unwrap() == "created_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
-                            <th onclick={onclick_sort_by("updated_at", &filter)} scope="col">{language.get("Updated")}{if filter.sort_by.clone().unwrap() == "updated_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
-                            <th onclick={onclick_sort_by("priority", &filter)} scope="col">{language.get("priority")}{if filter.sort_by.clone().unwrap() == "priority" {if filter.sort_order.clone().unwrap() == "asc" {html! {"˅"}} else {html! {"˄"}}} else {html! {}}}</th>
+                            <th onclick={onclick_sort_by("ticket_id", &filter, &loading)} scope="col">{language.get("Ticket No.")}{if filter.sort_by.clone().unwrap() == "ticket_id" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("title", &filter, &loading)} scope="col">{language.get("Title")}{if filter.sort_by.clone().unwrap() == "title" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("assignee", &filter, &loading)} scope="col">{language.get("Assignee")}{if filter.sort_by.clone().unwrap() == "assignee" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("created_at", &filter, &loading)} scope="col">{language.get("Created")}{if filter.sort_by.clone().unwrap() == "created_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("updated_at", &filter, &loading)} scope="col">{language.get("Updated")}{if filter.sort_by.clone().unwrap() == "updated_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("priority", &filter, &loading)} scope="col">{language.get("Priority")}{if filter.sort_by.clone().unwrap() == "priority" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -368,7 +395,12 @@ let onclick_filter_per_page = {
 
                 </table>
             </div>
-            { if ticket_list.total_results == 0 {
+            { 
+                if *loading {
+                html! {
+                    <Loading />
+                }
+                } else if ticket_list.total_results == 0 {
                 html!{ language.get("No results") }
                 }
                 else { 
@@ -407,10 +439,12 @@ let onclick_filter_per_page = {
     }
 }
 
-fn onclick_sort_by(sort_by: &str, filter: &UseStateHandle<TicketFilterPayload>) -> Callback<MouseEvent> {
+fn onclick_sort_by(sort_by: &str, filter: &UseStateHandle<TicketFilterPayload>, loading: &UseStateHandle<bool>) -> Callback<MouseEvent> {
     let filter = filter.clone();
     let sort_by = sort_by.to_string();
+    let loading = loading.clone();
     Callback::from(move |_| {
+        if !*loading {
         let mut new_filter = TicketFilterPayload {
             assignee: filter.assignee.clone(),
             status: filter.status.clone(),
@@ -424,7 +458,9 @@ fn onclick_sort_by(sort_by: &str, filter: &UseStateHandle<TicketFilterPayload>) 
         } else {
             new_filter.sort_order = Some("asc".to_string());
         }
+        loading.set(true);
         filter.set(new_filter);
+    }
 
     })
 }
