@@ -455,11 +455,16 @@ fn onclick_sort_by(sort_by: &str, filter: &UseStateHandle<TicketFilterPayload>, 
             sort_by: Some(sort_by.clone()),
             sort_order: filter.sort_order.clone(),
         };
-        if new_filter.sort_order.unwrap() == "asc" {
-            new_filter.sort_order = Some("desc".to_string());
-        } else {
+        //if the new sort_by is different from the old filter.sort_by, then set the sort_order to "asc"
+        if new_filter.sort_by.clone().unwrap_or_default() != filter.sort_by.clone().unwrap_or_default() {
             new_filter.sort_order = Some("asc".to_string());
-        }
+        } else {
+            if new_filter.sort_order.unwrap_or("asc".to_string()) == "asc" {
+                new_filter.sort_order = Some("desc".to_string());
+            } else {
+                new_filter.sort_order = Some("asc".to_string());
+            }
+        }  
         loading.set(true);
         filter.set(new_filter);
     }
