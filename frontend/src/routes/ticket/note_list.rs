@@ -11,7 +11,7 @@ use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::routes::ticket::event::EventCard;
 use crate::services::tickets::{get_notes, get_events};
-use crate::types::{NoteInfo, TicketEvent};
+use crate::types::{NoteInfo, events::TicketEvent};
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {

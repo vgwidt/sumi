@@ -1,7 +1,7 @@
 use shared::models::{response::Response, tickets::TicketFilterPayload};
 
 use super::{request_delete, request_get, request_post, request_put};
-use crate::types::*;
+use crate::types::{*, events::TicketEvent};
 
 //Get all tickets
 // pub async fn all() -> Result<TicketListInfo, Error> {

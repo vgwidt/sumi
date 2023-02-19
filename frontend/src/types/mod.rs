@@ -4,10 +4,11 @@ mod notes;
 mod response;
 mod tickets;
 mod users;
+pub mod events;
 
 pub use tickets::{
     TicketCreateInfo, TicketInfo, TicketInfoWrapper, TicketListInfo, TicketStatusInfo,
-    TicketUpdateInfo, TicketEvent
+    TicketUpdateInfo,
 };
 
 pub use auth::{
