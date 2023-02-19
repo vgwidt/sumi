@@ -106,6 +106,7 @@ async fn main() -> std::io::Result<()> {
                     .service(handlers::users::show)
                     .service(handlers::users::update)
                     .service(handlers::users::destroy)
+                    .service(handlers::users::display_names)
                     .service(handlers::user_preferences::get_preferences)
                     .service(handlers::user_preferences::update_preferences)
                     .service(handlers::contacts::index)

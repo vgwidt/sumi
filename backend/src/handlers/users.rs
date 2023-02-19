@@ -4,6 +4,7 @@ use actix_session::Session;
 use actix_web::{delete, error::InternalError, get, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
 use secrecy::ExposeSecret;
+use shared::models::users::UserDisplay;
 use uuid::Uuid;
 
 use crate::models::session::TypedSession;
@@ -44,6 +45,18 @@ async fn index(pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
     let users = web::block(move || {
         let mut conn = pool.get()?;
         find_all(&mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(users))
+}
+
+#[get("/display_names")]
+async fn display_names(pool: web::Data<DbPool>) -> Result<HttpResponse, Error> {
+    let users = web::block(move || {
+        let mut conn = pool.get()?;
+        find_all_display_names(&mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
@@ -328,4 +341,23 @@ fn validate_email(email: &str) -> Result<(), Error> {
     } else {
         Ok(())
     }
+}
+
+fn find_all_display_names(conn: &mut PgConnection) -> Result<Vec<UserDisplay>, DbError> {
+    use crate::schema::users::dsl::*;
+
+    let user_results = users.load::<User>(conn)?;
+
+    let mut user_info_list: Vec<UserDisplay> = Vec::new();
+
+    for user in user_results {
+        let user_info: UserDisplay = UserDisplay {
+            user_id: user.user_id,
+            display_name: user.display_name,
+        };
+
+        user_info_list.push(user_info);
+    }
+
+    Ok(user_info_list)
 }

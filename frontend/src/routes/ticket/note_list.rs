@@ -1,6 +1,7 @@
 use std::any::Any;
 use std::cmp::Ordering;
 
+use shared::models::users::UserDisplay;
 use stylist::style;
 use stylist::yew::styled_component;
 use yew::prelude::*;
@@ -16,6 +17,7 @@ use crate::types::{NoteInfo, events::TicketEvent};
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub ticket_id: i32,
+    pub userlist: Vec<UserDisplay>,
 }
 
 //List of notes used by ticket detail page
@@ -203,7 +205,7 @@ pub fn note_list(props: &Props) -> Html {
                             } else if let Some(event) = item.downcast_ref::<TicketEvent>() {
                                 html! {
                                     <EventCard
-                                        event={event.clone()}
+                                        event={event.clone()} userlist={props.userlist.clone()}
                                     />
                                 }
                             } else {

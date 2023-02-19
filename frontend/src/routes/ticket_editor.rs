@@ -12,7 +12,7 @@ use yew_router::prelude::*;
 use crate::hooks::{use_language_context, use_user_context};
 use crate::routes::AppRoute;
 use crate::services::tickets::*;
-use crate::services::users::get_users;
+use crate::services::users::get_display_names;
 use crate::types::TicketCreateInfo;
 use crate::types::TicketInfo;
 use crate::types::TicketUpdateInfo;
@@ -34,7 +34,7 @@ pub fn ticket_editor(props: &Props) -> Html {
     let navigator = use_navigator().unwrap();
     let retrieved_ticket = use_state(TicketInfo::default);
 
-    let userlist = match { use_future(|| async { get_users().await.unwrap_or_default() }) } {
+    let userlist = match { use_future(|| async { get_display_names().await.unwrap_or_default() }) } {
         Ok(users) => users.clone(),
         Err(_) => vec![],
     };

@@ -1,3 +1,4 @@
+use shared::models::users::UserDisplay;
 use uuid::Uuid;
 
 use super::{request_delete, request_get, request_post, request_put};
@@ -6,6 +7,10 @@ use crate::types::*;
 //get all users
 pub async fn get_users() -> Result<Vec<UserRepresentation>, Error> {
     request_get::<Vec<UserRepresentation>>(format!("/users")).await
+}
+
+pub async fn get_display_names() -> Result<Vec<UserDisplay>, Error> {
+    request_get::<Vec<UserDisplay>>(format!("/display_names")).await
 }
 
 //get username from user_id

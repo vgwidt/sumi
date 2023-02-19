@@ -8,8 +8,10 @@ use stylist::style;
 use stylist::yew::styled_component;
 
 use yew::prelude::*;
+use yew::suspense::use_future;
 
 use crate::services::tickets::*;
+use crate::services::users::get_display_names;
 use crate::types::TicketInfo;
 use crate::utils::markdown_to_html;
 use menu::TicketMenu;
@@ -38,6 +40,12 @@ pub fn ticket(props: &Props) -> Html {
             props.ticket_id.clone(),
         )
     }
+
+    //Adding this for now just to pass to events, but it will also be needed for inline editing in the future
+    let userlist = match { use_future(|| async { get_display_names().await.unwrap_or_default() }) } {
+        Ok(users) => users.clone(),
+        Err(_) => vec![],
+    };
 
     let style = style!(
         r#"
@@ -138,7 +146,7 @@ pub fn ticket(props: &Props) -> Html {
                 </div>
                 <hr />
                 <div class="note-list">
-                    <NoteList ticket_id={props.ticket_id.clone()} />
+                    <NoteList ticket_id={props.ticket_id.clone()} userlist={userlist} />
                 </div>
             </div>
         }
