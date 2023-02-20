@@ -13,9 +13,7 @@ pub(crate) struct LanguageProviderProps {
 }
 
 #[function_component(LanguageProvider)]
-pub(crate) fn language_provider(props: &LanguageProviderProps) -> Html {
-    let loading = use_state(|| true);
-
+pub(crate) fn language_provider(props: &LanguageProviderProps) -> HtmlResult {
     let user_preferences =
         use_future(|| async { get_user_preferences().await.unwrap_or_default() });
 
@@ -27,7 +25,6 @@ pub(crate) fn language_provider(props: &LanguageProviderProps) -> Html {
     let language_ctx = use_state(|| LanguageKind::English);
 
     {
-        let loading = loading.clone();
         let language_ctx = language_ctx.clone();
         use_effect_with_deps(
             move |user_preferences| {
@@ -40,7 +37,6 @@ pub(crate) fn language_provider(props: &LanguageProviderProps) -> Html {
                 };
                 log::info!("Language: {:?}", language);
                 language_ctx.set(language);
-                loading.set(false);
                 || {}
             },
             user_preferences,
@@ -49,17 +45,10 @@ pub(crate) fn language_provider(props: &LanguageProviderProps) -> Html {
 
     let language_ctx = LanguageContext::new(language_ctx);
 
-    if *loading {
-        html! {
-            <div>
-                <Loading />
-            </div>
-        }
-    } else {
+    Ok(
         html! {
             <ContextProvider<LanguageContext> context={language_ctx}>
                 {props.children.clone()}
             </ContextProvider<LanguageContext>>
-        }
-    }
+    })
 }

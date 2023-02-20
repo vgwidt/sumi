@@ -11,8 +11,8 @@ use crate::types::RegisterInfo;
 //Create new user page
 //Considering combining into settings, but may be better to refactor components
 #[function_component(NewUser)]
-pub fn new_user() -> Html {
-    let language = use_language_context();
+pub fn new_user() -> HtmlResult {
+    let language = use_language_context()?;
     let navigator = use_navigator().unwrap();
     let register_info = use_state(RegisterInfo::default);
     let submitted = use_state(|| false);
@@ -106,7 +106,7 @@ pub fn new_user() -> Html {
         })
     };
 
-    html! {
+    Ok(html! {
         <div>
             <h1>{ "Add User" }</h1>
             <div class="error">
@@ -159,5 +159,5 @@ pub fn new_user() -> Html {
                 </fieldset>
             </form>
         </div>
-    }
+    })
 }

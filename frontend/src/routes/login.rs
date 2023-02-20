@@ -12,9 +12,9 @@ use crate::types::LoginInfo;
 
 /// Login page
 #[styled_component(Login)]
-pub fn login_page() -> Html {
+pub fn login_page() -> HtmlResult {
     let user_ctx = use_user_context();
-    let language_ctx = use_language_context();
+    let language_ctx = use_language_context()?;
     let login_info = use_state(LoginInfo::default);
     let login_flag = use_state(|| false);
     let login_error = use_state(|| String::new());
@@ -138,11 +138,11 @@ pub fn login_page() -> Html {
     .expect("Failed to parse style");
 
     if user_ctx.is_authenticated() {
-        html! {
+        Ok(html! {
             <Redirect<AppRoute> to={AppRoute::Home} />
-        }
+        })
     } else {
-        html! {
+        Ok(html! {
             <div class={style}>
                 <h1>{ "Sign In" }</h1>
                 <form {onsubmit}>
@@ -173,6 +173,6 @@ pub fn login_page() -> Html {
                     </fieldset>
                 </form>
             </div>
-        }
+        })
     }
 }

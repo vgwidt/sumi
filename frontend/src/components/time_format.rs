@@ -7,8 +7,8 @@ pub struct Props {
 }
 
 #[function_component(TimeFormat)]
-pub fn time_format(props: &Props) -> Html {
-    let language = use_language_context();
+pub fn time_format(props: &Props) -> HtmlResult {
+    let language = use_language_context()?;
 
     let now = chrono::Utc::now().naive_utc();
 
@@ -42,9 +42,9 @@ pub fn time_format(props: &Props) -> Html {
         }
     };
 
-    html! {
+    Ok(html! {
         <span class="timeformat">
             {&timestring}
         </span>
-    }
+    })
 }

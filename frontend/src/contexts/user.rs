@@ -10,13 +10,11 @@ pub struct Props {
 }
 
 #[function_component(UserContextProvider)]
-pub fn user_context_provider(props: &Props) -> Html {
+pub fn user_context_provider(props: &Props) -> HtmlResult {
     let user_ctx = use_state(MyUser::default);
-    let loading = use_state(|| true);
 
     {
         let user_ctx = user_ctx.clone();
-        let loading = loading.clone();
         use_effect_with_deps(
             move |_| {
                 let user_ctx = user_ctx.clone();
@@ -32,7 +30,6 @@ pub fn user_context_provider(props: &Props) -> Html {
                             _ => (),
                         }
                     }
-                    loading.set(false);
                 });
                 || {}
             },
@@ -40,17 +37,12 @@ pub fn user_context_provider(props: &Props) -> Html {
         );
     }
 
-    if *loading {
-        html! {
-            <div>
-                <Loading />
-            </div>
-        }
-    } else {
-        html! {
+
+
+        Ok(html! {
             <ContextProvider<UseStateHandle<MyUser>> context={user_ctx}>
             { for props.children.iter() }
              </ContextProvider<UseStateHandle<MyUser>>>
-        }
-    }
+        })
+
 }

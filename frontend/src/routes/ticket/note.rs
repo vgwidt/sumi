@@ -18,9 +18,9 @@ pub struct Props {
 }
 
 #[styled_component(Note)]
-pub fn note(props: &Props) -> Html {
+pub fn note(props: &Props) -> HtmlResult {
     let note = &props.note;
-    let language = use_language_context();
+    let language = use_language_context()?;
     let edit_mode = use_state(|| false);
     let submitted = use_state(|| false);
     let update_info = use_state(|| note.clone());
@@ -99,7 +99,7 @@ pub fn note(props: &Props) -> Html {
         })
     };
 
-    html! {
+    Ok(html! {
         <div class="note">
             <div class="note-header">
                 <span class="note-owner">
@@ -153,5 +153,5 @@ pub fn note(props: &Props) -> Html {
                 html! {}
             }}
         </div>
-    }
+    })
 }

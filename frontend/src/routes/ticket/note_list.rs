@@ -22,9 +22,9 @@ pub struct Props {
 
 //List of notes used by ticket detail page
 #[styled_component(NoteList)]
-pub fn note_list(props: &Props) -> Html {
+pub fn note_list(props: &Props) -> HtmlResult {
     let theme = use_theme();
-    let language = use_language_context();
+    let language = use_language_context()?;
 
     let note_list = use_state(|| vec![]);
     let event_list = use_state(|| vec![]);
@@ -222,10 +222,10 @@ pub fn note_list(props: &Props) -> Html {
 
 
 
-    html! {
+    Ok(html! {
         <div>
             { inputnode }
             { listnode }
         </div>
-    }
+    })
 }

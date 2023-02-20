@@ -13,9 +13,9 @@ pub struct Props {
 }
 
 #[styled_component(EventCard)]
-pub fn event(props: &Props) -> Html {
+pub fn event(props: &Props) -> HtmlResult {
     let event = &props.event;
-    let language = use_language_context();
+    let language = use_language_context()?;
 
     let actor_display = get_actor_display_name(props.userlist.clone(), event);
 
@@ -41,12 +41,12 @@ pub fn event(props: &Props) -> Html {
         _ => "Unknown event".to_string(),
     };
 
-    html!{
+    Ok(html!{
         <div class="event-card">
             <TimeFormat time={event.created_at.clone()}/>
             {format!(": {}", event_string)}
         </div>
-    }
+    })
 }
 
 fn get_actor_display_name(userlist: Vec<UserDisplay>, event: &TicketEvent) -> String {

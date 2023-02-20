@@ -16,10 +16,10 @@ pub fn app() -> Html {
         <GlobalStyle />
             <UserContextProvider>
                 <BrowserRouter>
-                    <LanguageProvider>
+                    <Suspense fallback={html!{<div>{"Loading..."}</div>}}>
                         <Navigation />
                         <Switch<AppRoute> render={switch} />
-                    </LanguageProvider>
+                    </Suspense>
               </BrowserRouter>
           </UserContextProvider>
         </ThemeProvider>

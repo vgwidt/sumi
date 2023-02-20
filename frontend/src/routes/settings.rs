@@ -18,9 +18,9 @@ pub struct Props {
 
 /// Update user settings
 #[function_component(Settings)]
-pub fn settings(props: &Props) -> Html {
+pub fn settings(props: &Props) -> HtmlResult {
     let user_ctx = use_user_context();
-    let language = use_language_context();
+    let language = use_language_context()?;
     let submitted = use_state(|| false);
     let error = use_state(|| String::new());
 
@@ -161,7 +161,7 @@ pub fn settings(props: &Props) -> Html {
         })
     };
 
-    html! {
+    Ok(html! {
         <div class="settings-page">
             <h1>{ language.get("Settings") }</h1>
             <div class="error">
@@ -214,5 +214,5 @@ pub fn settings(props: &Props) -> Html {
                 html! {}
             }}
         </div>
-    }
+    })
 }

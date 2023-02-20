@@ -22,9 +22,9 @@ pub struct Props {
 }
 
 #[styled_component(WikiDocument)]
-pub fn wiki_document(props: &Props) -> Html {
+pub fn wiki_document(props: &Props) -> HtmlResult {
     let user_ctx = use_user_context();
-    let language = use_language_context();
+    let language = use_language_context()?;
     let navigator = use_navigator().unwrap();
     let update_info = use_state(DocumentUpdateInfo::default);
     let submitted = use_state(|| false);
@@ -264,7 +264,7 @@ pub fn wiki_document(props: &Props) -> Html {
     }
     .expect("Failed to parse style");
 
-    html! {
+    Ok(html! {
         <div class={style}>
             <div class="error">
                 {error.to_string()}
@@ -341,5 +341,5 @@ pub fn wiki_document(props: &Props) -> Html {
             }
     }
     </div>
-    }
+    })
 }

@@ -5,8 +5,8 @@ use yew::prelude::*;
 use crate::{services::users::update_user_preferences, types::UserPreferences};
 
 #[function_component(SelectLanguage)]
-pub fn select_language() -> Html {
-    let locale = use_language_context();
+pub fn select_language() -> HtmlResult {
+    let locale = use_language_context()?;
 
     //get list of locales available from LanguageKind in locale.rs
     let options = get_language_list();
@@ -31,7 +31,7 @@ pub fn select_language() -> Html {
         })
     };
 
-    html!(
+    Ok(html!(
         <form>
             <label>
             {locale.get("Language")}{": "}</label>
@@ -42,5 +42,5 @@ pub fn select_language() -> Html {
             </select>
         </form>
 
-    )
+    ))
 }

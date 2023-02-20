@@ -55,9 +55,9 @@ pub enum TicketListSort {
 }
 
 #[styled_component(TicketList)]
-pub fn ticket_list() -> Html {
+pub fn ticket_list() -> HtmlResult {
     let user_ctx = use_user_context();
-    let language = use_language_context();
+    let language = use_language_context()?;
     let theme = use_theme();
     let navigator = use_navigator().unwrap();
     let filter = use_state(|| TicketFilterPayload {
@@ -289,7 +289,7 @@ let onclick_filter_per_page = {
     })
 };
 
-    html! {
+    Ok(html! {
         <div style="margin: 2px 16px;">
             <div class="ticket-filters" style="display: flex; align-items: center;">
                 <div>
@@ -441,7 +441,7 @@ let onclick_filter_per_page = {
             </form>
             </div>
         </div>
-    }
+    })
 }
 
 fn onclick_sort_by(sort_by: &str, filter: &UseStateHandle<TicketFilterPayload>, loading: &UseStateHandle<bool>) -> Callback<MouseEvent> {

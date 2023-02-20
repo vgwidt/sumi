@@ -24,10 +24,10 @@ pub struct Props {
 
 //Create or update ticket
 #[styled_component(TicketEditor)]
-pub fn ticket_editor(props: &Props) -> Html {
+pub fn ticket_editor(props: &Props) -> HtmlResult {
     let user_ctx = use_user_context();
     let loading = use_state(|| true);
-    let language = use_language_context();
+    let language = use_language_context()?;
     let update_info = use_state(TicketCreateInfo::default);
     let submitted = use_state(|| false);
     let error = use_state(|| String::new());
@@ -221,7 +221,7 @@ pub fn ticket_editor(props: &Props) -> Html {
     )
     .expect("Failed to parse style");
 
-    if user_ctx.is_authenticated() {
+    Ok(if user_ctx.is_authenticated() {
         if *loading {
             html! {}
         } else {
@@ -287,5 +287,5 @@ pub fn ticket_editor(props: &Props) -> Html {
         html! {
         <Redirect<AppRoute> to={AppRoute::Login} />
         }
-    }
+    })
 }

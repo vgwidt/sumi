@@ -18,10 +18,10 @@ pub struct Props {
 
 //Needs to be refactored to use new delete component
 #[styled_component(TicketMenu)]
-pub fn ticket_menu(props: &Props) -> Html {
+pub fn ticket_menu(props: &Props) -> HtmlResult {
     let navigator = use_navigator().unwrap();
     let dropdown = use_state(|| false);
-    let language = use_language_context();
+    let language = use_language_context()?;
 
     let callback_deleted = {
         let navigator = navigator.clone();
@@ -94,7 +94,7 @@ pub fn ticket_menu(props: &Props) -> Html {
         })
     };
 
-    html! {
+    Ok(html! {
         <span class={style}>
             <div class="dropdown">
                 <button class={ if *dropdown { "btn-action btn-action-active" } else { "btn-action" }
@@ -126,5 +126,5 @@ pub fn ticket_menu(props: &Props) -> Html {
             </div>
         </span>
 
-    }
+    })
 }

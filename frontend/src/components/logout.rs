@@ -5,9 +5,9 @@ use crate::services::auth::*;
 
 //Logout button
 #[function_component(Logout)]
-pub fn logout_button() -> Html {
+pub fn logout_button() -> HtmlResult {
     let user_ctx = use_user_context();
-    let language = use_language_context();
+    let language = use_language_context()?;
 
     let onclick = {
         let logout = logout.clone();
@@ -23,9 +23,9 @@ pub fn logout_button() -> Html {
     };
 
     //button
-    return html! {
+    Ok(html! {
         <button class="btn" {onclick}>
             { language.get("Logout") }
         </button>
-    };
+    })
 }

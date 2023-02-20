@@ -9,9 +9,9 @@ use crate::hooks::use_user_context;
 use crate::routes::AppRoute;
 
 #[styled_component(Navigation)]
-pub fn navigation() -> Html {
+pub fn navigation() -> HtmlResult {
     let user_ctx = use_user_context();
-    let language = use_language_context();
+    let language = use_language_context()?;
     let theme = use_theme();
 
     //when use_route changes, we change the active tabs style to selected
@@ -99,7 +99,7 @@ pub fn navigation() -> Html {
     .expect("Failed to parse style");
 
     if user_ctx.is_authenticated() {
-        html! {
+        Ok(html! {
             <div class={style}>
                 <nav class="sidenav">
                     <div class="nav-main">
@@ -158,8 +158,8 @@ pub fn navigation() -> Html {
                     </div>
                 </nav>
             </div>
-        }
+        })
     } else {
-        html! {}
+        Ok(html! {})
     }
 }

@@ -113,8 +113,14 @@ impl PartialEq for LanguageContext {
 }
 
 #[hook]
-pub(crate) fn use_language_context() -> LanguageContext {
-    use_context::<LanguageContext>().unwrap()
+pub(crate) fn use_language_context() -> yew::suspense::SuspensionResult<LanguageContext> {
+    match use_context::<LanguageContext>() {
+        Some(ctx) => Ok(ctx),
+        None => {
+            let (s, handle) = yew::suspense::Suspension::new();
+            Err(s)
+        }
+    }
 }
 
 pub(crate) fn get_language_list() -> Vec<LanguageKind> {

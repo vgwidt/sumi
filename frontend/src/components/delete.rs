@@ -34,10 +34,10 @@ pub struct Props {
 }
 
 #[function_component(DeleteItem)]
-pub fn delete_item(props: &Props) -> Html {
+pub fn delete_item(props: &Props) -> HtmlResult {
     let confirmation_pending = use_state(|| false);
     let delete_confirmation = use_state(|| false);
-    let language = use_language_context();
+    let language = use_language_context()?;
     let deleted_item = use_state(|| None);
 
     {
@@ -101,7 +101,7 @@ pub fn delete_item(props: &Props) -> Html {
         props.item_type.to_string()
     );
 
-    html! {
+    Ok(html! {
         <span>
             <button class="btn" onclick={onclick}>{language.get("Delete")}</button>
         { if *confirmation_pending {
@@ -120,5 +120,5 @@ pub fn delete_item(props: &Props) -> Html {
             html! {}
         }}
         </span>
-    }
+    })
 }

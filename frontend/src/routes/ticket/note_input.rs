@@ -14,10 +14,10 @@ pub struct Props {
 }
 
 #[styled_component(NoteInput)]
-pub fn note_input(props: &Props) -> Html {
+pub fn note_input(props: &Props) -> HtmlResult {
     let create_info = use_state(NoteCreateInfo::default);
     let user_ctx = use_user_context();
-    let language = use_language_context();
+    let language = use_language_context()?;
     let submitted = use_state(|| false);
     let error = use_state(|| String::new());
 
@@ -105,7 +105,7 @@ pub fn note_input(props: &Props) -> Html {
         "#
     };
 
-    html! {
+    Ok(html! {
         <form class={style} onsubmit={onsubmit}>
             <fieldset>
                 <legend>{language.get("Add a note")}</legend>
@@ -127,5 +127,5 @@ pub fn note_input(props: &Props) -> Html {
                 </span>
             </fieldset>
         </form>
-    }
+    })
 }
