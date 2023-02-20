@@ -10,7 +10,7 @@ This is a project for learning.  The app is in a working state, but it is relati
 
 ## Features
 - [x] Create, edit, close, re-assign tickets
-- [x] Ticket list with sorting and filtering
+- [x] Ticket list with sorting, filtering, and pagination
 - [x] Enter notes for a ticket
 - [x] Ticket event tracking (re-assignments, status changes, etc)
 - [X] Nested-document style wiki
@@ -34,7 +34,6 @@ These are some features I'm looking to add:
 - [ ] Time tracking
 - [ ] Implement due dates for tickets
 - [ ] Custom ticket tags
-- [ ] Pagination
 - [ ] Recycle bin for deleted items
 - [ ] Contacts
 - [ ] Access levels and disabled users
