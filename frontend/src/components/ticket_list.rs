@@ -66,7 +66,7 @@ pub fn ticket_list() -> Html {
         status: Some(StatusFilter::Open.to_string()),
         page: Some(1),
         per_page: Some(50),
-        sort_by: Some("ticket_id".to_string()),
+        sort_by: Some("priority".to_string()),
         sort_order: Some("asc".to_string()),
         search: None,
     });
