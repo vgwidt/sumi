@@ -22,9 +22,10 @@ async fn create(
     pool: web::Data<DbPool>,
     payload: web::Json<UserPayload>,
 ) -> Result<HttpResponse, Error> {
+    let username_ok = validate_username(&payload.username);
     let email_ok = validate_email(&payload.email);
 
-    if email_ok.is_ok() {
+    if username_ok.is_ok() && email_ok.is_ok() {
         let user = web::block(move || {
             let mut conn = pool.get()?;
             add_a_user(payload.into_inner(), &mut conn)
@@ -122,6 +123,13 @@ async fn update(
     payload: web::Json<UserUpdatePayload>,
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
+    if let Some(username) = &payload.username {
+        let username_ok = validate_username(username);
+        if username_ok.is_err() {
+            let e = username_ok.unwrap_err();
+            return Err(InternalError::new(e, actix_web::http::StatusCode::BAD_REQUEST).into());
+        }
+    }
     if let Some(email) = &payload.email {
         let email_ok = validate_email(email);
         if email_ok.is_err() {
@@ -327,6 +335,32 @@ fn delete_user(id: Uuid, conn: &mut PgConnection) -> Result<usize, DbError> {
     let deleted_user = diesel::delete(users.find(id)).execute(conn)?;
 
     Ok(deleted_user)
+}
+
+fn validate_username(username: &str) -> Result<(), Error> {
+   //Usernames can be 2-64 characters long, and can only contain alphanumeric characters, underscores, and dashes.
+   //Let's just make it so - and _ cannot be at the start or end of the username
+    if username.is_empty() {
+        Err(actix_web::error::ErrorBadRequest("Username cannot be empty"))
+    } else if username.len() < 3 {
+        Err(actix_web::error::ErrorBadRequest(
+            "Username must be at least 3 characters",
+        ))
+    } else if username.len() > 64 {
+        Err(actix_web::error::ErrorBadRequest(
+            "Username must be 64 characters or less",
+        ))
+    } else if !username.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-') {
+        Err(actix_web::error::ErrorBadRequest(
+            "Username can only contain alphanumeric characters, underscores, and dashes",
+        ))
+    } else if username.starts_with('-') || username.starts_with('_') || username.ends_with('-') || username.ends_with('_') {
+        Err(actix_web::error::ErrorBadRequest(
+            "Username cannot start or end with a dash or underscore",
+        ))
+    } else {
+        Ok(())
+    }
 }
 
 fn validate_email(email: &str) -> Result<(), Error> {
