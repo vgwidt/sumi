@@ -504,6 +504,21 @@ fn find(
         if let Some(so) = filters.sort_order {
             sort_order = so;
         }
+
+        if let Some(s) = filters.search {
+            if !s.is_empty() {
+                query = query.filter(
+                    title
+                        .ilike(format!("%{}%", s))
+                        .or(description.ilike(format!("%{}%", s))),
+                );
+                count_query = count_query.filter(
+                    title
+                        .ilike(format!("%{}%", s))
+                        .or(description.ilike(format!("%{}%", s))),
+                );
+            }
+        }
     }
 
     let count = count_query.count().get_result::<i64>(conn)?;

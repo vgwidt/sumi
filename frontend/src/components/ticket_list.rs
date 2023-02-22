@@ -60,6 +60,7 @@ pub fn ticket_list() -> Html {
     let language = use_language_context();
     let theme = use_theme();
     let navigator = use_navigator().unwrap();
+    let ticket_list = use_state(|| TicketListInfo::default());
     let filter = use_state(|| TicketFilterPayload {
         assignee: Some(user_ctx.user_id.clone()),
         status: Some(StatusFilter::Open.to_string()),
@@ -67,13 +68,9 @@ pub fn ticket_list() -> Html {
         per_page: Some(50),
         sort_by: Some("ticket_id".to_string()),
         sort_order: Some("asc".to_string()),
+        search: None,
     });
     let loading = use_state(|| false);
-
-    //let ticket_list = use_state(|| TicketListInfo::default());
-
-    //For auto-updating the ticket list
-    //let millis = use_state(|| 60000);
 
     let users = use_future(|| async { get_users().await.unwrap_or_default() });
 
@@ -83,31 +80,30 @@ pub fn ticket_list() -> Html {
     };
 
     //API call to get (filtered) tickets
-    let ticket_list =
     {
         let filter = &*filter.clone();
         let loading = loading.clone();
-        use_future_with_deps(|filter| async move 
+        let ticket_list = ticket_list.clone();
+        match use_future_with_deps(|filter| async move 
             { 
                 let result = get_filtered(&filter).await;  
                 match result {
-                    Ok(ticket_list) => {
+                    Ok(tickets) => {
                         loading.set(false);
-                        ticket_list
+                        ticket_list.set(tickets);
                     },
                     Err(_) => {
                         loading.set(false);
-                        TicketListInfo::default()
+                        ticket_list.set(TicketListInfo::default());
                     }
                 }
-            }, filter.clone())
+            }, filter.clone()) {
+                //results of future, I haven't mastered suspense yet
+                Ok(_) => (),
+                Err(_) => (),
+            }
+    }
 
-    };
-
-    let ticket_list = match ticket_list {
-        Ok(ticket_list) => ticket_list.clone(),
-        Err(_) => TicketListInfo::default(),
-    };
 
     let onclick_filter_assignee: Callback<Event> = {
         let filter = filter.clone();
@@ -122,6 +118,7 @@ pub fn ticket_list() -> Html {
                 per_page: filter.per_page.clone(),
                 sort_by: filter.sort_by.clone(),
                 sort_order: filter.sort_order.clone(),
+                search: filter.search.clone(),
             };
             if value == "unassigned".to_string() {
                 new_filter.assignee = Some(Uuid::nil());
@@ -149,6 +146,7 @@ pub fn ticket_list() -> Html {
                 per_page: filter.per_page.clone(),
                 sort_by: filter.sort_by.clone(),
                 sort_order: filter.sort_order.clone(),
+                search: filter.search.clone(),
             });
         })
     };
@@ -234,6 +232,7 @@ let onclick_prev_page = {
             per_page: filter.per_page.clone(),
             sort_by: filter.sort_by.clone(),
             sort_order: filter.sort_order.clone(),
+            search: filter.search.clone(),
         };
         if new_filter.page.unwrap() > 1 {
             new_filter.page = Some(new_filter.page.unwrap() - 1);
@@ -254,6 +253,7 @@ let onclick_next_page = {
             per_page: filter.per_page.clone(),
             sort_by: filter.sort_by.clone(),
             sort_order: filter.sort_order.clone(),
+            search: filter.search.clone(),
         };
         new_filter.page = Some(new_filter.page.unwrap() + 1);
         loading.set(true);
@@ -281,6 +281,7 @@ let onclick_filter_per_page = {
                         per_page: Some(value),
                         sort_by: filter.sort_by.clone(),
                         sort_order: filter.sort_order.clone(),
+                        search: filter.search.clone(),
                     });
                 }
             }
@@ -288,6 +289,66 @@ let onclick_filter_per_page = {
         }
     })
 };
+
+    let onclick_search = {
+        let filter = filter.clone();
+        let loading = loading.clone();
+        Callback::from(move |e: SubmitEvent| {
+            e.prevent_default();
+            let input: HtmlInputElement = document().get_element_by_id("search").unwrap().unchecked_into();
+            let value = input.value();
+            //If Some(filter.search) matches value, do nothing.  If search is something, change it, if it is "", set it to None
+            if filter.search.is_some() {
+                if filter.search.as_ref().unwrap() != &value {
+                    loading.set(true);
+                    filter.set(TicketFilterPayload {
+                        assignee: filter.assignee.clone(),
+                        status: filter.status.clone(),
+                        page: filter.page.clone(),
+                        per_page: filter.per_page.clone(),
+                        sort_by: filter.sort_by.clone(),
+                        sort_order: filter.sort_order.clone(),
+                        search: Some(value),
+                    });
+                }
+            } else {
+                if value != "" {
+                    loading.set(true);
+                    filter.set(TicketFilterPayload {
+                        assignee: filter.assignee.clone(),
+                        status: filter.status.clone(),
+                        page: filter.page.clone(),
+                        per_page: filter.per_page.clone(),
+                        sort_by: filter.sort_by.clone(),
+                        sort_order: filter.sort_order.clone(),
+                        search: Some(value),
+                    });
+                }
+            }
+        })
+    };
+
+    let onclick_clear_filter = {
+        let filter = filter.clone();
+        let loading = loading.clone();
+        Callback::from(move |_| {
+            //only do if filter/search is not none
+            if filter.search.is_some() {
+                let input: HtmlInputElement = document().get_element_by_id("search").unwrap().unchecked_into();
+                input.set_value("");
+                loading.set(true);
+                filter.set(TicketFilterPayload {
+                    assignee: filter.assignee.clone(),
+                    status: filter.status.clone(),
+                    page: filter.page.clone(),
+                    per_page: filter.per_page.clone(),
+                    sort_by: filter.sort_by.clone(),
+                    sort_order: filter.sort_order.clone(),
+                    search: None,
+                });
+            }
+        })
+    };
 
     html! {
         <div style="margin: 2px 16px;">
@@ -315,6 +376,25 @@ let onclick_filter_per_page = {
                         <option value="Open" selected=true>{language.get("Open")}</option>
                         <option value="Closed">{language.get("Closed")}</option>
                     </select>
+                </div>
+                <div>
+                <form onsubmit={onclick_search} style="margin-left: 32px;">
+                    <label for="search">{"Filter: "}</label>
+                    <input style="margin: 0px;" type="text" id="search" placeholder={language.get("Filter")} />
+                    <button class="page-btn" type="submit">
+                        { language.get("✔") }
+                    </button>
+                    //ad button to clear filter, only show if filter is set
+                    {if filter.search.is_some() {
+                        html! {
+                            <button class="page-btn" onclick={onclick_clear_filter}>
+                                { "✘" }
+                            </button>
+                        }
+                    } else {
+                        html! {}
+                    }}
+               </form>
                 </div>
             </div>
             <div class={ticket_table_style}>
@@ -457,6 +537,7 @@ fn onclick_sort_by(sort_by: &str, filter: &UseStateHandle<TicketFilterPayload>, 
             per_page: filter.per_page.clone(),
             sort_by: Some(sort_by.clone()),
             sort_order: filter.sort_order.clone(),
+            search: filter.search.clone(),
         };
         //if the new sort_by is different from the old filter.sort_by, then set the sort_order to "asc"
         if new_filter.sort_by.clone().unwrap_or_default() != filter.sort_by.clone().unwrap_or_default() {

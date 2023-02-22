@@ -65,6 +65,12 @@ pub async fn get_filtered(
         }
         params.push_str(&format!("sort_order={}", sort_order));
     }
+    if let Some(search) = &query.search {
+        if params.len() > 0 {
+            params.push_str("&");
+        }
+        params.push_str(&format!("search={}", search));
+    }
 
     let tickets: TicketListInfo = request_get::<TicketListInfo>(format!("/tickets?{}", params)).await?;
 
