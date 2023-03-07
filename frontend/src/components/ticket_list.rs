@@ -437,7 +437,7 @@ let onclick_filter_per_page = {
                                     { if let Some(assignee) = &ticket.assignee {
                                     &assignee.display_name
                                     } else {
-                                    &language.get("Unassigned")
+                                    "Unknown"
                                     }}
                                 </div>
                             </td>
