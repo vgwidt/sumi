@@ -435,9 +435,9 @@ let onclick_filter_per_page = {
                             <td>
                                 <div class="info">
                                     { if let Some(assignee) = &ticket.assignee {
-                                    &assignee.display_name
+                                        assignee.display_name.clone()
                                     } else {
-                                    "Unknown"
+                                        language.get("Unassigned")
                                     }}
                                 </div>
                             </td>
