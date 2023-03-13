@@ -1,6 +1,6 @@
 use super::super::DbPool;
 
-use actix_web::{delete, get, options, post, put, web, Error, HttpResponse};
+use actix_web::{delete, get, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -36,8 +36,8 @@ async fn create_taskgroup(pool: web::Data<DbPool>, ticket: web::Path<i32>, paylo
 }
 
 //create task
-#[post("/tickets/{ticket_id}/taskgroups/{group_id}/tasks")]
-async fn create_task(pool: web::Data<DbPool>, ticket: web::Path<i32>, group: web::Path<Uuid>, payload: web::Json<TaskPayload>) -> Result<HttpResponse, Error> {
+#[post("/taskgroups/{group_id}/tasks")]
+async fn create_task(pool: web::Data<DbPool>, group: web::Path<Uuid>, payload: web::Json<TaskPayload>) -> Result<HttpResponse, Error> {
     let task = web::block(move || {
         let mut conn = pool.get()?;
         add_task(payload.into_inner(), group.into_inner(), &mut conn)
@@ -49,8 +49,8 @@ async fn create_task(pool: web::Data<DbPool>, ticket: web::Path<i32>, group: web
 }
 
 //update task (use optional fields)
-#[put("/tickets/{ticket_id}/taskgroups/{group_id}/tasks/{task_id}")]
-async fn put_task(pool: web::Data<DbPool>, ticket: web::Path<i32>, group: web::Path<Uuid>, task: web::Path<Uuid>, payload: web::Json<TaskUpdatePayload>) -> Result<HttpResponse, Error> {
+#[put("/tasks/{task_id}")]
+async fn put_task(pool: web::Data<DbPool>, task: web::Path<Uuid>, payload: web::Json<TaskUpdatePayload>) -> Result<HttpResponse, Error> {
     let task = web::block(move || {
         let mut conn = pool.get()?;
         update_task(payload.into_inner(), task.into_inner(), &mut conn)
@@ -61,8 +61,7 @@ async fn put_task(pool: web::Data<DbPool>, ticket: web::Path<i32>, group: web::P
     Ok(HttpResponse::Ok().json(task))
 }
 
-//delete task, undecided on URL so here is an alternative using tasks endpoint
-//#[delete("/tickets/{ticket_id}/taskgroups/{group_id}/tasks/{task_id}")]
+//delete task
 #[delete("/tasks/{task_id}")]
 async fn delete_task(pool: web::Data<DbPool>, task: web::Path<Uuid>) -> Result<HttpResponse, Error> {
     let task = web::block(move || {
@@ -76,8 +75,8 @@ async fn delete_task(pool: web::Data<DbPool>, task: web::Path<Uuid>) -> Result<H
 }
 
 //delete task group
-#[delete("/tickets/{ticket_id}/taskgroups/{group_id}")]
-async fn delete_taskgroup(pool: web::Data<DbPool>, ticket: web::Path<i32>, group: web::Path<Uuid>) -> Result<HttpResponse, Error> {
+#[delete("/taskgroups/{group_id}")]
+async fn delete_taskgroup(pool: web::Data<DbPool>, group: web::Path<Uuid>) -> Result<HttpResponse, Error> {
     let taskgroup = web::block(move || {
         let mut conn = pool.get()?;
         db_delete_taskgroup(group.into_inner(), &mut conn)
