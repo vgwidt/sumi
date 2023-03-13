@@ -3,6 +3,7 @@ pub mod comments;
 pub mod contacts;
 pub mod documents;
 pub mod notes;
+pub mod tasks;
 pub mod tickets;
 pub mod user_preferences;
 pub mod users;
