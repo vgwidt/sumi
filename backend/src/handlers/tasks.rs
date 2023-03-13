@@ -61,6 +61,34 @@ async fn put_task(pool: web::Data<DbPool>, ticket: web::Path<i32>, group: web::P
     Ok(HttpResponse::Ok().json(task))
 }
 
+//delete task, undecided on URL so here is an alternative using tasks endpoint
+//#[delete("/tickets/{ticket_id}/taskgroups/{group_id}/tasks/{task_id}")]
+#[delete("/tasks/{task_id}")]
+async fn delete_task(pool: web::Data<DbPool>, task: web::Path<Uuid>) -> Result<HttpResponse, Error> {
+    let task = web::block(move || {
+        let mut conn = pool.get()?;
+        db_delete_task(task.into_inner(), &mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(task))
+}
+
+//delete task group
+#[delete("/tickets/{ticket_id}/taskgroups/{group_id}")]
+async fn delete_taskgroup(pool: web::Data<DbPool>, ticket: web::Path<i32>, group: web::Path<Uuid>) -> Result<HttpResponse, Error> {
+    let taskgroup = web::block(move || {
+        let mut conn = pool.get()?;
+        db_delete_taskgroup(group.into_inner(), &mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(taskgroup))
+}
+
+
 fn get_ticket_tasks(ticket: i32, conn: &mut PgConnection) -> Result<Tasklist, DbError> {
     use crate::schema::task_groups::dsl::*;
 
@@ -162,31 +190,31 @@ fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Resul
     Ok(task_representation)
 }
 
-fn update_task(payload: TaskUpdatePayload, task_id: Uuid, conn: &mut PgConnection) -> Result<TaskRepresentation, DbError> {
+fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) -> Result<TaskRepresentation, DbError> {
     use crate::schema::tasks::dsl::*;
 
     //
     if let Some(label_value) = payload.label {
-        diesel::update(tasks.filter(task_id.eq(task_id)))
+        diesel::update(tasks.filter(task_id.eq(id)))
             .set(label.eq(label_value))
             .execute(conn)?;
     }
 
     if let Some(is_done_value) = payload.is_done {
-        diesel::update(tasks.filter(task_id.eq(task_id)))
+        diesel::update(tasks.filter(task_id.eq(id)))
             .set(is_done.eq(is_done_value))
             .execute(conn)?;
     }
 
     if let Some(order_index_value) = payload.order_index {
-        diesel::update(tasks.filter(task_id.eq(task_id)))
+        diesel::update(tasks.filter(task_id.eq(id)))
             .set(order_index.eq(order_index_value))
             .execute(conn)?;
     }
 
     //get updated task
     let task = tasks
-        .filter(task_id.eq(task_id))
+        .filter(task_id.eq(id))
         .first::<Task>(conn)?;
 
     let task_representation = TaskRepresentation {
@@ -197,4 +225,44 @@ fn update_task(payload: TaskUpdatePayload, task_id: Uuid, conn: &mut PgConnectio
     };
 
     Ok(task_representation)
+}
+
+fn db_delete_task(id: Uuid, conn: &mut PgConnection) -> Result<TaskRepresentation, DbError> {
+    use crate::schema::tasks::dsl::*;
+
+    let task = tasks
+        .filter(task_id.eq(id))
+        .first::<Task>(conn)?;
+
+    diesel::delete(tasks.filter(task_id.eq(task_id)))
+        .execute(conn)?;
+
+    let task_representation = TaskRepresentation {
+        task_id: task.task_id,
+        label: task.label,
+        is_done: task.is_done,
+        order_index: task.order_index,
+    };
+
+    Ok(task_representation)
+}
+
+fn db_delete_taskgroup(id: Uuid, conn: &mut PgConnection) -> Result<TaskGroupRepresentation, DbError> {
+    use crate::schema::task_groups::dsl::*;
+
+    let group = task_groups
+        .filter(group_id.eq(id))
+        .first::<TaskGroup>(conn)?;
+
+    diesel::delete(task_groups.filter(group_id.eq(group_id)))
+        .execute(conn)?;
+
+    let group_representation = TaskGroupRepresentation {
+        group_id: group.group_id,
+        label: group.label,
+        order_index: group.order_index,
+        tasks: Vec::new(),
+    };
+
+    Ok(group_representation)
 }
