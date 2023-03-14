@@ -25,12 +25,6 @@ pub struct TaskGroupPayload {
     pub order_index: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TaskGroupUpdatePayload {
-    pub label: Option<String>,
-    pub order_index: Option<i32>,
-}
-
 #[derive(Debug, Serialize, Deserialize, Queryable)]
 pub struct Task {
     pub task_id: Uuid,
