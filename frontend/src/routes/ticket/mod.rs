@@ -3,6 +3,7 @@ mod note;
 mod note_input;
 mod note_list;
 mod event;
+mod tasklist;
 
 use stylist::style;
 use stylist::yew::styled_component;
@@ -10,6 +11,7 @@ use stylist::yew::styled_component;
 use yew::prelude::*;
 use yew::suspense::use_future;
 
+use crate::routes::ticket::tasklist::TaskList;
 use crate::services::tickets::*;
 use crate::services::users::get_display_names;
 use crate::types::TicketInfo;
@@ -147,6 +149,10 @@ pub fn ticket(props: &Props) -> Html {
                 <hr />
                 <div class="note-list">
                     <NoteList ticket_id={props.ticket_id.clone()} userlist={userlist} />
+                </div>
+                //tasklist
+                <div class="tasklist">
+                    <TaskList ticket_id={props.ticket_id.clone()} />
                 </div>
             </div>
         }
