@@ -24,8 +24,32 @@ pub struct Tasklist {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct TaskNewPayload {
+    pub label: String,
+    pub is_done: bool,
+    pub order_index: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TaskGroupNewPayload {
+    pub label: String,
+    pub order_index: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TaskUpdatePayload {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_done: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub order_index: Option<i32>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TaskGroupUpdatePayload {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub label: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub order_index: Option<i32>,
 }
