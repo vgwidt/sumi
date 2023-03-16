@@ -13,6 +13,7 @@ pub struct TaskGroup {
 #[derive(Debug, Insertable)]
 #[diesel(table_name = task_groups)]
 pub struct NewTaskGroup {
+    pub group_id: Uuid,
     pub ticket_id: i32,
     pub label: String,
     pub order_index: i32,

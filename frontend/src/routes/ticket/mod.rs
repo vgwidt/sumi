@@ -3,6 +3,8 @@ mod note;
 mod note_input;
 mod note_list;
 mod event;
+mod task;
+mod task_new;
 mod tasklist;
 
 use stylist::style;
