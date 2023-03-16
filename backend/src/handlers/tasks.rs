@@ -146,6 +146,7 @@ fn add_taskgroup(payload: TaskGroupPayload, ticket: i32, conn: &mut PgConnection
     use crate::schema::task_groups::dsl::*;
 
     let new_group = NewTaskGroup {
+        group_id: Uuid::new_v4(),
         label: payload.label,
         order_index: payload.order_index,
         ticket_id: ticket,

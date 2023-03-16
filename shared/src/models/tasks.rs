@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct TaskRepresentation {
     pub task_id: Uuid,
     pub label: String,
@@ -23,8 +23,9 @@ pub struct Tasklist {
     pub task_groups: Vec<TaskGroupRepresentation>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct TaskNewPayload {
+    pub group_id: Uuid,
     pub label: String,
     pub is_done: bool,
     pub order_index: i32,
