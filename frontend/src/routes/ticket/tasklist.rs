@@ -134,23 +134,20 @@ pub fn task_list(props: &Props) -> Html {
                         </h3>
                         <div>
                             {for group.tasks.iter().map(|task| html! {
-                                <>
                                 <Task ticket_id={props.ticket_id} task={task.clone()} callback={Callback::noop()} callback_updated={Callback::noop()}/>
-                                { if new_task.clone().group_id == group.group_id {
-                                    let new_task = new_task.clone();
-                                    html! {
-                                        <NewTask ticket_id={props.ticket_id} task={TaskNewPayload {
-                                            group_id: new_task.group_id,
-                                            label: new_task.label.clone(),
-                                            is_done: new_task.is_done,
-                                            order_index: new_task.order_index,
-                                        }} callback={Callback::noop()} callback_updated={Callback::noop()}/>
-                                    }
-                                } else {
-                                    html! {}
-                                }}
-                                </>
                             })}
+                            {if new_task.clone().group_id == group.group_id {
+                                html! {
+                                    <NewTask ticket_id={props.ticket_id} task={TaskNewPayload {
+                                        group_id: new_task.group_id,
+                                        label: new_task.label.clone(),
+                                        is_done: new_task.is_done,
+                                        order_index: new_task.order_index,
+                                    }} callback={Callback::noop()} callback_updated={Callback::noop()}/>
+                                }
+                            } else {
+                                html! {}
+                            }}
                         </div>
                     </div>
                 })}

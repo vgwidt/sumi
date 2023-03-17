@@ -170,6 +170,7 @@ fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Resul
     use crate::schema::tasks::dsl::*;
 
     let new_task = NewTask {
+        task_id: Uuid::new_v4(),
         label: payload.label,
         order_index: payload.order_index,
         is_done: payload.is_done,

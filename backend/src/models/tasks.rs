@@ -38,6 +38,7 @@ pub struct Task {
 #[derive(Debug, Insertable)]
 #[diesel(table_name = tasks)]
 pub struct NewTask {
+    pub task_id: Uuid,
     pub group_id: Uuid,
     pub label: String,
     pub is_done: bool,
