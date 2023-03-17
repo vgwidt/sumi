@@ -1,5 +1,6 @@
 use crate::types::{Error, SuccessResponse};
 use shared::models::tasks::*;
+use uuid::Uuid;
 
 use super::{request_delete, request_get, request_post, request_put};
 
@@ -39,7 +40,7 @@ pub async fn create_task(group_id: i32, task: TaskNewPayload) -> Result<TaskRepr
 
 //update task (use optional fields) (/tasks/{task_id})
 pub async fn update_task(
-    task_id: i32,
+    task_id: Uuid,
     task: TaskUpdatePayload,
 ) -> Result<TaskRepresentation, Error> {
     let task: TaskRepresentation =
