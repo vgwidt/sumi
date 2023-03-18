@@ -59,6 +59,8 @@ pub fn task_list(props: &Props) -> Html {
         let props = props.clone();
         let error = error.clone();
         Callback::from(move |event: MouseEvent| {
+            let tasklist = tasklist.clone();
+            let error = error.clone();
             let target = event.target().unwrap();
             let value = target.unchecked_into::<web_sys::HtmlButtonElement>().value();
             web_sys::console::log_1(&value.clone().into());
@@ -69,8 +71,17 @@ pub fn task_list(props: &Props) -> Html {
                         label: "New Group".to_string(),
                         order_index: 0,
                     };
-                    let group = create_taskgroup(props.ticket_id, group_info).await.unwrap();
-                    group_uuid = group.group_id;
+                    let result = create_taskgroup(props.ticket_id, group_info).await;
+                    match result {
+                        Ok(group) => {
+                            let new_tasks = get_tasklist(props.ticket_id).await.unwrap();
+                            tasklist.set(new_tasks);
+                            group_uuid = group.group_id;
+                        }
+                        Err(e) => {
+                            error.set(e.to_string());
+                        }
+                    }
                     });
                 }
             else {
@@ -181,24 +192,24 @@ pub fn task_list(props: &Props) -> Html {
         //Display lists of tasks under each task group which is displayed as header.
         <div>
             <div>
-                <h2>{language.get("tasks")}</h2>
+                <h2>{language.get("Tasks")}</h2>
                 //If tasklist is empty, display +Task button to add new task.
-                {if tasklist.clone().task_groups.is_empty() {
-                    html! {
-                        <button name="new-task-no-groups" value="" onclick={onclick_add_task.clone()}>{"+Task"}</button>
-                    }
-                } else {
-                    html! {}
-                }}
-                <button onclick={onclick_add_group}>{"+Group"}</button>
+                // {if tasklist.clone().task_groups.is_empty() {
+                //     html! {
+                //         <button class="btn" name="new-task-no-groups" value="" onclick={onclick_add_task.clone()}>{"+Task"}</button>
+                //     }
+                // } else {
+                //     html! {}
+                // }}
+                <button class="btn" onclick={onclick_add_group}>{"New Tasklist"}</button>
             </div>
             <div>
                 {for tasklist.clone().task_groups.iter().map(|group| html! {
                     <div>
                         <h3>
                         {&group.label}
-                        <button name="new-task" value={group.group_id.to_string()} onclick={onclick_add_task.clone()}>{"+Task"}</button>
-                        <button class="page-btn" name="delete-group" value={group.group_id.to_string()} onclick={onclick_delete_group.clone()}>{"✗"}</button>
+                        <button name="new-task" class="add-icon page-btn" value={group.group_id.to_string()} onclick={onclick_add_task.clone()}>{"+"}</button>
+                        <button class="page-btn" name="delete-group" value={group.group_id.to_string()} onclick={onclick_delete_group.clone()}>{"✘"}</button>
                         </h3>
                         <div>
                             {for group.tasks.iter().map(|task| html! {
