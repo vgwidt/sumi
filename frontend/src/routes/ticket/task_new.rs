@@ -80,7 +80,7 @@ pub fn new_task(props: &Props) -> Html {
         <div class="task">
             <input type="checkbox" checked={update_info.is_done.clone()} oninput={oninput_check} />
             <input type="text" value={update_info.label.clone()} oninput={oninput_label}  placeholder="New task" />
-            <button onclick={onclick_save}>{"Save"}</button>
+            <button class="page-btn" onclick={onclick_save}>{"✔"}</button>
         </div>
     }
 

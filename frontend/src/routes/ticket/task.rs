@@ -160,8 +160,8 @@ pub fn task(props: &Props) -> Html {
                 <div class="task">
                     <input type="checkbox" checked={*is_done} onclick={onclick_checkbox} disabled={*submitted}/>
                     <input type="text" value={update_info.label.clone()} oninput={oninput_label} disabled={*submitted}/>
-                    <btn onclick={onclick_save}>{"Save"}</btn>
-                    <btn onclick={onclick_cancel}>{"Cancel"}</btn>
+                    <button class="page-btn" onclick={onclick_save}>{"✔"}</button>
+                    <button class="page-btn" onclick={onclick_cancel}>{"✘"}</button>
                 </div>
             }
         } else {
@@ -169,7 +169,7 @@ pub fn task(props: &Props) -> Html {
                 <div class="task">
                     <input type="checkbox" checked={*is_done} onclick={onclick_checkbox} disabled={*submitted}/>
                     <span>{task.label.clone()}</span>
-                    <btn onclick={onclick_edit}>{"Edit"}</btn>
+                    <button class="edit-icon page-btn" onclick={onclick_edit}>{"✎"}</button>
                     <button class="page-btn" onclick={onclick_delete}>{"✘"}</button>
                 </div>
             }
