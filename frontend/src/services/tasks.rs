@@ -28,7 +28,7 @@ pub async fn create_taskgroup(
 }
 
 //create task (/taskgroups/{group_id}/tasks)
-pub async fn create_task(group_id: i32, task: TaskNewPayload) -> Result<TaskRepresentation, Error> {
+pub async fn create_task(group_id: Uuid, task: TaskNewPayload) -> Result<TaskRepresentation, Error> {
     let task: TaskRepresentation = request_post::<TaskNewPayload, TaskRepresentation>(
         format!("/taskgroups/{}/tasks", group_id),
         task,
@@ -51,7 +51,7 @@ pub async fn update_task(
 }
 
 //delete task (/tasks/{task_id})
-pub async fn delete_task(task_id: i32) -> Result<SuccessResponse, Error> {
+pub async fn delete_task(task_id: Uuid) -> Result<SuccessResponse, Error> {
     let response: SuccessResponse =
         request_delete::<SuccessResponse>(format!("/tasks/{}", task_id)).await?;
 
@@ -59,7 +59,7 @@ pub async fn delete_task(task_id: i32) -> Result<SuccessResponse, Error> {
 }
 
 //delete taskgroup (/taskgroups/{group_id})
-pub async fn delete_taskgroup(group_id: i32) -> Result<SuccessResponse, Error> {
+pub async fn delete_taskgroup(group_id: Uuid) -> Result<SuccessResponse, Error> {
     let response: SuccessResponse =
         request_delete::<SuccessResponse>(format!("/taskgroups/{}", group_id)).await?;
 
