@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 use shared::models::tasks::*;
 use crate::models::tasks::*;
+use crate::models::SuccessResponse;
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -64,27 +65,51 @@ async fn put_task(pool: web::Data<DbPool>, task: web::Path<Uuid>, payload: web::
 //delete task
 #[delete("/tasks/{task_id}")]
 async fn delete_task(pool: web::Data<DbPool>, task: web::Path<Uuid>) -> Result<HttpResponse, Error> {
-    let task = web::block(move || {
+    let result = web::block(move || {
         let mut conn = pool.get()?;
         db_delete_task(task.into_inner(), &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(task))
+    if result > 1 {
+        let response = SuccessResponse {
+            success: true,
+            message: "Task deleted".to_string(),
+        };
+        Ok(HttpResponse::Ok().json(response))
+    } else {
+        let response = SuccessResponse {
+            success: false,
+            message: "Task not found".to_string(),
+        };
+        Ok(HttpResponse::Ok().json(response))
+    }
 }
 
 //delete task group
 #[delete("/taskgroups/{group_id}")]
 async fn delete_taskgroup(pool: web::Data<DbPool>, group: web::Path<Uuid>) -> Result<HttpResponse, Error> {
-    let taskgroup = web::block(move || {
+    let result = web::block(move || {
         let mut conn = pool.get()?;
         db_delete_taskgroup(group.into_inner(), &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(taskgroup))
+    if result > 1 {
+        let response = SuccessResponse {
+            success: true,
+            message: "Task group deleted".to_string(),
+        };
+        Ok(HttpResponse::Ok().json(response))
+    } else {
+        let response = SuccessResponse {
+            success: false,
+            message: "Task group not found".to_string(),
+        };
+        Ok(HttpResponse::Ok().json(response))
+    }
 }
 
 
@@ -132,6 +157,7 @@ fn get_group_tasks(group: Uuid, conn: &mut PgConnection) -> Result<Vec<TaskRepre
     for t in group_tasks {
         let task_representation = TaskRepresentation {
             task_id: t.task_id,
+            group_id: t.group_id,
             label: t.label,
             is_done: t.is_done,
             order_index: t.order_index,
@@ -183,6 +209,7 @@ fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Resul
 
     let task_representation = TaskRepresentation {
         task_id: task.task_id,
+        group_id: task.group_id,
         label: task.label,
         is_done: task.is_done,
         order_index: task.order_index,
@@ -220,6 +247,7 @@ fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) ->
 
     let task_representation = TaskRepresentation {
         task_id: task.task_id,
+        group_id: task.group_id,
         label: task.label,
         is_done: task.is_done,
         order_index: task.order_index,
@@ -228,42 +256,20 @@ fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) ->
     Ok(task_representation)
 }
 
-fn db_delete_task(id: Uuid, conn: &mut PgConnection) -> Result<TaskRepresentation, DbError> {
+fn db_delete_task(id: Uuid, conn: &mut PgConnection) -> Result<usize, DbError> {
     use crate::schema::tasks::dsl::*;
 
-    let task = tasks
-        .filter(task_id.eq(id))
-        .first::<Task>(conn)?;
-
-    diesel::delete(tasks.filter(task_id.eq(task_id)))
+    let count = diesel::delete(tasks.filter(task_id.eq(id)))
         .execute(conn)?;
 
-    let task_representation = TaskRepresentation {
-        task_id: task.task_id,
-        label: task.label,
-        is_done: task.is_done,
-        order_index: task.order_index,
-    };
-
-    Ok(task_representation)
+    Ok(count)
 }
 
-fn db_delete_taskgroup(id: Uuid, conn: &mut PgConnection) -> Result<TaskGroupRepresentation, DbError> {
+fn db_delete_taskgroup(id: Uuid, conn: &mut PgConnection) -> Result<usize, DbError> {
     use crate::schema::task_groups::dsl::*;
 
-    let group = task_groups
-        .filter(group_id.eq(id))
-        .first::<TaskGroup>(conn)?;
-
-    diesel::delete(task_groups.filter(group_id.eq(group_id)))
+    let count = diesel::delete(task_groups.filter(group_id.eq(id)))
         .execute(conn)?;
 
-    let group_representation = TaskGroupRepresentation {
-        group_id: group.group_id,
-        label: group.label,
-        order_index: group.order_index,
-        tasks: Vec::new(),
-    };
-
-    Ok(group_representation)
+    Ok(count)
 }

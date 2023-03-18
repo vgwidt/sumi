@@ -91,6 +91,8 @@ pub fn task_list(props: &Props) -> Html {
         let props = props.clone();
         let error = error.clone();
         Callback::from(move |_| {
+            let tasklist = tasklist.clone();
+            let error = error.clone();
             wasm_bindgen_futures::spawn_local(async move {
                 let group_info = TaskGroupNewPayload {
                     label: "New Group".to_string(),
@@ -99,10 +101,75 @@ pub fn task_list(props: &Props) -> Html {
                 let result = create_taskgroup(props.ticket_id, group_info).await;
                 match result {
                     Ok(group) => {
-                        //tasklist.set(new_tasklist);
+                        //get new ticketlist
+                        let new_tasks = get_tasklist(props.ticket_id).await.unwrap();
+                        tasklist.set(new_tasks);
                     }
                     Err(e) => {
                         log::error!("Error creating task group: {}", e);
+                        error.set(e.to_string());
+                    }
+                }
+            });
+        })
+    };
+
+    //tasks will emit updated TaskRepresentation, our callback will update the tasklist
+    let callback_updated = {
+        let tasklist = tasklist.clone();
+        let props = props.clone();
+        let new_task = new_task.clone();
+        Callback::from(move |_| {
+            let tasklist = tasklist.clone();
+            let props = props.clone();
+            let new_task = new_task.clone();
+            //just make new server call to update tasklist for now
+            wasm_bindgen_futures::spawn_local(async move {
+                let tasks = get_tasklist(props.ticket_id).await.unwrap();
+                new_task.set(TaskNewPayload {
+                    group_id: Uuid::new_v4(),
+                    label: String::new(),
+                    is_done: false,
+                    order_index: 0, 
+                });
+                tasklist.set(tasks);
+            });
+        })
+    };
+
+    let callback_deleted = {
+        let tasklist = tasklist.clone();
+        let props = props.clone();
+        Callback::from(move |_| {
+            let tasklist = tasklist.clone();
+            let props = props.clone();
+            //just make new server call to update tasklist for now
+            wasm_bindgen_futures::spawn_local(async move {
+                let tasks = get_tasklist(props.ticket_id).await.unwrap();
+                tasklist.set(tasks);
+            });
+        })
+    };
+
+    let onclick_delete_group = {
+        let tasklist = tasklist.clone();
+        let props = props.clone();
+        let error = error.clone();
+        Callback::from(move |event: MouseEvent| {
+            let target = event.target().unwrap();
+            let value = target.unchecked_into::<web_sys::HtmlButtonElement>().value();
+            let group_uuid = value.parse().unwrap();
+            let tasklist = tasklist.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let result = delete_taskgroup(group_uuid).await;
+                match result {
+                    Ok(group) => {
+                        //get new ticketlist
+                        let new_tasks = get_tasklist(props.ticket_id).await.unwrap();
+                        tasklist.set(new_tasks);
+                    }
+                    Err(e) => {
+                        log::error!("Error deleting task group: {}", e);
                         //error.set(e.to_string());
                     }
                 }
@@ -131,19 +198,20 @@ pub fn task_list(props: &Props) -> Html {
                         <h3>
                         {&group.label}
                         <button name="new-task" value={group.group_id.to_string()} onclick={onclick_add_task.clone()}>{"+Task"}</button>
+                        <button class="page-btn" name="delete-group" value={group.group_id.to_string()} onclick={onclick_delete_group.clone()}>{"✗"}</button>
                         </h3>
                         <div>
                             {for group.tasks.iter().map(|task| html! {
-                                <Task ticket_id={props.ticket_id} task={task.clone()} callback={Callback::noop()} callback_updated={Callback::noop()}/>
+                                <Task ticket_id={props.ticket_id} task={task.clone()} callback={Callback::noop()} callback_updated={callback_updated.clone()} callback_deleted={callback_deleted.clone()}/>
                             })}
                             {if new_task.clone().group_id == group.group_id {
                                 html! {
-                                    <NewTask ticket_id={props.ticket_id} task={TaskNewPayload {
+                                    <NewTask ticket_id={props.ticket_id} group_id={group.group_id} task={TaskNewPayload {
                                         group_id: new_task.group_id,
                                         label: new_task.label.clone(),
                                         is_done: new_task.is_done,
                                         order_index: new_task.order_index,
-                                    }} callback={Callback::noop()} callback_updated={Callback::noop()}/>
+                                    }} callback={Callback::noop()} callback_updated={callback_updated.clone()}/>
                                 }
                             } else {
                                 html! {}

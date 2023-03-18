@@ -4,6 +4,7 @@ use uuid::Uuid;
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct TaskRepresentation {
     pub task_id: Uuid,
+    pub group_id: Uuid,
     pub label: String,
     pub is_done: bool,
     pub order_index: i32,
