@@ -23,6 +23,19 @@ async fn get_tasklist(pool: web::Data<DbPool>, ticket: web::Path<i32>) -> Result
     Ok(HttpResponse::Ok().json(tasklist))
 }
 
+//get list of tasks for a taskgroup
+#[get("/taskgroups/{group_id}/tasks")]
+async fn get_taskgroup_tasks(pool: web::Data<DbPool>, group: web::Path<Uuid>) -> Result<HttpResponse, Error> {
+    let taskgroup = web::block(move || {
+        let mut conn = pool.get()?;
+        get_group_tasks(group.into_inner(), &mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(taskgroup))
+}
+
 //create task group
 #[post("/tickets/{ticket_id}/taskgroups")]
 async fn create_taskgroup(pool: web::Data<DbPool>, ticket: web::Path<i32>, payload: web::Json<TaskGroupPayload>) -> Result<HttpResponse, Error> {
@@ -47,6 +60,19 @@ async fn create_task(pool: web::Data<DbPool>, group: web::Path<Uuid>, payload: w
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
     Ok(HttpResponse::Ok().json(task))
+}
+
+//update taskgroup (label or order_index)
+#[put("/taskgroups/{group_id}")]
+async fn put_taskgroup(pool: web::Data<DbPool>, group: web::Path<Uuid>, payload: web::Json<TaskGroupUpdatePayload>) -> Result<HttpResponse, Error> {
+    let taskgroup = web::block(move || {
+        let mut conn = pool.get()?;
+        db_update_taskgroup(payload.into_inner(), group.into_inner(), &mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(taskgroup))
 }
 
 //update task (use optional fields)
@@ -144,7 +170,7 @@ fn get_ticket_tasks(ticket: i32, conn: &mut PgConnection) -> Result<Tasklist, Db
 }
 
 //Get tasks for a group (representation)
-fn get_group_tasks(group: Uuid, conn: &mut PgConnection) -> Result<Vec<TaskRepresentation>, diesel::result::Error> {
+fn get_group_tasks(group: Uuid, conn: &mut PgConnection) -> Result<Vec<TaskRepresentation>, DbError> {
     use crate::schema::tasks::dsl::*;
 
     let group_tasks = tasks
@@ -195,10 +221,13 @@ fn add_taskgroup(payload: TaskGroupPayload, ticket: i32, conn: &mut PgConnection
 fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Result<TaskRepresentation, DbError> {
     use crate::schema::tasks::dsl::*;
 
+    //We'll try to use the specified order index, but if it's already taken, we'll increment it until we find a free one
+    let final_order_index = get_order_index(payload.order_index, group, conn)?;
+
     let new_task = NewTask {
         task_id: Uuid::new_v4(),
         label: payload.label,
-        order_index: payload.order_index,
+        order_index: final_order_index,
         is_done: payload.is_done,
         group_id: group,
     };
@@ -218,10 +247,65 @@ fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Resul
     Ok(task_representation)
 }
 
+fn get_order_index(requested_order_index: i32, group: Uuid, conn: &mut PgConnection) -> Result<i32, DbError> {
+    use crate::schema::tasks::dsl::*;
+    
+    let mut final_order_index = requested_order_index;
+    let mut order_index_taken = true;
+    while order_index_taken {
+        let task_with_order_index = tasks
+            .filter(group_id.eq(group))
+            .filter(order_index.eq(final_order_index))
+            .first::<Task>(conn)
+            .optional()?;
+
+        if task_with_order_index.is_some() {
+            final_order_index += 1;
+        } else {
+            order_index_taken = false;
+        }
+    }
+    Ok(final_order_index)
+}
+
+fn db_update_taskgroup(payload: TaskGroupUpdatePayload, id: Uuid, conn: &mut PgConnection) -> Result<TaskGroupRepresentation, DbError> {
+    use crate::schema::task_groups::dsl::*;
+
+    if let Some(label_value) = payload.label {
+        diesel::update(task_groups.filter(group_id.eq(id)))
+            .set(label.eq(label_value))
+            .execute(conn)?;
+    }
+
+    if let Some(order_index_value) = payload.order_index {
+        diesel::update(task_groups.filter(group_id.eq(id)))
+            .set(order_index.eq(order_index_value))
+            .execute(conn)?;
+    }
+
+    let group = task_groups
+        .filter(group_id.eq(id))
+        .first::<TaskGroup>(conn)?;
+
+    let group_tasks = get_group_tasks(group.group_id, conn)?;
+
+    let group_representation = TaskGroupRepresentation {
+        group_id: group.group_id,
+        label: group.label,
+        order_index: group.order_index,
+        tasks: group_tasks,
+    };
+
+    Ok(group_representation)
+
+}
+
+
+
+
 fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) -> Result<TaskRepresentation, DbError> {
     use crate::schema::tasks::dsl::*;
 
-    //
     if let Some(label_value) = payload.label {
         diesel::update(tasks.filter(task_id.eq(id)))
             .set(label.eq(label_value))
@@ -235,8 +319,9 @@ fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) ->
     }
 
     if let Some(order_index_value) = payload.order_index {
+        let final_order_index = get_order_index(order_index_value, payload.group_id , conn)?;
         diesel::update(tasks.filter(task_id.eq(id)))
-            .set(order_index.eq(order_index_value))
+            .set(order_index.eq(final_order_index))
             .execute(conn)?;
     }
 

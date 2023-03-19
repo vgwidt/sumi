@@ -10,7 +10,7 @@ pub struct TaskRepresentation {
     pub order_index: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct TaskGroupRepresentation {
     pub group_id: Uuid,
     pub label: String,
@@ -18,7 +18,7 @@ pub struct TaskGroupRepresentation {
     pub tasks: Vec<TaskRepresentation>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Tasklist {
     pub ticket_id: i32,
     pub task_groups: Vec<TaskGroupRepresentation>,
@@ -40,6 +40,7 @@ pub struct TaskGroupNewPayload {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TaskUpdatePayload {
+    pub group_id: Uuid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

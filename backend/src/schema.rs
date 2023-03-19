@@ -58,6 +58,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    priorities (priority_id) {
+        priority_id -> Uuid,
+        ordering -> Int4,
+        display_name -> Text,
+        description -> Text,
+        color -> Text,
+    }
+}
+
+diesel::table! {
     task_groups (group_id) {
         group_id -> Uuid,
         ticket_id -> Int4,
@@ -187,6 +197,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     document_revisions,
     documents,
     notes,
+    priorities,
     task_groups,
     task_template_groups,
     task_template_tasks,

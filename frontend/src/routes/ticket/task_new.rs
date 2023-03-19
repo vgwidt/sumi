@@ -1,9 +1,7 @@
 use shared::models::tasks::TaskRepresentation;
 use stylist::yew::styled_component;
 use uuid::Uuid;
-use wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
-use web_sys::HtmlSelectElement;
 use yew::prelude::*;
 
 use shared::models::tasks::*;
@@ -15,8 +13,7 @@ pub struct Props {
     pub ticket_id: i32,
     pub group_id: Uuid,
     pub task: TaskNewPayload,
-    pub callback: Callback<String>,
-    pub callback_updated: Callback<TaskRepresentation>,
+    pub callback_added: Callback<TaskRepresentation>,
 }
 
 #[styled_component(NewTask)]
@@ -30,7 +27,8 @@ pub fn new_task(props: &Props) -> Html {
         let submitted = submitted.clone();
         let error = error.clone();
         let update_info = update_info.clone();
-        Callback::from(move |event: MouseEvent| {
+        Callback::from(move |event: SubmitEvent| {
+            event.prevent_default();
             let props = props.clone();
             let submitted = submitted.clone();
             let error = error.clone();
@@ -45,7 +43,7 @@ pub fn new_task(props: &Props) -> Html {
                 match result {
                     Ok(task) => {
                         submitted.set(false);
-                        props.callback_updated.emit(task);
+                        props.callback_added.emit(task);
                     }
                     Err(e) => {
                         submitted.set(false);
@@ -78,9 +76,11 @@ pub fn new_task(props: &Props) -> Html {
     
     html! {
         <div class="task">
-            <input type="checkbox" checked={update_info.is_done.clone()} oninput={oninput_check} />
-            <input type="text" value={update_info.label.clone()} oninput={oninput_label}  placeholder="New task" />
-            <button class="page-btn" onclick={onclick_save}>{"✔"}</button>
+            <form onsubmit={onclick_save}>
+                <input type="checkbox" checked={update_info.is_done.clone()} oninput={oninput_check} />
+                <input type="text" value={update_info.label.clone()} oninput={oninput_label}  placeholder="New task" />
+                <button class="page-btn" type="submit">{"✔"}</button>
+            </form>
         </div>
     }
 
