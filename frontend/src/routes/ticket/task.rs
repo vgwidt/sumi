@@ -13,17 +13,15 @@ use crate::services::tasks::{update_task, delete_task};
 pub struct Props {
     pub ticket_id: i32,
     pub task: TaskRepresentation,
-    pub callback: Callback<String>,
     pub callback_updated: Callback<TaskRepresentation>,
     pub callback_deleted: Callback<Uuid>,
 }
 
 #[styled_component(Task)]
 pub fn task(props: &Props) -> Html {
-    let task = &props.task;
     let edit_mode = use_state(|| false);
     let submitted = use_state(|| false);
-    let update_info = use_state(|| task.clone());
+    let update_info = use_state(|| props.task.clone());
     let error = use_state(|| String::new());
     let is_done = use_state(|| props.task.is_done);
 
@@ -41,6 +39,7 @@ pub fn task(props: &Props) -> Html {
             let error = error.clone();
             let is_done = is_done.clone();
             let updated_task = TaskUpdatePayload {
+                group_id: props.task.group_id.clone(),
                 label: None,
                 is_done: Some(value),
                 order_index: None,
@@ -113,7 +112,8 @@ pub fn task(props: &Props) -> Html {
         let submitted = submitted.clone();
         let error = error.clone();
         let update_info = update_info.clone();
-        Callback::from(move |event: MouseEvent| {
+        Callback::from(move |event: SubmitEvent| {
+            event.prevent_default();
             let props = props.clone();
             let edit_mode = edit_mode.clone();
             let submitted = submitted.clone();
@@ -124,6 +124,7 @@ pub fn task(props: &Props) -> Html {
                 let result = update_task(
                     update_info.task_id.clone(),
                     TaskUpdatePayload {
+                        group_id: props.task.group_id.clone(),
                         label: Some(update_info.label.clone()),
                         is_done: None,
                         order_index: None,
@@ -158,17 +159,19 @@ pub fn task(props: &Props) -> Html {
         { if *edit_mode {
             html! {
                 <div class="task">
-                    <input type="checkbox" checked={*is_done} onclick={onclick_checkbox} disabled={*submitted}/>
-                    <input type="text" value={update_info.label.clone()} oninput={oninput_label} disabled={*submitted}/>
-                    <button class="page-btn" onclick={onclick_save}>{"✔"}</button>
-                    <button class="page-btn" onclick={onclick_cancel}>{"✘"}</button>
+                    <form onsubmit={onclick_save}>
+                        <input type="checkbox" checked={*is_done} onclick={onclick_checkbox} disabled={*submitted}/>
+                        <input type="text" value={update_info.label.clone()} oninput={oninput_label} disabled={*submitted}/>
+                        <button class="page-btn" type="submit">{"✔"}</button>
+                        <button class="page-btn" onclick={onclick_cancel}>{"✘"}</button>
+                    </form>
                 </div>
             }
         } else {
             html! {
                 <div class="task">
                     <input type="checkbox" checked={*is_done} onclick={onclick_checkbox} disabled={*submitted}/>
-                    <span>{task.label.clone()}</span>
+                    <span>{props.task.label.clone()}</span>
                     <button class="edit-icon page-btn" onclick={onclick_edit}>{"✎"}</button>
                     <button class="page-btn" onclick={onclick_delete}>{"✘"}</button>
                 </div>

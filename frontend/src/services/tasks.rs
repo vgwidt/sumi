@@ -59,9 +59,33 @@ pub async fn delete_task(task_id: Uuid) -> Result<SuccessResponse, Error> {
 }
 
 //delete taskgroup (/taskgroups/{group_id})
-pub async fn delete_taskgroup(group_id: Uuid) -> Result<SuccessResponse, Error> {
+pub async fn delete_taskgroup(group_id: &Uuid) -> Result<SuccessResponse, Error> {
     let response: SuccessResponse =
         request_delete::<SuccessResponse>(format!("/taskgroups/{}", group_id)).await?;
 
     Ok(response)
+}
+
+//get the tasks of a taskgroup
+pub async fn get_group_tasks(group_id: Uuid) -> Result<Vec<TaskRepresentation>, Error> {
+    let tasks: Vec<TaskRepresentation> =
+        request_get::<Vec<TaskRepresentation>>(format!("/taskgroups/{}/tasks", group_id)).await?;
+
+    Ok(tasks)
+}
+
+
+//update taskgroup label
+pub async fn update_taskgroup(
+    group_id: Uuid,
+    taskgroup: TaskGroupUpdatePayload,
+) -> Result<TaskGroupRepresentation, Error> {
+    let taskgroup: TaskGroupRepresentation =
+        request_put::<TaskGroupUpdatePayload, TaskGroupRepresentation>(
+            format!("/taskgroups/{}", group_id),
+            taskgroup,
+        )
+        .await?;
+
+    Ok(taskgroup)
 }

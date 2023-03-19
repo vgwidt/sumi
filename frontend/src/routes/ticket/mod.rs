@@ -5,6 +5,7 @@ mod note_list;
 mod event;
 mod task;
 mod task_new;
+mod taskgroup;
 mod tasklist;
 
 use stylist::style;
