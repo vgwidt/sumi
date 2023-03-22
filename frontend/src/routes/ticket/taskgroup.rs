@@ -223,7 +223,6 @@ pub fn task_group(props: &Props) -> Html {
 
     html! {
             <div>
-        <h3>
         {if *edit_mode {
             html! {
                 <form onsubmit={onclick_save.clone()}>
@@ -235,14 +234,13 @@ pub fn task_group(props: &Props) -> Html {
         } else {
             html! {
                 <div>
-                <span>{props.taskgroup.label.clone()}</span>
+                <span style="font-weight: bold;">{&props.taskgroup.label}</span>
                 <button name="new-task" class="add-icon page-btn" value={props.taskgroup.group_id.to_string()} onclick={onclick_add_task.clone()}>{"+"}</button>
                 <button class="edit-icon page-btn" onclick={onclick_edit}>{"✎"}</button>
                 <button class="page-btn" name="delete-group" value={props.taskgroup.group_id.to_string()} onclick={onclick_delete_group.clone()}>{"✘"}</button>
                 </div>
             }
         }}
-        </h3>
         <div>
             {for props.taskgroup.tasks.iter().map(|task| html! {
                 <Task ticket_id={props.ticket_id} task={task.clone()} callback_updated={callback_updated.clone()} callback_deleted={callback_deleted.clone()}/>

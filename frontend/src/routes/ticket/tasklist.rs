@@ -43,13 +43,15 @@ pub fn task_list(props: &Props) -> Html {
         let tasklist = tasklist.clone();
         let props = props.clone();
         let error = error.clone();
+        let language = language.clone();
         Callback::from(move |_| {
             let tasklist = tasklist.clone();
             let error = error.clone();
+            let language = language.clone();
             tasklist.set(Tasklist {ticket_id: props.ticket_id, task_groups: vec![]}); //workaround to force rerender
             wasm_bindgen_futures::spawn_local(async move {
                 let group_info = TaskGroupNewPayload {
-                    label: "New Group".to_string(),
+                    label: format!("{} {}", language.get("Tasklist"), chrono::Local::now().format("%Y-%m-%d")),
                     //set order index to group with highest index + 1
                     order_index: tasklist
                         .task_groups
@@ -120,8 +122,12 @@ pub fn task_list(props: &Props) -> Html {
     html! {
         <div>
             <div>
-                <h2>{language.get("Tasks")}</h2>
-                <button class="btn" onclick={onclick_add_group}>{"New Tasklist"}</button>
+                <h3 class="section-header">
+                    {language.get("Tasks")}
+                    <button class="btn" onclick={onclick_add_group}>
+                        {"New Tasklist"}
+                    </button>
+                </h3>
             </div>
             <div>
                 {

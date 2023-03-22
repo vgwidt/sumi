@@ -55,7 +55,7 @@ pub fn ticket(props: &Props) -> Html {
     let style = style!(
         r#"
         margin: 0 auto;
-        width: 95%;
+        width: 100%;
         .ticket-detail {
             margin-bottom: 16px;
         }
@@ -103,6 +103,9 @@ pub fn ticket(props: &Props) -> Html {
         .status-Closed {
             background-color:rgba(255, 63, 63, 0.5);
         }
+        .section-header {
+            margin-bottom: 8px;
+        }
           "#,
     )
     .expect("Failed to parse style");
@@ -149,13 +152,11 @@ pub fn ticket(props: &Props) -> Html {
                         { markdown_to_html(&ticket.description) }
                     </div>
                 </div>
-                <hr />
-                <div class="note-list">
-                    <NoteList ticket_id={props.ticket_id.clone()} userlist={userlist} />
-                </div>
-                //tasklist
                 <div class="tasklist">
                     <TaskList ticket_id={props.ticket_id.clone()} />
+                </div>
+                <div class="note-list">
+                    <NoteList ticket_id={props.ticket_id.clone()} userlist={userlist} />
                 </div>
             </div>
         }
