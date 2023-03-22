@@ -194,24 +194,24 @@ pub fn note_list(props: &Props) -> Html {
     let listnode = {
         html! {
             { if items.len() > 0 {
-               html!{ <div class={notestyle}>
-                        <h3>{language.get("Notes")}</h3>
-                        { for items.into_iter().map(|item| {
-                            if let Some(note) = item.downcast_ref::<NoteInfo>() {
-                                html! {
-                                    <Note ticket_id={props.ticket_id.clone()} note={note.clone()}
-                            callback={callback_deleted.clone()} callback_updated={callback_updated.clone()} />
-                                }
-                            } else if let Some(event) = item.downcast_ref::<TicketEvent>() {
-                                html! {
-                                    <EventCard
-                                        event={event.clone()} userlist={props.userlist.clone()}
-                                    />
-                                }
-                            } else {
-                                html! {}
+               html!{ 
+                <div class={notestyle}>
+                    { for items.into_iter().map(|item| {
+                        if let Some(note) = item.downcast_ref::<NoteInfo>() {
+                            html! {
+                                <Note ticket_id={props.ticket_id.clone()} note={note.clone()}
+                        callback={callback_deleted.clone()} callback_updated={callback_updated.clone()} />
                             }
-                        })}
+                        } else if let Some(event) = item.downcast_ref::<TicketEvent>() {
+                            html! {
+                                <EventCard
+                                    event={event.clone()} userlist={props.userlist.clone()}
+                                />
+                            }
+                        } else {
+                            html! {}
+                        }
+                    })}
                 </div>
                     }
             } else {
@@ -224,6 +224,7 @@ pub fn note_list(props: &Props) -> Html {
 
     html! {
         <div>
+            <h3 class="section-header">{language.get("Notes")}</h3>
             { inputnode }
             { listnode }
         </div>
