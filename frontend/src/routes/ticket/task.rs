@@ -74,7 +74,7 @@ pub fn task(props: &Props) -> Html {
             let update_info = update_info.clone();
             wasm_bindgen_futures::spawn_local(async move {
                 submitted.set(true);
-                let result = delete_task(update_info.task_id.clone()).await;
+                let result = delete_task(update_info.task_id.clone(), update_info.group_id.clone()).await;
                 match result {
                     Ok(response) => {
                         submitted.set(false);

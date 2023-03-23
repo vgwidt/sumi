@@ -7,6 +7,7 @@ use uuid::Uuid;
 use shared::models::tasks::*;
 use crate::models::tasks::*;
 use crate::models::SuccessResponse;
+use crate::schema::task_groups::group_id;
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -89,11 +90,13 @@ async fn put_task(pool: web::Data<DbPool>, task: web::Path<Uuid>, payload: web::
 }
 
 //delete task
-#[delete("/tasks/{task_id}")]
-async fn delete_task(pool: web::Data<DbPool>, task: web::Path<Uuid>) -> Result<HttpResponse, Error> {
+#[delete("/taskgroups/{group_id}/tasks/{task_id}")]
+async fn delete_task(pool: web::Data<DbPool>, path: web::Path<(Uuid, Uuid)>) -> Result<HttpResponse, Error> {
+
+    let (group, task) = path.into_inner();
     let result = web::block(move || {
         let mut conn = pool.get()?;
-        db_delete_task(task.into_inner(), &mut conn)
+        db_delete_task(task, group, &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
@@ -221,13 +224,13 @@ fn add_taskgroup(payload: TaskGroupPayload, ticket: i32, conn: &mut PgConnection
 fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Result<TaskRepresentation, DbError> {
     use crate::schema::tasks::dsl::*;
 
-    //We'll try to use the specified order index, but if it's already taken, we'll increment it until we find a free one
-    let final_order_index = get_order_index(payload.order_index, group, conn)?;
+    //order index validation
+    let index = set_task_order_index(payload.order_index, group, conn)?;
 
     let new_task = NewTask {
         task_id: Uuid::new_v4(),
         label: payload.label,
-        order_index: final_order_index,
+        order_index: index,
         is_done: payload.is_done,
         group_id: group,
     };
@@ -247,26 +250,7 @@ fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Resul
     Ok(task_representation)
 }
 
-fn get_order_index(requested_order_index: i32, group: Uuid, conn: &mut PgConnection) -> Result<i32, DbError> {
-    use crate::schema::tasks::dsl::*;
-    
-    let mut final_order_index = requested_order_index;
-    let mut order_index_taken = true;
-    while order_index_taken {
-        let task_with_order_index = tasks
-            .filter(group_id.eq(group))
-            .filter(order_index.eq(final_order_index))
-            .first::<Task>(conn)
-            .optional()?;
 
-        if task_with_order_index.is_some() {
-            final_order_index += 1;
-        } else {
-            order_index_taken = false;
-        }
-    }
-    Ok(final_order_index)
-}
 
 fn db_update_taskgroup(payload: TaskGroupUpdatePayload, id: Uuid, conn: &mut PgConnection) -> Result<TaskGroupRepresentation, DbError> {
     use crate::schema::task_groups::dsl::*;
@@ -300,9 +284,6 @@ fn db_update_taskgroup(payload: TaskGroupUpdatePayload, id: Uuid, conn: &mut PgC
 
 }
 
-
-
-
 fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) -> Result<TaskRepresentation, DbError> {
     use crate::schema::tasks::dsl::*;
 
@@ -319,7 +300,7 @@ fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) ->
     }
 
     if let Some(order_index_value) = payload.order_index {
-        let final_order_index = get_order_index(order_index_value, payload.group_id , conn)?;
+        let final_order_index = set_task_order_index(order_index_value, payload.group_id , conn)?;
         diesel::update(tasks.filter(task_id.eq(id)))
             .set(order_index.eq(final_order_index))
             .execute(conn)?;
@@ -341,11 +322,13 @@ fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) ->
     Ok(task_representation)
 }
 
-fn db_delete_task(id: Uuid, conn: &mut PgConnection) -> Result<usize, DbError> {
+fn db_delete_task(t_id: Uuid, g_id: Uuid, conn: &mut PgConnection) -> Result<usize, DbError> {
     use crate::schema::tasks::dsl::*;
 
-    let count = diesel::delete(tasks.filter(task_id.eq(id)))
+    let count = diesel::delete(tasks.filter(task_id.eq(t_id)))
         .execute(conn)?;
+
+    reindex_tasks(g_id, conn)?;
 
     Ok(count)
 }
@@ -357,4 +340,60 @@ fn db_delete_taskgroup(id: Uuid, conn: &mut PgConnection) -> Result<usize, DbErr
         .execute(conn)?;
 
     Ok(count)
+}
+
+/// This function will check to see if the specified order_index or a task or taskgroup is already used, if so, we need to increment each existing task's order by 1.
+fn set_task_order_index(requested_order_index: i32, group: Uuid, conn: &mut PgConnection) -> Result<i32, DbError> {
+    use crate::schema::tasks::dsl::*;
+    
+
+    let mut retrieved_tasks = tasks
+        .filter(group_id.eq(group))
+        .order(order_index.asc())
+        .load::<Task>(conn)?;
+
+    //if the requested order_index is already in use, we need to increment each existing task's order by 1, starting from the existing task where order_index = requested_order_index
+    if retrieved_tasks.iter().any(|task| task.order_index == requested_order_index) {
+        for task in retrieved_tasks.iter_mut() {
+            if task.order_index >= requested_order_index {
+                task.order_index += 1;
+            }
+        }
+
+        //now set values in db to new values in retrieved_tasks, matched by task_id
+        for task in retrieved_tasks {
+            diesel::update(tasks.filter(task_id.eq(task.task_id)))
+                .set(order_index.eq(task.order_index))
+                .execute(conn)?;
+        }
+
+    }
+
+
+    Ok(requested_order_index)
+}
+
+//Re-index tasks so there are no integer gaps (used when deleting or adding in the middle of a list)
+fn reindex_tasks(group: Uuid, conn: &mut PgConnection) -> Result<(), DbError> {
+    use crate::schema::tasks::dsl::*;
+
+    let mut index = 1;
+    let mut retrieved_tasks = tasks
+        .filter(group_id.eq(group))
+        .order(order_index.asc())
+        .load::<Task>(conn)?;
+
+    for task in retrieved_tasks.iter_mut() {
+        task.order_index = index;
+        index += 1;
+    }
+
+    //now set values in db to new values in retrieved_tasks, matched by task_id
+    for task in retrieved_tasks {
+        diesel::update(tasks.filter(task_id.eq(task.task_id)))
+            .set(order_index.eq(task.order_index))
+            .execute(conn)?;
+    }
+
+    Ok(())
 }

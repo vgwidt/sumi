@@ -51,9 +51,10 @@ pub async fn update_task(
 }
 
 //delete task (/tasks/{task_id})
-pub async fn delete_task(task_id: Uuid) -> Result<SuccessResponse, Error> {
+pub async fn delete_task(task_id: Uuid, group_id: Uuid) -> Result<SuccessResponse, Error> {
     let response: SuccessResponse =
-        request_delete::<SuccessResponse>(format!("/tasks/{}", task_id)).await?;
+        request_delete::<SuccessResponse>(format!("/taskgroups/{}/tasks/{}", group_id, task_id))
+            .await?;
 
     Ok(response)
 }
