@@ -97,7 +97,13 @@ pub fn task_group(props: &Props) -> Html {
                 group_id: group_uuid,
                 label: "New Task".to_string(),
                 is_done: false,
-                order_index: 0,
+                order_index: props.taskgroup.clone().tasks
+                .clone()
+                .iter()
+                .map(|g| g.order_index)
+                .max()
+                .unwrap_or(0)
+                + 1,
             };
             new_task.set(task);
             adding_task.set(true);
