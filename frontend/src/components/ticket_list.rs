@@ -215,6 +215,15 @@ pub fn ticket_list() -> Html {
         td {
             padding-left: 2px;
         }
+        td.priority {
+            text-align: center;
+        }
+        td.priority-High {
+            background-color: rgb(255 31 31 / 40%);
+        }
+        td.priority-Medium {
+            background-color: rgb(255 127 31 / 40%);
+        }
     "#,
         table_header = theme.secondary_background.clone(),
         bg = theme.background.clone(),
@@ -451,7 +460,7 @@ let onclick_filter_per_page = {
                                     { &ticket.updated_at.format("%Y/%m/%d %H:%M") }
                                 </span>
                             </td>
-                            <td>
+                            <td class={format!("priority priority-{}", ticket.priority.clone())}>
                                 <span>
                                     { &ticket.priority }
                                 </span>
