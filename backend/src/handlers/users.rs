@@ -22,23 +22,28 @@ async fn create(
     pool: web::Data<DbPool>,
     payload: web::Json<UserPayload>,
 ) -> Result<HttpResponse, Error> {
+
     let username_ok = validate_username(&payload.username);
-    let email_ok = validate_email(&payload.email);
-
-    if username_ok.is_ok() && email_ok.is_ok() {
-        let user = web::block(move || {
-            let mut conn = pool.get()?;
-            add_a_user(payload.into_inner(), &mut conn)
-        })
-        .await?
-        .map_err(actix_web::error::ErrorInternalServerError)?;
-
-        Ok(HttpResponse::Ok().json(user))
-    } else {
-        //return error from validate_email fn
-        email_ok.map_err(|e| InternalError::new(e, actix_web::http::StatusCode::BAD_REQUEST))?;
-        Ok(HttpResponse::Ok().json("Internal Error"))
+    if username_ok.is_err() {
+        let e = username_ok.unwrap_err();
+        return Err(InternalError::new(e, actix_web::http::StatusCode::BAD_REQUEST).into());
     }
+
+    let email_ok = validate_email(&payload.email);
+    if email_ok.is_err() {
+        email_ok
+            .map_err(|e| InternalError::new(e, actix_web::http::StatusCode::BAD_REQUEST))?;
+        return Ok(HttpResponse::Ok().json("Internal Error"));
+    }
+
+    let user = web::block(move || {
+        let mut conn = pool.get()?;
+        add_a_user(payload.into_inner(), &mut conn)
+    })
+    .await?
+    .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(user))
 }
 
 #[get("/users")]
