@@ -1,7 +1,6 @@
 use stylist::yew::styled_component;
 use yew::prelude::*;
 
-use crate::contexts::theme::use_theme;
 use crate::hooks::use_language_context;
 use crate::routes::ticket::taskgroup::TaskGroup;
 use crate::services::tasks::*;
@@ -14,7 +13,6 @@ pub struct Props {
 
 #[styled_component(TaskList)]
 pub fn task_list(props: &Props) -> Html {
-    let theme = use_theme();
     let language = use_language_context();
     let error = use_state(|| String::new());
 

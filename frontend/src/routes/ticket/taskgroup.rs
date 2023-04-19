@@ -34,7 +34,7 @@ pub fn task_group(props: &Props) -> Html {
 
     let onclick_edit = {
         let edit_mode = edit_mode.clone();
-        Callback::from(move |event: MouseEvent| {
+        Callback::from(move |_| {
             edit_mode.set(true);
         })
     };
@@ -85,10 +85,8 @@ pub fn task_group(props: &Props) -> Html {
     let onclick_add_task = {
         let new_task = new_task.clone();
         let props = props.clone();
-        let error = error.clone();
         let adding_task = adding_task.clone();
         Callback::from(move |event: MouseEvent| {
-            let error = error.clone();
             let target = event.target().unwrap();
             let value = target.unchecked_into::<web_sys::HtmlButtonElement>().value();
             web_sys::console::log_1(&value.clone().into());
@@ -113,9 +111,7 @@ pub fn task_group(props: &Props) -> Html {
 
     let onclick_delete_group = {
         let props = props.clone();
-        let error = error.clone();
         Callback::from(move |event: MouseEvent| {
-            let error = error.clone();
             let props = props.clone();
             let target = event.target().unwrap();
             let value = target.unchecked_into::<web_sys::HtmlButtonElement>().value();
@@ -128,7 +124,6 @@ pub fn task_group(props: &Props) -> Html {
                     }
                     Err(e) => {
                         log::error!("Error deleting task group: {}", e);
-                        //error.set(e.to_string());
                     }
                 }
             });
@@ -221,7 +216,7 @@ pub fn task_group(props: &Props) -> Html {
 
     let onclick_cancel = {
         let edit_mode = edit_mode.clone();
-        Callback::from(move |event: MouseEvent| {
+        Callback::from(move |_| {
             let edit_mode = edit_mode.clone();
             edit_mode.set(false);
         })

@@ -67,7 +67,7 @@ pub fn task(props: &Props) -> Html {
         let submitted = submitted.clone();
         let error = error.clone();
         let update_info = update_info.clone();
-        Callback::from(move |event: MouseEvent| {
+        Callback::from(move |_| {
             let props = props.clone();
             let submitted = submitted.clone();
             let error = error.clone();
@@ -91,7 +91,7 @@ pub fn task(props: &Props) -> Html {
 
     let onclick_edit = {
         let edit_mode = edit_mode.clone();
-        Callback::from(move |event: MouseEvent| {
+        Callback::from(move |_| {
             edit_mode.set(true);
         })
     };
@@ -148,7 +148,7 @@ pub fn task(props: &Props) -> Html {
 
     let onclick_cancel = {
         let edit_mode = edit_mode.clone();
-        Callback::from(move |event: MouseEvent| {
+        Callback::from(move |_| {
             let edit_mode = edit_mode.clone();
             edit_mode.set(false);
         })
