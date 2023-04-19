@@ -54,7 +54,7 @@ pub fn ticket(props: &Props) -> Html {
 
     let style = style!(
         r#"
-        margin: 0 auto;
+        margin: 0 20px;
         width: 100%;
         .ticket-detail {
             margin-bottom: 16px;

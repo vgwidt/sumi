@@ -7,7 +7,6 @@ use uuid::Uuid;
 use shared::models::tasks::*;
 use crate::models::tasks::*;
 use crate::models::SuccessResponse;
-use crate::schema::task_groups::group_id;
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 

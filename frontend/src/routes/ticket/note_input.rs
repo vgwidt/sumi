@@ -114,7 +114,7 @@ pub fn note_input(props: &Props) -> Html {
                 </textarea>
                 </div>
                 <div>
-                    <label for="time">{"Time spent (minutes)"}</label>
+                    <label for="time">{language.get("Time Spent (minutes)")}</label>
                     <input type="number" min="0" step="5" style="width: 60px;"
                         value={create_info.time.clone().to_string()} oninput={oninput_time} />
                     <button class="btn" type="submit" disabled={*submitted}>
