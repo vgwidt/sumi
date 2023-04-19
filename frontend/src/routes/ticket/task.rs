@@ -76,7 +76,7 @@ pub fn task(props: &Props) -> Html {
                 submitted.set(true);
                 let result = delete_task(update_info.task_id.clone(), update_info.group_id.clone()).await;
                 match result {
-                    Ok(response) => {
+                    Ok(_) => {
                         submitted.set(false);
                         props.callback_deleted.emit(update_info.task_id);
                     }

@@ -62,7 +62,7 @@ pub fn task_list(props: &Props) -> Html {
                 };
                 let result = create_taskgroup(props.ticket_id, group_info).await;
                 match result {
-                    Ok(group) => {
+                    Ok(_) => {
                         //get new ticketlist
                         let new_tasks = get_tasklist(props.ticket_id).await.unwrap();
                         tasklist.set(new_tasks);

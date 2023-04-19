@@ -1,4 +1,3 @@
-use shared::models::tasks::TaskRepresentation;
 use stylist::yew::styled_component;
 use uuid::Uuid;
 use web_sys::HtmlInputElement;
@@ -119,7 +118,7 @@ pub fn task_group(props: &Props) -> Html {
             wasm_bindgen_futures::spawn_local(async move {
                 let result = delete_taskgroup(&group_uuid).await;
                 match result {
-                    Ok(group) => {
+                    Ok(_) => {
                         props.callback_group_deleted.emit(group_uuid);
                     }
                     Err(e) => {
@@ -134,7 +133,7 @@ pub fn task_group(props: &Props) -> Html {
     let callback_updated = { 
         let props = props.clone();
         let adding_task = adding_task.clone();
-        Callback::from(move |task: TaskRepresentation| {
+        Callback::from(move |_| {
             let props = props.clone();
             let adding_task = adding_task.clone();
             wasm_bindgen_futures::spawn_local(async move {
@@ -162,7 +161,7 @@ pub fn task_group(props: &Props) -> Html {
     let callback_deleted = {
         let props = props.clone();
         let error = error.clone();
-        Callback::from(move |task_id: Uuid| {
+        Callback::from(move |_| {
             let props = props.clone();
             let error = error.clone();
             wasm_bindgen_futures::spawn_local(async move {
@@ -189,7 +188,7 @@ pub fn task_group(props: &Props) -> Html {
         let props = props.clone();
         let adding_task = adding_task.clone();
         let error = error.clone();
-        Callback::from(move |task: TaskRepresentation| {
+        Callback::from(move |_| {
             let props = props.clone();
             let adding_task = adding_task.clone();
             let error = error.clone();
