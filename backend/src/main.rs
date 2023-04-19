@@ -128,13 +128,9 @@ async fn main() -> std::io::Result<()> {
                     .service(handlers::documents::delete)
                     .service(handlers::documents::revisions)
                     .service(handlers::tasks::get_tasklist)
-                    .service(handlers::tasks::get_taskgroup_tasks)
-                    .service(handlers::tasks::create_taskgroup)
                     .service(handlers::tasks::create_task)
-                    .service(handlers::tasks::put_taskgroup)
                     .service(handlers::tasks::put_task)
                     .service(handlers::tasks::delete_task)
-                    .service(handlers::tasks::delete_taskgroup)
                     .wrap(from_fn(reject_anonymous_users)),
             )
             .service(
