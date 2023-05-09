@@ -23,38 +23,38 @@ async fn get_tasklist(pool: web::Data<DbPool>, ticket: web::Path<i32>) -> Result
     Ok(HttpResponse::Ok().json(tasklist))
 }
 
-//get list of tasks for a taskgroup
-#[get("/taskgroups/{group_id}/tasks")]
-async fn get_taskgroup_tasks(pool: web::Data<DbPool>, group: web::Path<Uuid>) -> Result<HttpResponse, Error> {
-    let taskgroup = web::block(move || {
+//get list of tasks for a tasklist
+#[get("tasklists/{tasklist_id}/tasks")]
+async fn get_tasklist_tasks(pool: web::Data<DbPool>, tasklist: web::Path<Uuid>) -> Result<HttpResponse, Error> {
+    let tasklist_tasks = web::block(move || {
         let mut conn = pool.get()?;
-        get_group_tasks(group.into_inner(), &mut conn)
+        get_group_tasks(tasklist.into_inner(), &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(taskgroup))
+    Ok(HttpResponse::Ok().json(tasklist_tasks))
 }
 
-//create task group
-#[post("/tickets/{ticket_id}/taskgroups")]
-async fn create_taskgroup(pool: web::Data<DbPool>, ticket: web::Path<i32>, payload: web::Json<TaskGroupPayload>) -> Result<HttpResponse, Error> {
-    let taskgroup = web::block(move || {
+//create tasklist
+#[post("/tickets/{ticket_id}/tasklists")]
+async fn create_tasklist(pool: web::Data<DbPool>, ticket: web::Path<i32>, payload: web::Json<TasklistPayload>) -> Result<HttpResponse, Error> {
+    let tasklist = web::block(move || {
         let mut conn = pool.get()?;
-        add_taskgroup(payload.into_inner(), ticket.into_inner(), &mut conn)
+        add_tasklist(payload.into_inner(), ticket.into_inner(), &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(taskgroup))
+    Ok(HttpResponse::Ok().json(tasklist))
 }
 
 //create task
-#[post("/taskgroups/{group_id}/tasks")]
-async fn create_task(pool: web::Data<DbPool>, group: web::Path<Uuid>, payload: web::Json<TaskPayload>) -> Result<HttpResponse, Error> {
+#[post("tasklists/{tasklist_id}/tasks")]
+async fn create_task(pool: web::Data<DbPool>, tasklist: web::Path<Uuid>, payload: web::Json<TaskPayload>) -> Result<HttpResponse, Error> {
     let task = web::block(move || {
         let mut conn = pool.get()?;
-        add_task(payload.into_inner(), group.into_inner(), &mut conn)
+        add_task(payload.into_inner(), tasklist.into_inner(), &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
@@ -63,16 +63,16 @@ async fn create_task(pool: web::Data<DbPool>, group: web::Path<Uuid>, payload: w
 }
 
 //update taskgroup (label or order_index)
-#[put("/taskgroups/{group_id}")]
-async fn put_taskgroup(pool: web::Data<DbPool>, group: web::Path<Uuid>, payload: web::Json<TaskGroupUpdatePayload>) -> Result<HttpResponse, Error> {
-    let taskgroup = web::block(move || {
+#[put("tasklists/{tasklist_id}")]
+async fn put_tasklist(pool: web::Data<DbPool>, tasklist_id: web::Path<Uuid>, payload: web::Json<TasklistUpdatePayload>) -> Result<HttpResponse, Error> {
+    let tasklist = web::block(move || {
         let mut conn = pool.get()?;
-        db_update_taskgroup(payload.into_inner(), group.into_inner(), &mut conn)
+        db_update_taskgroup(payload.into_inner(), tasklist_id.into_inner(), &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(taskgroup))
+    Ok(HttpResponse::Ok().json(tasklist))
 }
 
 //update task (use optional fields)
@@ -89,13 +89,13 @@ async fn put_task(pool: web::Data<DbPool>, task: web::Path<Uuid>, payload: web::
 }
 
 //delete task
-#[delete("/taskgroups/{group_id}/tasks/{task_id}")]
+#[delete("tasklists/{tasklist_id}/tasks/{task_id}")]
 async fn delete_task(pool: web::Data<DbPool>, path: web::Path<(Uuid, Uuid)>) -> Result<HttpResponse, Error> {
 
-    let (group, task) = path.into_inner();
+    let (tasklist_id, task) = path.into_inner();
     let result = web::block(move || {
         let mut conn = pool.get()?;
-        db_delete_task(task, group, &mut conn)
+        db_delete_task(task, tasklist_id, &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
@@ -115,12 +115,12 @@ async fn delete_task(pool: web::Data<DbPool>, path: web::Path<(Uuid, Uuid)>) -> 
     }
 }
 
-//delete task group
-#[delete("/taskgroups/{group_id}")]
-async fn delete_taskgroup(pool: web::Data<DbPool>, group: web::Path<Uuid>) -> Result<HttpResponse, Error> {
+//delete tasklist
+#[delete("tasklists/{tasklist_id}")]
+async fn delete_tasklist(pool: web::Data<DbPool>, tasklist_id: web::Path<Uuid>) -> Result<HttpResponse, Error> {
     let result = web::block(move || {
         let mut conn = pool.get()?;
-        db_delete_taskgroup(group.into_inner(), &mut conn)
+        db_delete_tasklist(tasklist_id.into_inner(), &mut conn)
     })
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
@@ -128,44 +128,44 @@ async fn delete_taskgroup(pool: web::Data<DbPool>, group: web::Path<Uuid>) -> Re
     if result > 1 {
         let response = SuccessResponse {
             success: true,
-            message: "Task group deleted".to_string(),
+            message: "Tasklist deleted".to_string(),
         };
         Ok(HttpResponse::Ok().json(response))
     } else {
         let response = SuccessResponse {
             success: false,
-            message: "Task group not found".to_string(),
+            message: "Tasklist not found".to_string(),
         };
         Ok(HttpResponse::Ok().json(response))
     }
 }
 
 
-fn get_ticket_tasks(ticket: i32, conn: &mut PgConnection) -> Result<Tasklist, DbError> {
-    use crate::schema::task_groups::dsl::*;
+fn get_ticket_tasks(ticket: i32, conn: &mut PgConnection) -> Result<TicketTasklists, DbError> {
+    use crate::schema::tasklists::dsl::*;
 
-    let groups = task_groups
+    let groups = tasklists
         .filter(ticket_id.eq(ticket))
         .order(order_index)
-        .load::<TaskGroup>(conn)?;
+        .load::<Tasklist>(conn)?;
 
-    let mut task_groups_with_tasks = Vec::new();
+    let mut tasklists_with_tasks = Vec::new();
 
     for group in groups {
-        let group_tasks = get_group_tasks(group.group_id, conn)?;
-        let group_with_tasks = TaskGroupRepresentation {
-            group_id: group.group_id,
+        let group_tasks = get_group_tasks(group.tasklist_id, conn)?;
+        let group_with_tasks = TasklistRepresentation {
+            tasklist_id: group.tasklist_id,
             label: group.label,
             order_index: group.order_index,
             tasks: group_tasks,
         };
-        task_groups_with_tasks.push(group_with_tasks);
+        tasklists_with_tasks.push(group_with_tasks);
     }
 
     //put in tasklist
-    let tasklist = Tasklist {
+    let tasklist = TicketTasklists {
         ticket_id: ticket,
-        task_groups: task_groups_with_tasks,
+        tasklists: tasklists_with_tasks,
     };
 
     Ok(tasklist)
@@ -176,7 +176,7 @@ fn get_group_tasks(group: Uuid, conn: &mut PgConnection) -> Result<Vec<TaskRepre
     use crate::schema::tasks::dsl::*;
 
     let group_tasks = tasks
-        .filter(group_id.eq(group))
+        .filter(tasklist_id.eq(group))
         .order(order_index)
         .load::<Task>(conn)?;
 
@@ -185,7 +185,7 @@ fn get_group_tasks(group: Uuid, conn: &mut PgConnection) -> Result<Vec<TaskRepre
     for t in group_tasks {
         let task_representation = TaskRepresentation {
             task_id: t.task_id,
-            group_id: t.group_id,
+            tasklist_id: t.tasklist_id,
             label: t.label,
             is_done: t.is_done,
             order_index: t.order_index,
@@ -196,22 +196,22 @@ fn get_group_tasks(group: Uuid, conn: &mut PgConnection) -> Result<Vec<TaskRepre
     Ok(task_representations)
 }
 
-fn add_taskgroup(payload: TaskGroupPayload, ticket: i32, conn: &mut PgConnection) -> Result<TaskGroupRepresentation, DbError> {
-    use crate::schema::task_groups::dsl::*;
+fn add_tasklist(payload: TasklistPayload, ticket: i32, conn: &mut PgConnection) -> Result<TasklistRepresentation, DbError> {
+    use crate::schema::tasklists::dsl::*;
 
-    let new_group = NewTaskGroup {
-        group_id: Uuid::new_v4(),
+    let new_group = NewTasklist {
+        tasklist_id: Uuid::new_v4(),
         label: payload.label,
         order_index: payload.order_index,
         ticket_id: ticket,
     };
 
-    let group = diesel::insert_into(task_groups)
+    let group = diesel::insert_into(tasklists)
         .values(&new_group)
-        .get_result::<TaskGroup>(conn)?;
+        .get_result::<Tasklist>(conn)?;
 
-    let group_representation = TaskGroupRepresentation {
-        group_id: group.group_id,
+    let group_representation = TasklistRepresentation {
+        tasklist_id: group.tasklist_id,
         label: group.label,
         order_index: group.order_index,
         tasks: Vec::new(),
@@ -231,7 +231,7 @@ fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Resul
         label: payload.label,
         order_index: index,
         is_done: payload.is_done,
-        group_id: group,
+        tasklist_id: group,
     };
 
     let task = diesel::insert_into(tasks)
@@ -240,7 +240,7 @@ fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Resul
 
     let task_representation = TaskRepresentation {
         task_id: task.task_id,
-        group_id: task.group_id,
+        tasklist_id: task.tasklist_id,
         label: task.label,
         is_done: task.is_done,
         order_index: task.order_index,
@@ -251,29 +251,29 @@ fn add_task(payload: TaskPayload, group: Uuid, conn: &mut PgConnection) -> Resul
 
 
 
-fn db_update_taskgroup(payload: TaskGroupUpdatePayload, id: Uuid, conn: &mut PgConnection) -> Result<TaskGroupRepresentation, DbError> {
-    use crate::schema::task_groups::dsl::*;
+fn db_update_taskgroup(payload: TasklistUpdatePayload, id: Uuid, conn: &mut PgConnection) -> Result<TasklistRepresentation, DbError> {
+    use crate::schema::tasklists::dsl::*;
 
     if let Some(label_value) = payload.label {
-        diesel::update(task_groups.filter(group_id.eq(id)))
+        diesel::update(tasklists.filter(tasklist_id.eq(id)))
             .set(label.eq(label_value))
             .execute(conn)?;
     }
 
     if let Some(order_index_value) = payload.order_index {
-        diesel::update(task_groups.filter(group_id.eq(id)))
+        diesel::update(tasklists.filter(tasklist_id.eq(id)))
             .set(order_index.eq(order_index_value))
             .execute(conn)?;
     }
 
-    let group = task_groups
-        .filter(group_id.eq(id))
-        .first::<TaskGroup>(conn)?;
+    let group = tasklists
+        .filter(tasklist_id.eq(id))
+        .first::<Tasklist>(conn)?;
 
-    let group_tasks = get_group_tasks(group.group_id, conn)?;
+    let group_tasks = get_group_tasks(group.tasklist_id, conn)?;
 
-    let group_representation = TaskGroupRepresentation {
-        group_id: group.group_id,
+    let group_representation = TasklistRepresentation {
+        tasklist_id: group.tasklist_id,
         label: group.label,
         order_index: group.order_index,
         tasks: group_tasks,
@@ -299,7 +299,7 @@ fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) ->
     }
 
     if let Some(order_index_value) = payload.order_index {
-        let final_order_index = set_task_order_index(order_index_value, payload.group_id , conn)?;
+        let final_order_index = set_task_order_index(order_index_value, payload.tasklist_id , conn)?;
         diesel::update(tasks.filter(task_id.eq(id)))
             .set(order_index.eq(final_order_index))
             .execute(conn)?;
@@ -312,7 +312,7 @@ fn update_task(payload: TaskUpdatePayload, id: Uuid, conn: &mut PgConnection) ->
 
     let task_representation = TaskRepresentation {
         task_id: task.task_id,
-        group_id: task.group_id,
+        tasklist_id: task.tasklist_id,
         label: task.label,
         is_done: task.is_done,
         order_index: task.order_index,
@@ -332,10 +332,10 @@ fn db_delete_task(t_id: Uuid, g_id: Uuid, conn: &mut PgConnection) -> Result<usi
     Ok(count)
 }
 
-fn db_delete_taskgroup(id: Uuid, conn: &mut PgConnection) -> Result<usize, DbError> {
-    use crate::schema::task_groups::dsl::*;
+fn db_delete_tasklist(id: Uuid, conn: &mut PgConnection) -> Result<usize, DbError> {
+    use crate::schema::tasklists::dsl::*;
 
-    let count = diesel::delete(task_groups.filter(group_id.eq(id)))
+    let count = diesel::delete(tasklists.filter(tasklist_id.eq(id)))
         .execute(conn)?;
 
     Ok(count)
@@ -347,7 +347,7 @@ fn set_task_order_index(requested_order_index: i32, group: Uuid, conn: &mut PgCo
     
 
     let mut retrieved_tasks = tasks
-        .filter(group_id.eq(group))
+        .filter(tasklist_id.eq(group))
         .order(order_index.asc())
         .load::<Task>(conn)?;
 
@@ -378,7 +378,7 @@ fn reindex_tasks(group: Uuid, conn: &mut PgConnection) -> Result<(), DbError> {
 
     let mut index = 1;
     let mut retrieved_tasks = tasks
-        .filter(group_id.eq(group))
+        .filter(tasklist_id.eq(group))
         .order(order_index.asc())
         .load::<Task>(conn)?;
 

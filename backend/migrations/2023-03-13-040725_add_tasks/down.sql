@@ -1,5 +1,4 @@
-DROP TABLE task_template_tasks;
-DROP TABLE task_template_groups;
-DROP TABLE task_templates;
+DROP TABLE tasklist_templates_tasks;
+DROP TABLE tasklist_templates;
 DROP TABLE tasks;
-DROP TABLE task_groups;
+DROP TABLE tasklists;

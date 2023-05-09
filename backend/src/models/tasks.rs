@@ -1,28 +1,27 @@
-use crate::schema::{tasks, task_groups};
-//use crate::schema::{task_templates, task_template_groups, task_template_tasks};
+use crate::schema::{tasks, tasklists};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Queryable)]
-pub struct TaskGroup {
-    pub group_id: Uuid,
+pub struct Tasklist {
+    pub tasklist_id: Uuid,
     pub ticket_id: i32,
     pub label: String,
     pub order_index: i32,
 }
 
 #[derive(Debug, Insertable)]
-#[diesel(table_name = task_groups)]
-pub struct NewTaskGroup {
-    pub group_id: Uuid,
+#[diesel(table_name = tasklists)]
+pub struct NewTasklist {
+    pub tasklist_id: Uuid,
     pub ticket_id: i32,
     pub label: String,
     pub order_index: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, AsChangeset)]
-#[diesel(table_name = task_groups)]
-pub struct TaskGroupPayload {
+#[diesel(table_name = tasklists)]
+pub struct TasklistPayload {
     pub label: String,
     pub order_index: i32,
 }
@@ -30,7 +29,7 @@ pub struct TaskGroupPayload {
 #[derive(Debug, Serialize, Deserialize, Queryable)]
 pub struct Task {
     pub task_id: Uuid,
-    pub group_id: Uuid,
+    pub tasklist_id: Uuid,
     pub label: String,
     pub is_done: bool,
     pub order_index: i32,
@@ -40,7 +39,7 @@ pub struct Task {
 #[diesel(table_name = tasks)]
 pub struct NewTask {
     pub task_id: Uuid,
-    pub group_id: Uuid,
+    pub tasklist_id: Uuid,
     pub label: String,
     pub is_done: bool,
     pub order_index: i32,

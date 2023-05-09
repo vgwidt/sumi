@@ -39,7 +39,7 @@ pub fn task(props: &Props) -> Html {
             let error = error.clone();
             let is_done = is_done.clone();
             let updated_task = TaskUpdatePayload {
-                group_id: props.task.group_id.clone(),
+                tasklist_id: props.task.tasklist_id.clone(),
                 label: None,
                 is_done: Some(value),
                 order_index: None,
@@ -74,7 +74,7 @@ pub fn task(props: &Props) -> Html {
             let update_info = update_info.clone();
             wasm_bindgen_futures::spawn_local(async move {
                 submitted.set(true);
-                let result = delete_task(update_info.task_id.clone(), update_info.group_id.clone()).await;
+                let result = delete_task(update_info.task_id.clone(), update_info.tasklist_id.clone()).await;
                 match result {
                     Ok(_) => {
                         submitted.set(false);
@@ -124,7 +124,7 @@ pub fn task(props: &Props) -> Html {
                 let result = update_task(
                     update_info.task_id.clone(),
                     TaskUpdatePayload {
-                        group_id: props.task.group_id.clone(),
+                        tasklist_id: props.task.tasklist_id.clone(),
                         label: Some(update_info.label.clone()),
                         is_done: None,
                         order_index: None,

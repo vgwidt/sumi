@@ -11,10 +11,10 @@ use crate::{services::tasks::{update_taskgroup, delete_taskgroup, get_group_task
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub ticket_id: i32,
-    pub taskgroup: TaskGroupRepresentation,
-    pub callback_group_updated: Callback<TaskGroupRepresentation>,
+    pub taskgroup: TasklistRepresentation,
+    pub callback_group_updated: Callback<TasklistRepresentation>,
     pub callback_group_deleted: Callback<Uuid>,
-    pub callback_added: Callback<TaskGroupRepresentation>,
+    pub callback_added: Callback<TasklistRepresentation>,
 }
 
 #[styled_component(TaskGroup)]
@@ -24,7 +24,7 @@ pub fn task_group(props: &Props) -> Html {
     let update_info = use_state(|| props.taskgroup.clone().label);
     let error = use_state(|| String::new());
     let new_task = use_state(|| TaskNewPayload {
-        group_id: Uuid::new_v4(), 
+        tasklist_id: Uuid::new_v4(), 
         label: String::new(),
         is_done: false,
         order_index: 0,   
@@ -59,13 +59,13 @@ pub fn task_group(props: &Props) -> Html {
             let submitted = submitted.clone();
             let error = error.clone();
             let update_info = update_info.clone();
-            let updated_taskgroup = TaskGroupUpdatePayload {
+            let updated_taskgroup = TasklistUpdatePayload {
                 label: Some(update_info.to_string()),
                 order_index: None,
             };
             wasm_bindgen_futures::spawn_local(async move {
                 submitted.set(true);
-                let result = update_taskgroup(props.taskgroup.clone().group_id, updated_taskgroup).await;
+                let result = update_taskgroup(props.taskgroup.clone().tasklist_id, updated_taskgroup).await;
                 match result {
                     Ok(taskgroup) => {
                         submitted.set(false);
@@ -91,7 +91,7 @@ pub fn task_group(props: &Props) -> Html {
             web_sys::console::log_1(&value.clone().into());
             let group_uuid: Uuid = value.parse().unwrap();
             let task = TaskNewPayload {
-                group_id: group_uuid,
+                tasklist_id: group_uuid,
                 label: "New Task".to_string(),
                 is_done: false,
                 order_index: props.taskgroup.clone().tasks
@@ -137,11 +137,11 @@ pub fn task_group(props: &Props) -> Html {
             let props = props.clone();
             let adding_task = adding_task.clone();
             wasm_bindgen_futures::spawn_local(async move {
-                let result = get_group_tasks(props.taskgroup.clone().group_id).await;
+                let result = get_group_tasks(props.taskgroup.clone().tasklist_id).await;
                 match result {
                     Ok(new_tasks) => {
-                        let new_group = TaskGroupRepresentation {
-                            group_id: props.taskgroup.clone().group_id,
+                        let new_group = TasklistRepresentation {
+                            tasklist_id: props.taskgroup.clone().tasklist_id,
                             label: props.taskgroup.clone().label,
                             order_index: props.taskgroup.clone().order_index,
                             tasks: new_tasks,
@@ -150,7 +150,7 @@ pub fn task_group(props: &Props) -> Html {
                         props.callback_group_updated.emit(new_group);
                     }
                     Err(e) => {
-                        log::error!("Error fetching tasks for group {}: {}", props.taskgroup.clone().group_id, e);
+                        log::error!("Error fetching tasks for group {}: {}", props.taskgroup.clone().tasklist_id, e);
                     }
                 }
             });
@@ -165,11 +165,11 @@ pub fn task_group(props: &Props) -> Html {
             let props = props.clone();
             let error = error.clone();
             wasm_bindgen_futures::spawn_local(async move {
-                let result = get_group_tasks(props.taskgroup.clone().group_id).await;
+                let result = get_group_tasks(props.taskgroup.clone().tasklist_id).await;
                 match result {
                     Ok(new_tasks) => {
-                        let new_group = TaskGroupRepresentation {
-                            group_id: props.taskgroup.clone().group_id,
+                        let new_group = TasklistRepresentation {
+                            tasklist_id: props.taskgroup.clone().tasklist_id,
                             label: props.taskgroup.clone().label,
                             order_index: props.taskgroup.clone().order_index,
                             tasks: new_tasks,
@@ -193,11 +193,11 @@ pub fn task_group(props: &Props) -> Html {
             let adding_task = adding_task.clone();
             let error = error.clone();
             wasm_bindgen_futures::spawn_local(async move {
-                let result = get_group_tasks(props.taskgroup.clone().group_id).await;
+                let result = get_group_tasks(props.taskgroup.clone().tasklist_id).await;
                 match result {
                     Ok(new_tasks) => {
-                        let new_group = TaskGroupRepresentation {
-                            group_id: props.taskgroup.clone().group_id,
+                        let new_group = TasklistRepresentation {
+                            tasklist_id: props.taskgroup.clone().tasklist_id,
                             label: props.taskgroup.clone().label,
                             order_index: props.taskgroup.clone().order_index,
                             tasks: new_tasks,
@@ -235,9 +235,9 @@ pub fn task_group(props: &Props) -> Html {
             html! {
                 <div>
                 <span style="font-weight: bold;">{&props.taskgroup.label}</span>
-                <button name="new-task" class="add-icon page-btn" value={props.taskgroup.group_id.to_string()} onclick={onclick_add_task.clone()}>{"+"}</button>
+                <button name="new-task" class="add-icon page-btn" value={props.taskgroup.tasklist_id.to_string()} onclick={onclick_add_task.clone()}>{"+"}</button>
                 <button class="edit-icon page-btn" onclick={onclick_edit}>{"✎"}</button>
-                <button class="page-btn" name="delete-group" value={props.taskgroup.group_id.to_string()} onclick={onclick_delete_group.clone()}>{"✘"}</button>
+                <button class="page-btn" name="delete-group" value={props.taskgroup.tasklist_id.to_string()} onclick={onclick_delete_group.clone()}>{"✘"}</button>
                 </div>
             }
         }}
@@ -247,8 +247,8 @@ pub fn task_group(props: &Props) -> Html {
             })}
             {if *adding_task {
                 html! {
-                    <NewTask ticket_id={props.ticket_id} group_id={props.taskgroup.group_id} task={TaskNewPayload {
-                        group_id: new_task.group_id,
+                    <NewTask ticket_id={props.ticket_id} tasklist_id={props.taskgroup.tasklist_id} task={TaskNewPayload {
+                        tasklist_id: new_task.tasklist_id,
                         label: new_task.label.clone(),
                         is_done: new_task.is_done,
                         order_index: new_task.order_index,

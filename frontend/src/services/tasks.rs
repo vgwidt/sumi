@@ -5,21 +5,21 @@ use uuid::Uuid;
 use super::{request_delete, request_get, request_post, request_put};
 
 //get tasklist for ticket (/tickets/{ticket_id}/tasks
-pub async fn get_tasklist(ticket_id: i32) -> Result<Tasklist, Error> {
-    let tasklist: Tasklist =
-        request_get::<Tasklist>(format!("/tickets/{}/tasks", ticket_id)).await?;
+pub async fn get_tasklist(ticket_id: i32) -> Result<TicketTasklists, Error> {
+    let tasklist: TicketTasklists =
+        request_get::<TicketTasklists>(format!("/tickets/{}/tasks", ticket_id)).await?;
 
     Ok(tasklist)
 }
 
-//create task group (/tickets/{ticket_id}/taskgroups)
+//create task group (/tickets/{ticket_id}/tasklists)
 pub async fn create_taskgroup(
     ticket_id: i32,
     taskgroup: TaskGroupNewPayload,
-) -> Result<TaskGroupRepresentation, Error> {
-    let taskgroup: TaskGroupRepresentation =
-        request_post::<TaskGroupNewPayload, TaskGroupRepresentation>(
-            format!("/tickets/{}/taskgroups", ticket_id),
+) -> Result<TasklistRepresentation, Error> {
+    let taskgroup: TasklistRepresentation =
+        request_post::<TaskGroupNewPayload, TasklistRepresentation>(
+            format!("/tickets/{}/tasklists", ticket_id),
             taskgroup,
         )
         .await?;
@@ -27,10 +27,10 @@ pub async fn create_taskgroup(
     Ok(taskgroup)
 }
 
-//create task (/taskgroups/{group_id}/tasks)
-pub async fn create_task(group_id: Uuid, task: TaskNewPayload) -> Result<TaskRepresentation, Error> {
+//create task (tasklists/{tasklist_id}/tasks)
+pub async fn create_task(tasklist_id: Uuid, task: TaskNewPayload) -> Result<TaskRepresentation, Error> {
     let task: TaskRepresentation = request_post::<TaskNewPayload, TaskRepresentation>(
-        format!("/taskgroups/{}/tasks", group_id),
+        format!("/tasklists/{}/tasks", tasklist_id),
         task,
     )
     .await?;
@@ -51,26 +51,26 @@ pub async fn update_task(
 }
 
 //delete task (/tasks/{task_id})
-pub async fn delete_task(task_id: Uuid, group_id: Uuid) -> Result<SuccessResponse, Error> {
+pub async fn delete_task(task_id: Uuid, tasklist_id: Uuid) -> Result<SuccessResponse, Error> {
     let response: SuccessResponse =
-        request_delete::<SuccessResponse>(format!("/taskgroups/{}/tasks/{}", group_id, task_id))
+        request_delete::<SuccessResponse>(format!("/tasklists/{}/tasks/{}", tasklist_id, task_id))
             .await?;
 
     Ok(response)
 }
 
-//delete taskgroup (/taskgroups/{group_id})
-pub async fn delete_taskgroup(group_id: &Uuid) -> Result<SuccessResponse, Error> {
+//delete taskgroup (tasklists/{tasklist_id})
+pub async fn delete_taskgroup(tasklist_id: &Uuid) -> Result<SuccessResponse, Error> {
     let response: SuccessResponse =
-        request_delete::<SuccessResponse>(format!("/taskgroups/{}", group_id)).await?;
+        request_delete::<SuccessResponse>(format!("/tasklists/{}", tasklist_id)).await?;
 
     Ok(response)
 }
 
 //get the tasks of a taskgroup
-pub async fn get_group_tasks(group_id: Uuid) -> Result<Vec<TaskRepresentation>, Error> {
+pub async fn get_group_tasks(tasklist_id: Uuid) -> Result<Vec<TaskRepresentation>, Error> {
     let tasks: Vec<TaskRepresentation> =
-        request_get::<Vec<TaskRepresentation>>(format!("/taskgroups/{}/tasks", group_id)).await?;
+        request_get::<Vec<TaskRepresentation>>(format!("/tasklists/{}/tasks", tasklist_id)).await?;
 
     Ok(tasks)
 }
@@ -78,12 +78,12 @@ pub async fn get_group_tasks(group_id: Uuid) -> Result<Vec<TaskRepresentation>, 
 
 //update taskgroup label
 pub async fn update_taskgroup(
-    group_id: Uuid,
-    taskgroup: TaskGroupUpdatePayload,
-) -> Result<TaskGroupRepresentation, Error> {
-    let taskgroup: TaskGroupRepresentation =
-        request_put::<TaskGroupUpdatePayload, TaskGroupRepresentation>(
-            format!("/taskgroups/{}", group_id),
+    tasklist_id: Uuid,
+    taskgroup: TasklistUpdatePayload,
+) -> Result<TasklistRepresentation, Error> {
+    let taskgroup: TasklistRepresentation =
+        request_put::<TasklistUpdatePayload, TasklistRepresentation>(
+            format!("/tasklists/{}", tasklist_id),
             taskgroup,
         )
         .await?;

@@ -16,9 +16,9 @@ pub fn task_list(props: &Props) -> Html {
     let language = use_language_context();
     let error = use_state(|| String::new());
 
-    let tasklist: UseStateHandle<Tasklist> = use_state(|| Tasklist {
+    let tasklist: UseStateHandle<TicketTasklists> = use_state(|| TicketTasklists {
         ticket_id: props.ticket_id.clone(),
-        task_groups: vec![],
+        tasklists: vec![],
     });
 
     {
@@ -46,13 +46,13 @@ pub fn task_list(props: &Props) -> Html {
             let tasklist = tasklist.clone();
             let error = error.clone();
             let language = language.clone();
-            tasklist.set(Tasklist {ticket_id: props.ticket_id, task_groups: vec![]}); //workaround to force rerender
+            tasklist.set(TicketTasklists {ticket_id: props.ticket_id, tasklists: vec![]}); //workaround to force rerender
             wasm_bindgen_futures::spawn_local(async move {
                 let group_info = TaskGroupNewPayload {
                     label: format!("{} {}", language.get("Tasklist"), chrono::Local::now().format("%Y-%m-%d")),
                     //set order index to group with highest index + 1
                     order_index: tasklist
-                        .task_groups
+                        .tasklists
                         .clone()
                         .iter()
                         .map(|g| g.order_index)
@@ -84,7 +84,7 @@ pub fn task_list(props: &Props) -> Html {
             let props = props.clone();
             wasm_bindgen_futures::spawn_local(async move {
                 let new_tasks = get_tasklist(props.ticket_id).await.unwrap();
-                tasklist.set(Tasklist { ticket_id: props.ticket_id, task_groups: new_tasks.task_groups });
+                tasklist.set(TicketTasklists { ticket_id: props.ticket_id, tasklists: new_tasks.tasklists });
             });
         })
     };
@@ -95,7 +95,7 @@ pub fn task_list(props: &Props) -> Html {
         Callback::from(move |_| {
             let tasklist = tasklist.clone();
             let props = props.clone();
-            tasklist.set(Tasklist {ticket_id: props.ticket_id, task_groups: vec![]}); //workaround to force rerender
+            tasklist.set(TicketTasklists {ticket_id: props.ticket_id, tasklists: vec![]}); //workaround to force rerender
             wasm_bindgen_futures::spawn_local(async move {
                 let updated_tasks = get_tasklist(props.ticket_id).await.unwrap();
                 tasklist.set(updated_tasks);
@@ -109,7 +109,7 @@ pub fn task_list(props: &Props) -> Html {
         Callback::from(move |_| {
             let tasklist = tasklist.clone();
             let props = props.clone();
-            tasklist.set(Tasklist {ticket_id: props.ticket_id, task_groups: vec![]}); //workaround to force rerender
+            tasklist.set(TicketTasklists {ticket_id: props.ticket_id, tasklists: vec![]}); //workaround to force rerender
             wasm_bindgen_futures::spawn_local(async move {
                 let updated_tasks = get_tasklist(props.ticket_id).await.unwrap();
                 tasklist.set(updated_tasks);
@@ -129,7 +129,7 @@ pub fn task_list(props: &Props) -> Html {
             </div>
             <div>
                 {
-                    for tasklist.task_groups.clone().into_iter().map(|group| {
+                    for tasklist.tasklists.clone().into_iter().map(|group| {
                         html! {
                             <TaskGroup 
                                 taskgroup={group.clone()}

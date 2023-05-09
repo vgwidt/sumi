@@ -11,7 +11,7 @@ use crate::services::tasks::create_task;
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub ticket_id: i32,
-    pub group_id: Uuid,
+    pub tasklist_id: Uuid,
     pub task: TaskNewPayload,
     pub callback_added: Callback<TaskRepresentation>,
 }
@@ -39,7 +39,7 @@ pub fn new_task(props: &Props) -> Html {
             };
             wasm_bindgen_futures::spawn_local(async move {
                 submitted.set(true);
-                let result = create_task(props.group_id, new_task.clone()).await;
+                let result = create_task(props.tasklist_id, new_task.clone()).await;
                 match result {
                     Ok(task) => {
                         submitted.set(false);
