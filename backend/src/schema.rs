@@ -58,6 +58,43 @@ diesel::table! {
 }
 
 diesel::table! {
+    tasklist_templates (tasklist_id) {
+        tasklist_id -> Uuid,
+        template_id -> Uuid,
+        label -> Text,
+        description -> Text,
+    }
+}
+
+diesel::table! {
+    tasklist_templates_tasks (task_id) {
+        task_id -> Uuid,
+        tasklist_id -> Uuid,
+        label -> Text,
+        order_index -> Int4,
+    }
+}
+
+diesel::table! {
+    tasklists (tasklist_id) {
+        tasklist_id -> Uuid,
+        ticket_id -> Int4,
+        label -> Text,
+        order_index -> Int4,
+    }
+}
+
+diesel::table! {
+    tasks (task_id) {
+        task_id -> Uuid,
+        tasklist_id -> Uuid,
+        label -> Text,
+        is_done -> Bool,
+        order_index -> Int4,
+    }
+}
+
+diesel::table! {
     ticket_events (event_id) {
         event_id -> Uuid,
         ticket_id -> Int4,
@@ -124,6 +161,9 @@ diesel::joinable!(comments -> users (author));
 diesel::joinable!(document_revisions -> documents (document_id));
 diesel::joinable!(document_revisions -> users (updated_by));
 diesel::joinable!(notes -> users (owner));
+diesel::joinable!(tasklist_templates_tasks -> tasklist_templates (tasklist_id));
+diesel::joinable!(tasklists -> tickets (ticket_id));
+diesel::joinable!(tasks -> tasklists (tasklist_id));
 diesel::joinable!(ticket_events -> tickets (ticket_id));
 diesel::joinable!(ticket_events -> users (user_id));
 diesel::joinable!(ticket_revisions -> tickets (ticket_id));
@@ -138,6 +178,10 @@ diesel::allow_tables_to_appear_in_same_query!(
     document_revisions,
     documents,
     notes,
+    tasklist_templates,
+    tasklist_templates_tasks,
+    tasklists,
+    tasks,
     ticket_events,
     ticket_revisions,
     tickets,

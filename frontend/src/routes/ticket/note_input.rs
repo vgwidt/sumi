@@ -108,20 +108,20 @@ pub fn note_input(props: &Props) -> Html {
     html! {
         <form class={style} onsubmit={onsubmit}>
             <fieldset>
-                <legend>{language.get("Add a note")}</legend>
                 <div>
-                    <textarea placeholder="Note Description (Markdown)" style="width: 95%;" rows="5" value={create_info.text.clone()}
+                    <textarea placeholder="Input Note (Markdown)" style="width: 95%;" rows="5" value={create_info.text.clone()}
                         oninput={oninput}>
                 </textarea>
                 </div>
                 <div>
-                    <label for="time">{"Time spent (minutes)"}</label>
+                    <label for="time">{language.get("Time Spent (minutes)")}</label>
                     <input type="number" min="0" step="5" style="width: 60px;"
                         value={create_info.time.clone().to_string()} oninput={oninput_time} />
+                    <button class="btn" type="submit" disabled={*submitted}>
+                        { "Post Note" }
+                    </button>
                 </div>
-                <button class="btn" type="submit" disabled={*submitted}>
-                    { "Post Note" }
-                </button>
+
                 <span class="error">
                     {error.to_string()}
                 </span>

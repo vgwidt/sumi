@@ -5,6 +5,7 @@ pub mod contacts;
 pub mod documents;
 pub mod notes;
 pub mod session;
+pub mod tasks;
 pub mod tickets;
 pub mod users;
 

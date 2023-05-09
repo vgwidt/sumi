@@ -155,6 +155,16 @@ pub fn global_style() -> Html {
                 background-color: transparent;
                 cursor: pointer;
               }
+            .edit-icon {
+                display: inline-block;
+                transform: rotateZ(100deg);
+                font-size: 1.4em;
+            }
+            .add-icon {
+                display: inline-block;
+                font-size: 1.4em;
+                font-weight: bold;
+            }
             "#,
             bg = theme.background.clone(),
             text = theme.font_color.clone(),
