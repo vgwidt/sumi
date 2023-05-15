@@ -38,6 +38,13 @@ pub fn event(props: &Props) -> Html {
         "title_updated" => {
             format!("{} {} {}", actor_display, language.get("updated ticket title to"), event.event_data)
         }
+        "due_date_updated" => {
+            if event.event_data == "" {
+                format!("{} {}", actor_display, language.get("removed due date"))
+            } else {
+                format!("{} {} {}", actor_display, language.get("updated due date to"), event.event_data)
+            }
+        }
         _ => "Unknown event".to_string(),
     };
 
