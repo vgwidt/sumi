@@ -76,6 +76,10 @@ pub fn ticket(props: &Props) -> Html {
             color: #838383;
             font-style: italic;
           }
+          .due-date {
+            color: #838383;
+            font-style: italic;
+          }
         .description {
             word-wrap: break-word;
         }
@@ -139,6 +143,14 @@ pub fn ticket(props: &Props) -> Html {
                     <div class="updated-date">
                         { "Updated " }
                         { ticket.updated_at.format("%Y-%m-%d %H:%M").to_string() }
+                    </div>
+                    <div class="due-date">
+                        { "Due date: " }
+                        { if ticket.due_date.is_some() {
+                            html!  { ticket.due_date.as_ref().unwrap().format("%Y-%m-%d %H:%M").to_string() }
+                        } else {
+                            html! { "None" }
+                        } }
                     </div>
                     <div class="description">
                         { markdown_to_html(&ticket.description) }

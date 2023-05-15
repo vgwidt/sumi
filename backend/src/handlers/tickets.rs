@@ -17,7 +17,6 @@ use crate::{
     utils::parse_uuid,
 };
 
-
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
 //options
@@ -205,7 +204,7 @@ async fn update(
         assignee: None,
         contact: None,
         description: payload.description.clone(),
-        due_date: payload.due_date,
+        due_date: None,
         priority: payload.priority.clone(),
         status: payload.status.clone(),
         updated_at: Some(time.clone()),
@@ -221,6 +220,13 @@ async fn update(
     //otherwise set it to Some(Some(assignee)) parsed as uuid
     updated_ticket.assignee = parse_uuid(&payload.assignee)?;
     updated_ticket.contact = parse_uuid(&payload.contact)?;
+    updated_ticket.due_date = {
+        //If it is Some(None), means it was set to null (no due date, will be processed in db update).
+        match payload.due_date {
+            None => Some(None),
+            Some(date) => Some(Some(date)),
+        }
+    };
 
     let old_ticket: Ticket = {
         let pool = pool.clone();
@@ -355,6 +361,30 @@ async fn update(
             .await?
             .map_err(actix_web::error::ErrorInternalServerError)?;
         }
+    }
+
+    //Check for change in due date, which triggers event
+    if payload.due_date.clone() != old_ticket.due_date {
+        let event = NewTicketEvent {
+            event_id: Uuid::new_v4(),
+            ticket_id: old_ticket.ticket_id,
+            event_type: TicketEventType::DueDateUpdated.to_string(),
+            event_data: match payload.due_date {
+                //Avoid formatting here to allow custom formatting in frontend
+                Some(date) => date.to_string(),
+                None => "".to_string(),
+            },
+            user_id: user_id.clone(),
+            created_at: time.clone(),
+        };
+
+        let pool = pool.clone();
+        web::block(move || {
+            let mut conn = pool.get()?;
+            create_ticket_event(event, &mut conn)
+        })
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?;
     }
 
     let ticket = web::block(move || {

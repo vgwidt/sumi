@@ -154,7 +154,10 @@ pub fn global_style() -> Html {
                 color: ${text};
                 background-color: transparent;
                 cursor: pointer;
-              }
+            }
+            ::-webkit-calendar-picker-indicator {
+                filter: invert(1);
+            }
             "#,
             bg = theme.background.clone(),
             text = theme.font_color.clone(),

@@ -212,7 +212,11 @@ pub fn ticket_editor(props: &Props) -> Html {
             let input: HtmlInputElement = e.target_unchecked_into();
             let mut info = (*update_info).clone();
             //datetime-local to naive datetime
-            info.due_date = Some(NaiveDateTime::parse_from_str(input.value().as_str(), "%Y-%m-%dT%H:%M").unwrap());
+            if input.value().is_empty() {
+                info.due_date = None;
+            } else {
+                info.due_date = Some(NaiveDateTime::parse_from_str(input.value().as_str(), "%Y-%m-%dT%H:%M").unwrap());
+            }
             update_info.set(info);    
         })
     };
@@ -296,11 +300,11 @@ pub fn ticket_editor(props: &Props) -> Html {
                         </fieldset>
                         <fieldset class="editor-select">
                             <legend>{language.get("Due Date")}</legend>
-                            <input type="datetime-local" value={
+                            <input type="datetime-local" style="width: fit-content;" value={
                                 if let Some(due_date) = update_info.due_date.clone() {
                                     Local.from_local_datetime(&due_date.clone()).unwrap().format("%Y-%m-%dT%H:%M").to_string()
                                 } else {
-                                    Local::now().format("%Y-%m-%dT%H:%M").to_string()
+                                    "".to_string()
                                 }
                             } oninput={oninput_due_date}/>
                         </fieldset>

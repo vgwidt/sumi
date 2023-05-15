@@ -74,7 +74,7 @@ pub struct UpdateTicket {
     pub contact: Option<Option<Uuid>>,
     pub description: Option<String>,
     pub updated_at: Option<chrono::NaiveDateTime>,
-    pub due_date: Option<chrono::NaiveDateTime>,
+    pub due_date: Option<Option<chrono::NaiveDateTime>>,
     pub priority: Option<String>,
     pub status: Option<String>,
     pub revision: Option<chrono::NaiveDateTime>,
