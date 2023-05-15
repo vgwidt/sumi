@@ -21,6 +21,7 @@ pub struct TicketInfo {
     pub updated_at: chrono::NaiveDateTime,
     pub priority: String,
     pub status: String,
+    pub due_date: Option<chrono::NaiveDateTime>,
     pub created_by: Option<Uuid>,
     pub updated_by: Option<Uuid>,
     pub revision: chrono::NaiveDateTime,
@@ -48,6 +49,7 @@ pub struct TicketCreateInfo {
     pub contact: Option<Uuid>,
     pub priority: String,
     pub status: String,
+    pub due_date: Option<chrono::NaiveDateTime>,
 }
 
 impl TicketCreateInfo {
@@ -59,6 +61,7 @@ impl TicketCreateInfo {
             contact: None,
             priority: "".to_string(),
             status: "Open".to_string(),
+            due_date: None,
             ..Default::default()
         }
     }
@@ -84,6 +87,9 @@ pub struct TicketUpdateInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub due_date: Option<Option<chrono::NaiveDateTime>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub version: Option<chrono::NaiveDateTime>,

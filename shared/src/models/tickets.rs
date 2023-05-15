@@ -7,6 +7,7 @@ pub enum TicketEventType {
     StatusUpdated,
     PriorityUpdated,
     TitleUpdated,
+    DueDateUpdated,
 }
 
 //impl to string for storing in databaes (this_style)
@@ -17,6 +18,7 @@ impl ToString for TicketEventType {
             TicketEventType::StatusUpdated => "status_updated".to_string(),
             TicketEventType::PriorityUpdated => "priority_updated".to_string(),
             TicketEventType::TitleUpdated => "title_updated".to_string(),
+            TicketEventType::DueDateUpdated => "due_date_updated".to_string(),
         }
     }
 }

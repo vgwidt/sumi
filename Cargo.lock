@@ -2669,6 +2669,7 @@ dependencies = [
  "diesel",
  "dotenv",
  "env_logger",
+ "log",
  "r2d2",
  "rand",
  "rustls",

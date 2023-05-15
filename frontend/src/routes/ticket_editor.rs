@@ -1,3 +1,6 @@
+use chrono::Local;
+use chrono::NaiveDateTime;
+use chrono::TimeZone;
 use shared::models::MAX_TITLE_LENGTH;
 use stylist::style;
 use stylist::yew::styled_component;
@@ -65,6 +68,7 @@ pub fn ticket_editor(props: &Props) -> Html {
                                     contact: ticket.contact,
                                     priority: ticket.priority,
                                     status: ticket.status,
+                                    due_date: ticket.due_date,
                                 });
                             }
                             Err(e) => {
@@ -110,6 +114,7 @@ pub fn ticket_editor(props: &Props) -> Html {
                                 contact: Some(update_info.contact.clone()),
                                 priority: Some(update_info.priority.clone()),
                                 status: Some(update_info.status.clone()),
+                                due_date: Some(update_info.due_date.clone()),
                                 version: Some(retrieved_ticket.revision.clone()),
                             };
                             update(ticket_id, &request).await
@@ -199,6 +204,22 @@ pub fn ticket_editor(props: &Props) -> Html {
             update_info.set(info);
         })
     };
+
+    let oninput_due_date = {
+        let update_info = update_info.clone();
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            let mut info = (*update_info).clone();
+            //datetime-local to naive datetime
+            if input.value().is_empty() {
+                info.due_date = None;
+            } else {
+                info.due_date = Some(NaiveDateTime::parse_from_str(input.value().as_str(), "%Y-%m-%dT%H:%M").unwrap());
+            }
+            update_info.set(info);    
+        })
+    };
+
     // let oninput_contact = {
     //     let update_info = update_info.clone();
     //     Callback::from(move |e: InputEvent| {
@@ -275,6 +296,16 @@ pub fn ticket_editor(props: &Props) -> Html {
                                 </option>
                                 <option value="Open" selected={update_info.status=="Open" }>{"Open"}</option>
                             </select>
+                        </fieldset>
+                        <fieldset class="editor-select">
+                            <legend>{language.get("Due Date")}</legend>
+                            <input type="datetime-local" style="width: fit-content;" value={
+                                if let Some(due_date) = update_info.due_date.clone() {
+                                    Local.from_local_datetime(&due_date.clone()).unwrap().format("%Y-%m-%dT%H:%M").to_string()
+                                } else {
+                                    "".to_string()
+                                }
+                            } oninput={oninput_due_date}/>
                         </fieldset>
                         <button class="btn" type="submit">// disabled={ticket_update.loading}>
                             { language.get("Save") }
