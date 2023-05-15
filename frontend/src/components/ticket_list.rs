@@ -1,3 +1,4 @@
+use chrono::Local;
 use gloo::utils::document;
 use shared::models::tickets::TicketFilterPayload;
 use stylist::{style, yew::styled_component};
@@ -192,21 +193,24 @@ pub fn ticket_list() -> Html {
             width: 7%;
         }
         th:nth-child(2) {
-            width: 48%;
+            width: 42%;
         }
         th:nth-child(3) {
             width: 10%;
         }
         th:nth-child(4) {
-            width: 12%;
+            width: 10%;
         }
         th:nth-child(5) {
-            width: 12%;
+            width: 10%;
         }
         th:nth-child(6) {
-            width: 7%;
+            width: 10%;
         }
         th:nth-child(7) {
+            width: 7%;
+        }
+        th:nth-child(8) {
             width: 4%;
         }
         tr {
@@ -223,6 +227,9 @@ pub fn ticket_list() -> Html {
         }
         td.priority-Medium {
             background-color: rgb(255 127 31 / 40%);
+        }
+        td.overdue {
+            background-color: rgb(255 31 31 / 40%);
         }
     "#,
         table_header = theme.secondary_background.clone(),
@@ -415,6 +422,7 @@ let onclick_filter_per_page = {
                             <th onclick={onclick_sort_by("assignee", &filter, &loading)} scope="col">{language.get("Assignee")}{if filter.sort_by.clone().unwrap() == "assignee" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th onclick={onclick_sort_by("created_at", &filter, &loading)} scope="col">{language.get("Created")}{if filter.sort_by.clone().unwrap() == "created_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th onclick={onclick_sort_by("updated_at", &filter, &loading)} scope="col">{language.get("Updated")}{if filter.sort_by.clone().unwrap() == "updated_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("due_date", &filter, &loading)} scope="col">{language.get("Due")}{if filter.sort_by.clone().unwrap() == "due_date" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th onclick={onclick_sort_by("priority", &filter, &loading)} scope="col">{language.get("Priority")}{if filter.sort_by.clone().unwrap() == "priority" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th scope="col"></th>
                         </tr>
@@ -458,6 +466,26 @@ let onclick_filter_per_page = {
                             <td>
                                 <span class="date">
                                     { &ticket.updated_at.format("%Y/%m/%d %H:%M") }
+                                </span>
+                            </td>
+                            <td style={
+                                if let Some(due_date) = &ticket.due_date {
+                                    let current_time = Local::now().naive_utc();
+                                    if due_date < &current_time {
+                                        "background-color: rgb(255 31 31 / 40%);"
+                                    } else {
+                                        ""
+                                    }
+                                } else {
+                                    ""
+                                }
+                            }>
+                                <span class="date">
+                                    { if let Some(due_date) = &ticket.due_date {
+                                        due_date.format("%Y/%m/%d %H:%M").to_string()
+                                    } else {
+                                        "".to_string()
+                                    }}
                                 </span>
                             </td>
                             <td class={format!("priority priority-{}", ticket.priority.clone())}>

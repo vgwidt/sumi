@@ -590,6 +590,12 @@ fn find(
         } else {
             query = query.order(updated_at.desc());
         }
+    } else if sort_by == "due_date" {
+        if sort_order == "asc" {
+            query = query.order(due_date.asc());
+        } else {
+            query = query.order(due_date.desc());
+        }
     } else if sort_by == "status" {
         if sort_order == "asc" {
             query = query.order(status.asc());
