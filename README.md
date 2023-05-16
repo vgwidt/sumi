@@ -26,13 +26,13 @@ This is a project for learning.  The app is in a working state, but it is relati
 
 ### Down the pipe
 These are some features I'm looking to add:
-- [ ] Custom landing page (i.e. set wiki instead of tickets)
+- [ ] Custom dashboard
+- [ ] Projects
 - [ ] Tasklists for tickets
 - [ ] Show number of notes and tasks for a ticket in ticket list
 - [ ] Show description preview for a ticket on ticket list
 - [ ] Add On Hold status for tickets
 - [ ] Time tracking
-- [ ] Implement due dates for tickets
 - [ ] Custom ticket tags
 - [ ] Recycle bin for deleted items
 - [ ] Contacts
@@ -44,6 +44,7 @@ These are some features I'm looking to add:
 These are some features I'd like to see but will not get to at this stage:
 - [ ] E-mail integration (updates, submit via-e-mail)
 - [ ] Scheduled tickets
+- [ ] Issue submission portal
 - [ ] Asset tracking
 - [ ] Reporting
 - [ ] Optional OIDC authentication
