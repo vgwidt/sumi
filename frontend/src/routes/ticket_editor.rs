@@ -31,7 +31,12 @@ pub fn ticket_editor(props: &Props) -> Html {
     let user_ctx = use_user_context();
     let loading = use_state(|| true);
     let language = use_language_context();
-    let update_info = use_state(TicketCreateInfo::default);
+    let update_info = use_state(
+        || TicketCreateInfo {
+            assignee: Some(user_ctx.user_id),
+            ..TicketCreateInfo::default()
+        },
+    );
     let submitted = use_state(|| false);
     let error = use_state(|| String::new());
     let navigator = use_navigator().unwrap();
@@ -41,6 +46,7 @@ pub fn ticket_editor(props: &Props) -> Html {
         Ok(users) => users.clone(),
         Err(_) => vec![],
     };
+
 
     //If props.ticket_id is some, get ticket info from server (retrieved_ticket)
     {
@@ -230,6 +236,17 @@ pub fn ticket_editor(props: &Props) -> Html {
     //     })
     // };
 
+    let onkeydown = {
+        let submitted = submitted.clone();
+        Callback::from(move |e: KeyboardEvent| {
+            //Ctrl + S to submit
+            if e.ctrl_key() && e.key() == "s" {
+                e.prevent_default();
+                submitted.set(true);
+            }
+        })
+    };
+
     let style = style!(
         r#"
         input {
@@ -247,14 +264,14 @@ pub fn ticket_editor(props: &Props) -> Html {
             html! {}
         } else {
             html! {
-                <div class={style}>
+                <div class={style} {onkeydown}>
                 <div class="error">
                     {error.to_string()}
                 </div>
                     <form {onsubmit}>
                         <fieldset class="editor-text">
                             <legend>{language.get("Title")}</legend>
-                            <input class="title" type="text" placeholder="Ticket Title"
+                            <input class="title" type="text" placeholder="Ticket Title" autofocus=true
                                 value={update_info.title.clone()} oninput={oninput_title} maxlength={MAX_TITLE_LENGTH.to_string()}/>
                         </fieldset>
                         <fieldset class="editor-text">
