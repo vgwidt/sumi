@@ -20,7 +20,6 @@ use crate::hooks::use_user_context;
 use crate::routes::AppRoute;
 use crate::services::{tickets::*, users::get_users};
 use crate::types::TicketListInfo;
-use crate::utils::to_local_time;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Filter {
@@ -75,8 +74,6 @@ pub fn ticket_list() -> Html {
     });
     let loading = use_state(|| false);
     let time_ctx = use_time();
-    let tz_offset = *time_ctx.inner;
-    log::info!("Offset: {}", tz_offset);
 
     let users = use_future(|| async { get_users().await.unwrap_or_default() });
 
@@ -466,12 +463,12 @@ let onclick_filter_per_page = {
                             <td>
                                 <span class="date">
                                     //Convert from native
-                                    { to_local_time(&ticket.created_at, 540).format("%Y/%m/%d %H:%M")}
+                                    { time_ctx.convert_to_local(&ticket.created_at).format("%Y/%m/%d %H:%M") }
                                 </span>
                             </td>
                             <td>
                                 <span class="date">
-                                    { &ticket.updated_at.format("%Y/%m/%d %H:%M") }
+                                    { time_ctx.convert_to_local(&ticket.updated_at).format("%Y/%m/%d %H:%M") }
                                 </span>
                             </td>
                             <td style={

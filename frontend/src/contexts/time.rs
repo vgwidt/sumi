@@ -1,4 +1,4 @@
-use chrono::Local;
+use chrono::{Local, TimeZone};
 use yew::prelude::*;
 
 #[derive(Properties, Clone, PartialEq)]
@@ -43,4 +43,16 @@ pub(crate) fn use_time() -> TimeContext {
     let inner = use_context::<UseStateHandle<i32>>().expect("No context found");
 
     TimeContext { inner }
+}
+
+impl TimeContext {
+    pub fn offset(&self) -> i32 {
+        *self.inner
+    }
+    pub fn convert_to_local(&self, time: &chrono::NaiveDateTime) -> chrono::NaiveDateTime {
+        let offset = self.offset();
+        let local: chrono::FixedOffset = chrono::FixedOffset::east_opt(offset * 60).unwrap();
+
+        local.from_utc_datetime(&time).naive_local()
+    }
 }
