@@ -14,6 +14,7 @@ use yew_router::prelude::Link;
 
 use crate::components::loading::Loading;
 use crate::contexts::theme::use_theme;
+use crate::contexts::time::use_time;
 use crate::hooks::use_language_context;
 use crate::hooks::use_user_context;
 use crate::routes::AppRoute;
@@ -72,6 +73,7 @@ pub fn ticket_list() -> Html {
         search: None,
     });
     let loading = use_state(|| false);
+    let time_ctx = use_time();
 
     let users = use_future(|| async { get_users().await.unwrap_or_default() });
 
@@ -460,16 +462,18 @@ let onclick_filter_per_page = {
                             </td>
                             <td>
                                 <span class="date">
-                                    { &ticket.created_at.format("%Y/%m/%d %H:%M") }
+                                    //Convert from native
+                                    { time_ctx.convert_to_local(&ticket.created_at).format("%Y/%m/%d %H:%M") }
                                 </span>
                             </td>
                             <td>
                                 <span class="date">
-                                    { &ticket.updated_at.format("%Y/%m/%d %H:%M") }
+                                    { time_ctx.convert_to_local(&ticket.updated_at).format("%Y/%m/%d %H:%M") }
                                 </span>
                             </td>
                             <td style={
                                 if let Some(due_date) = &ticket.due_date {
+                                    //Convert current time to utc to compare with due_date which is stored as utc
                                     let current_time = Local::now().naive_utc();
                                     if due_date < &current_time {
                                         "background-color: rgb(255 31 31 / 40%);"
@@ -482,7 +486,7 @@ let onclick_filter_per_page = {
                             }>
                                 <span class="date">
                                     { if let Some(due_date) = &ticket.due_date {
-                                        due_date.format("%Y/%m/%d %H:%M").to_string()
+                                        time_ctx.convert_to_local(&due_date).format("%Y/%m/%d %H:%M").to_string()
                                     } else {
                                         "".to_string()
                                     }}

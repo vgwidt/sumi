@@ -12,6 +12,7 @@ use yew::prelude::*;
 use yew::suspense::use_future;
 use yew_router::prelude::*;
 
+use crate::contexts::time::use_time;
 use crate::hooks::{use_language_context, use_user_context};
 use crate::routes::AppRoute;
 use crate::services::tickets::*;
@@ -31,6 +32,7 @@ pub fn ticket_editor(props: &Props) -> Html {
     let user_ctx = use_user_context();
     let loading = use_state(|| true);
     let language = use_language_context();
+    let time_ctx = use_time();
     let update_info = use_state(
         || TicketCreateInfo {
             assignee: Some(user_ctx.user_id),
@@ -55,6 +57,7 @@ pub fn ticket_editor(props: &Props) -> Html {
         let props = props.clone();
         let update_info = update_info.clone();
         let retrieved_ticket = retrieved_ticket.clone();
+        let time_ctx = time_ctx.clone();
         use_effect_with_deps(
             move |_| {
                 wasm_bindgen_futures::spawn_local(async move {
@@ -74,7 +77,12 @@ pub fn ticket_editor(props: &Props) -> Html {
                                     contact: ticket.contact,
                                     priority: ticket.priority,
                                     status: ticket.status,
-                                    due_date: ticket.due_date,
+                                    due_date:
+                                        if let Some(due_date) = ticket.due_date {
+                                            Some(time_ctx.convert_to_local(&due_date))
+                                        } else {
+                                            None
+                                        },
                                 });
                             }
                             Err(e) => {
@@ -98,6 +106,7 @@ pub fn ticket_editor(props: &Props) -> Html {
         let submitted = submitted.clone();
         let props = props.clone();
         let retrieved_ticket = retrieved_ticket.clone();
+        let time_ctx = time_ctx.clone();
         use_effect_with_deps(
             move |submitted| {
                 if **submitted {
@@ -120,7 +129,12 @@ pub fn ticket_editor(props: &Props) -> Html {
                                 contact: Some(update_info.contact.clone()),
                                 priority: Some(update_info.priority.clone()),
                                 status: Some(update_info.status.clone()),
-                                due_date: Some(update_info.due_date.clone()),
+                                due_date: Some( if let Some(due_date) = update_info.due_date {
+                                    Some(time_ctx.convert_to_utc(&due_date))
+                                } else {
+                                    None
+                                }
+                                ),
                                 version: Some(retrieved_ticket.revision.clone()),
                             };
                             update(ticket_id, &request).await
@@ -216,11 +230,10 @@ pub fn ticket_editor(props: &Props) -> Html {
         Callback::from(move |e: InputEvent| {
             let input: HtmlInputElement = e.target_unchecked_into();
             let mut info = (*update_info).clone();
-            //datetime-local to naive datetime
             if input.value().is_empty() {
                 info.due_date = None;
             } else {
-                info.due_date = Some(NaiveDateTime::parse_from_str(input.value().as_str(), "%Y-%m-%dT%H:%M").unwrap());
+                info.due_date = Some(Local.datetime_from_str(&input.value(), "%Y-%m-%dT%H:%M").unwrap().naive_local());
             }
             update_info.set(info);    
         })

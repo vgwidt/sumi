@@ -10,6 +10,7 @@ use stylist::yew::styled_component;
 use yew::prelude::*;
 use yew::suspense::use_future;
 
+use crate::contexts::time::use_time;
 use crate::services::tickets::*;
 use crate::services::users::get_display_names;
 use crate::types::TicketInfo;
@@ -26,6 +27,8 @@ pub struct Props {
 #[styled_component(Ticket)]
 pub fn ticket(props: &Props) -> Html {
     let ticket = use_state(|| TicketInfo::default());
+    let time_ctx = use_time();
+    
     {
         let ticket = ticket.clone();
         let props = props.clone();
@@ -138,16 +141,16 @@ pub fn ticket(props: &Props) -> Html {
                     </div>
                     <div class="created-date">
                         { "Created " }
-                        { ticket.created_at.format("%Y-%m-%d %H:%M").to_string() }
+                        { time_ctx.convert_to_local(&ticket.created_at).format("%Y-%m-%d %H:%M") }
                     </div>
                     <div class="updated-date">
                         { "Updated " }
-                        { ticket.updated_at.format("%Y-%m-%d %H:%M").to_string() }
+                        { time_ctx.convert_to_local(&ticket.updated_at).format("%Y-%m-%d %H:%M") }
                     </div>
                     <div class="due-date">
                         { "Due date: " }
-                        { if ticket.due_date.is_some() {
-                            html!  { ticket.due_date.as_ref().unwrap().format("%Y-%m-%d %H:%M").to_string() }
+                        { if let Some(due_date) = ticket.due_date {
+                            html! { time_ctx.convert_to_local(&due_date).format("%Y-%m-%d %H:%M") }
                         } else {
                             html! { "None" }
                         } }

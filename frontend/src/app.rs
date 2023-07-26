@@ -5,6 +5,7 @@ use yew_router::prelude::*;
 use crate::components::nav::Navigation;
 use crate::contexts::language::LanguageProvider;
 use crate::contexts::theme::ThemeProvider;
+use crate::contexts::time::TimeContextProvider;
 use crate::contexts::user::UserContextProvider;
 use crate::routes::{switch, AppRoute};
 use crate::styles::global::GlobalStyle;
@@ -14,14 +15,16 @@ pub fn app() -> Html {
     html! {
         <ThemeProvider>
         <GlobalStyle />
-            <UserContextProvider>
-                <BrowserRouter>
-                    <LanguageProvider>
-                        <Navigation />
-                        <Switch<AppRoute> render={switch} />
-                    </LanguageProvider>
-              </BrowserRouter>
-          </UserContextProvider>
+          <TimeContextProvider>
+                <UserContextProvider>
+                    <BrowserRouter>
+                        <LanguageProvider>
+                            <Navigation />
+                            <Switch<AppRoute> render={switch} />
+                        </LanguageProvider>
+                    </BrowserRouter>
+                </UserContextProvider>
+            </TimeContextProvider>
         </ThemeProvider>
     }
 }
