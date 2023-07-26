@@ -46,7 +46,7 @@ pub async fn login(
 }
 
 fn login_redirect(e: LoginError) -> InternalError<LoginError> {
-    let body = format!("{{\"error\": \"{}\"}}", e.to_string());
+    let body = format!("{{\"error\": \"{}\"}}", e);
 
     let response = HttpResponse::Ok()
         .insert_header((LOCATION, "/login"))

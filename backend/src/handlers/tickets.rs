@@ -58,15 +58,15 @@ async fn create(
         assignee: payload.assignee,
         contact: payload.contact,
         description: payload.description.clone(),
-        created_at: time.clone(),
-        updated_at: time.clone(),
+        created_at: time,
+        updated_at: time,
         due_date: payload.due_date,
         priority: payload.priority.clone(),
         status: payload.status.clone(),
-        created_by: user_id.clone(),
-        updated_by: user_id.clone(),
-        revision: time.clone(),
-        revision_by: user_id.clone(),
+        created_by: user_id,
+        updated_by: user_id,
+        revision: time,
+        revision_by: user_id,
     };
 
     let ticket = web::block(move || {
@@ -207,9 +207,9 @@ async fn update(
         due_date: None,
         priority: payload.priority.clone(),
         status: payload.status.clone(),
-        updated_at: Some(time.clone()),
+        updated_at: Some(time),
         revision: if payload.description.is_some() {
-            Some(time.clone())
+            Some(time)
         } else {
             None
         },
@@ -230,7 +230,7 @@ async fn update(
 
     let old_ticket: Ticket = {
         let pool = pool.clone();
-        let id = id.clone();
+        let id = *id;
         web::block(move || {
             let mut conn = pool.get()?;
             get_ticket_by_id(id, &mut conn)
@@ -277,49 +277,45 @@ async fn update(
     }
 
     //For each status, priority, assignee, and title change, check if it is the same as old ticket and if not create an event for each
-    if payload.status.is_some() {
-        if payload.status.clone().unwrap() != old_ticket.status {
-            let event = NewTicketEvent {
-                event_id: Uuid::new_v4(),
-                ticket_id: old_ticket.ticket_id,
-                event_type: TicketEventType::StatusUpdated.to_string(),
-                event_data: payload.status.clone().unwrap(),
-                user_id: user_id.clone(),
-                created_at: time.clone(),
-            };
+    if payload.status.is_some() && payload.status.clone().unwrap() != old_ticket.status {
+        let event = NewTicketEvent {
+            event_id: Uuid::new_v4(),
+            ticket_id: old_ticket.ticket_id,
+            event_type: TicketEventType::StatusUpdated.to_string(),
+            event_data: payload.status.clone().unwrap(),
+            user_id,
+            created_at: time,
+        };
 
-            let pool = pool.clone();
-            web::block(move || {
-                let mut conn = pool.get()?;
-                create_ticket_event(event, &mut conn)
-            })
-            .await?
-            .map_err(actix_web::error::ErrorInternalServerError)?;
-        }
+        let pool = pool.clone();
+        web::block(move || {
+            let mut conn = pool.get()?;
+            create_ticket_event(event, &mut conn)
+        })
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?;
     }
 
-    if payload.priority.is_some() {
-        if payload.priority.clone().unwrap() != old_ticket.priority {
-            let event = NewTicketEvent {
-                event_id: Uuid::new_v4(),
-                ticket_id: old_ticket.ticket_id,
-                event_type: TicketEventType::PriorityUpdated.to_string(),
-                event_data: payload.priority.clone().unwrap(),
-                user_id: user_id.clone(),
-                created_at: time.clone(),
-            };
+    if payload.priority.is_some() && payload.priority.clone().unwrap() != old_ticket.priority {
+        let event = NewTicketEvent {
+            event_id: Uuid::new_v4(),
+            ticket_id: old_ticket.ticket_id,
+            event_type: TicketEventType::PriorityUpdated.to_string(),
+            event_data: payload.priority.clone().unwrap(),
+            user_id,
+            created_at: time,
+        };
 
-            let pool = pool.clone();
-            web::block(move || {
-                let mut conn = pool.get()?;
-                create_ticket_event(event, &mut conn)
-            })
-            .await?
-            .map_err(actix_web::error::ErrorInternalServerError)?;
-        }
+        let pool = pool.clone();
+        web::block(move || {
+            let mut conn = pool.get()?;
+            create_ticket_event(event, &mut conn)
+        })
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?;
     }
-    if let Some(assignee_uuid) = updated_ticket.assignee.clone() {
-        if assignee_uuid.clone() != old_ticket.assignee {
+    if let Some(assignee_uuid) = updated_ticket.assignee {
+        if assignee_uuid != old_ticket.assignee {
             let event = NewTicketEvent {
                 event_id: Uuid::new_v4(),
                 ticket_id: old_ticket.ticket_id,
@@ -328,8 +324,8 @@ async fn update(
                     Some(assignee) => assignee.to_string(),
                     None => "".to_string(),
                 },
-                user_id: user_id.clone(),
-                created_at: time.clone(),
+                user_id,
+                created_at: time,
             };
 
             let pool = pool.clone();
@@ -342,29 +338,27 @@ async fn update(
         }
     }
 
-    if payload.title.is_some() {
-        if payload.title.clone().unwrap() != old_ticket.title {
-            let event = NewTicketEvent {
-                event_id: Uuid::new_v4(),
-                ticket_id: old_ticket.ticket_id,
-                event_type: TicketEventType::TitleUpdated.to_string(),
-                event_data: payload.title.clone().unwrap(),
-                user_id: user_id.clone(),
-                created_at: time.clone(),
-            };
+    if payload.title.is_some() && payload.title.clone().unwrap() != old_ticket.title {
+        let event = NewTicketEvent {
+            event_id: Uuid::new_v4(),
+            ticket_id: old_ticket.ticket_id,
+            event_type: TicketEventType::TitleUpdated.to_string(),
+            event_data: payload.title.clone().unwrap(),
+            user_id,
+            created_at: time,
+        };
 
-            let pool = pool.clone();
-            web::block(move || {
-                let mut conn = pool.get()?;
-                create_ticket_event(event, &mut conn)
-            })
-            .await?
-            .map_err(actix_web::error::ErrorInternalServerError)?;
-        }
+        let pool = pool.clone();
+        web::block(move || {
+            let mut conn = pool.get()?;
+            create_ticket_event(event, &mut conn)
+        })
+        .await?
+        .map_err(actix_web::error::ErrorInternalServerError)?;
     }
 
     //Check for change in due date, which triggers event
-    if payload.due_date.clone() != old_ticket.due_date {
+    if payload.due_date != old_ticket.due_date {
         let event = NewTicketEvent {
             event_id: Uuid::new_v4(),
             ticket_id: old_ticket.ticket_id,
@@ -374,8 +368,8 @@ async fn update(
                 Some(date) => date.to_string(),
                 None => "".to_string(),
             },
-            user_id: user_id.clone(),
-            created_at: time.clone(),
+            user_id,
+            created_at: time,
         };
 
         let pool = pool.clone();
@@ -556,7 +550,7 @@ fn find(
     if count == 0 {
         return Ok(TicketWrapper {
             tickets: vec![],
-            page: page,
+            page,
             total_results: count,
             total_pages: 0,
         });
@@ -604,19 +598,15 @@ fn find(
         }
     } else if sort_by == "assignee" {
         if sort_order == "asc" {
-            query = query.order_by(sql::<(Integer, Text)>(&format!(
-                r#"
+            query = query.order_by(sql::<(Integer, Text)>(r#"
                 CASE WHEN assignee IS NULL THEN 0 ELSE 1 END,
                 LOWER(COALESCE((SELECT display_name FROM users WHERE users.user_id = tickets.assignee), ''))
-                "#,
-            )));
+                "#));
         } else {
-            query = query.order_by(sql::<(Integer, Text)>(&format!(
-                r#"
+            query = query.order_by(sql::<(Integer, Text)>(r#"
                 CASE WHEN assignee IS NULL THEN 1 ELSE 0 END,
                 LOWER(COALESCE((SELECT display_name FROM users WHERE users.user_id = tickets.assignee), ''))
-                "#,
-            )));
+                "#));
         }
     } else if sort_by == "title" {
         if sort_order == "asc" {
@@ -626,28 +616,24 @@ fn find(
         }
     } else if sort_by == "priority" {
         if sort_order == "asc" { 
-            query = query.order_by(sql::<(Integer, Text)>(&format!(
-                r#"
+            query = query.order_by(sql::<(Integer, Text)>(r#"
                 CASE priority
                     WHEN 'High' THEN 0
                     WHEN 'Medium' THEN 1
                     WHEN 'Low' THEN 3
                     ELSE 2
                 END
-                "#,
-            )));
+                "#));
     }
         else {
-            query = query.order_by(sql::<(Integer, Text)>(&format!(
-                r#"
+            query = query.order_by(sql::<(Integer, Text)>(r#"
                 CASE priority
                     WHEN 'High' THEN 3
                     WHEN 'Medium' THEN 2
                     WHEN 'Low' THEN 0
                     ELSE 1
                 END
-                "#,
-            )));
+                "#));
     }
     } else {
         query = query.order(ticket_id.asc());
@@ -669,9 +655,9 @@ fn find(
 
     let wrapper = TicketWrapper {
         tickets: results,
-        page: page,
+        page,
         total_results: count,
-        total_pages: total_pages,
+        total_pages,
     };
 
     Ok(wrapper)

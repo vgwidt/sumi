@@ -129,7 +129,7 @@ async fn update(
     if payload.content.is_some() {
         let old_document = {
             let pool = pool.clone();
-            let document_id = document_id.clone();
+            let document_id = *document_id;
             web::block(move || {
                 let mut conn = pool.get()?;
                 get_document_by_id(document_id, &mut conn)

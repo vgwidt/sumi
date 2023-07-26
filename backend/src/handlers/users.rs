@@ -164,7 +164,7 @@ async fn destroy(
 
     //prevent user from deleting themselves
     if let Some(session_id) = session_id {
-        let target_id = id.clone();
+        let target_id = *id;
         if session_id == target_id {
             return Err(InternalError::from_response(
                 "You cannot delete yourself",
@@ -371,7 +371,7 @@ fn validate_username(username: &str) -> Result<(), Error> {
 fn validate_email(email: &str) -> Result<(), Error> {
     if email.is_empty() {
         Err(actix_web::error::ErrorBadRequest("Email cannot be empty"))
-    } else if !email.contains("@") {
+    } else if !email.contains('@') {
         Err(actix_web::error::ErrorBadRequest("Email must contain an @"))
     } else if email.len() > 255 {
         Err(actix_web::error::ErrorBadRequest(

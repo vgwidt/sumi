@@ -55,7 +55,7 @@ pub async fn validate_credentials(
     let mut expected_password_hash = Secret::new("".to_string());
 
     if let Some((stored_user_id, stored_password_hash)) =
-        get_stored_credentials(&credentials.username, &pool)
+        get_stored_credentials(&credentials.username, pool)
             .context("Failed to get stored credentials")?
     {
         user_id = Some(stored_user_id);
@@ -75,14 +75,14 @@ fn verify_password_hash(
     password_candidate: Secret<String>,
     rec_expected_password_hash: Secret<String>,
 ) -> Result<(), AuthError> {
-    let expected_password_hash: PasswordHash;
+    
 
-    match PasswordHash::new(&rec_expected_password_hash.expose_secret()) {
-        Ok(hash) => expected_password_hash = hash,
+    let expected_password_hash: PasswordHash = match PasswordHash::new(rec_expected_password_hash.expose_secret()) {
+        Ok(hash) => hash,
         Err(e) => {
             return Err(AuthError::InvalidCredentials(e.into()));
         }
-    }
+    };
 
     Argon2::default()
         .verify_password(
