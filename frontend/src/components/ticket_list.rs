@@ -14,11 +14,13 @@ use yew_router::prelude::Link;
 
 use crate::components::loading::Loading;
 use crate::contexts::theme::use_theme;
+use crate::contexts::time::use_time;
 use crate::hooks::use_language_context;
 use crate::hooks::use_user_context;
 use crate::routes::AppRoute;
 use crate::services::{tickets::*, users::get_users};
 use crate::types::TicketListInfo;
+use crate::utils::to_local_time;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Filter {
@@ -72,6 +74,9 @@ pub fn ticket_list() -> Html {
         search: None,
     });
     let loading = use_state(|| false);
+    let time_ctx = use_time();
+    let tz_offset = *time_ctx.inner;
+    log::info!("Offset: {}", tz_offset);
 
     let users = use_future(|| async { get_users().await.unwrap_or_default() });
 
@@ -460,7 +465,8 @@ let onclick_filter_per_page = {
                             </td>
                             <td>
                                 <span class="date">
-                                    { &ticket.created_at.format("%Y/%m/%d %H:%M") }
+                                    //Convert from native
+                                    { to_local_time(&ticket.created_at, 540).format("%Y/%m/%d %H:%M")}
                                 </span>
                             </td>
                             <td>
