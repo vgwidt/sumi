@@ -473,6 +473,7 @@ let onclick_filter_per_page = {
                             </td>
                             <td style={
                                 if let Some(due_date) = &ticket.due_date {
+                                    //Convert current time to utc to compare with due_date which is stored as utc
                                     let current_time = Local::now().naive_utc();
                                     if due_date < &current_time {
                                         "background-color: rgb(255 31 31 / 40%);"
@@ -485,7 +486,7 @@ let onclick_filter_per_page = {
                             }>
                                 <span class="date">
                                     { if let Some(due_date) = &ticket.due_date {
-                                        due_date.format("%Y/%m/%d %H:%M").to_string()
+                                        time_ctx.convert_to_local(&due_date).format("%Y/%m/%d %H:%M").to_string()
                                     } else {
                                         "".to_string()
                                     }}

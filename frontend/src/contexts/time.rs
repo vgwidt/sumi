@@ -55,4 +55,10 @@ impl TimeContext {
 
         local.from_utc_datetime(&time).naive_local()
     }
+    pub fn convert_to_utc(&self, time: &chrono::NaiveDateTime) -> chrono::NaiveDateTime {
+        let offset = self.offset();
+        let local: chrono::FixedOffset = chrono::FixedOffset::east_opt(offset * 60).unwrap();
+
+        local.from_local_datetime(&time).unwrap().naive_utc()
+    }
 }
