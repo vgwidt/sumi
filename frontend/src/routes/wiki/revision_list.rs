@@ -4,7 +4,9 @@ use stylist::{style, yew::styled_component};
 use uuid::Uuid;
 use yew::{prelude::*, suspense::use_future_with_deps};
 
-use crate::{services::documents::document_revisions, types::DocumentRevision, utils::markdown_to_html};
+use crate::{
+    services::documents::document_revisions, types::DocumentRevision, utils::markdown_to_html,
+};
 
 //props accepts ID of document or ticket (since different types, use T)
 #[derive(Properties, Clone, PartialEq)]
@@ -20,7 +22,7 @@ pub fn revisions(props: &Props) -> Html {
     {
         let revisions = revisions.clone();
         let props = props.clone();
-        use_future_with_deps(
+        match use_future_with_deps(
             move |_| async move {
                 let result = document_revisions(props.id).await;
                 match result {
@@ -32,8 +34,10 @@ pub fn revisions(props: &Props) -> Html {
                     }
                 }
             },
-            props.id.clone(),
-        );
+            props.id.clone()) {
+            Ok(_) => (),
+            Err(_) => (),
+        }
     }
 
     //show on the right side of the documents page when it is opened
@@ -48,26 +52,23 @@ pub fn revisions(props: &Props) -> Html {
             box-shadow: -5px 0 10px rgba(0, 0, 0, 0.2);
             overflow-y: auto;
         "#
-        
-    ).expect("Failed to parse style");
+    )
+    .expect("Failed to parse style");
 
     {
         let revisions = &*revisions.clone();
-    html! {
-        <div class={style}>
-            <h2>{"Revision History"}</h2>
-            <ul>
-                { for revisions.iter().map(|revision| html! {
-                    <li>
-                        <p>{ markdown_to_html(&revision.content) }</p>
-                        <p>{ &format!("Updated at {}", &revision.updated_at) }</p>
-                    </li>
-                })}
-            </ul>
-        </div>
+        html! {
+            <div class={style}>
+                <h2>{"Revision History"}</h2>
+                <ul>
+                    { for revisions.iter().map(|revision| html! {
+                        <li>
+                            <p>{ markdown_to_html(&revision.content) }</p>
+                            <p>{ &format!("Updated at {}", &revision.updated_at) }</p>
+                        </li>
+                    })}
+                </ul>
+            </div>
+        }
     }
 }
-}
-    
-
-                

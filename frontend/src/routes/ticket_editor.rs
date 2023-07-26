@@ -1,5 +1,4 @@
 use chrono::Local;
-use chrono::NaiveDateTime;
 use chrono::TimeZone;
 use shared::models::MAX_TITLE_LENGTH;
 use stylist::style;
