@@ -114,9 +114,9 @@ Install target for wasm
 rustup target add wasm32-unknown-unknown
 ```
 
-Install trunk (version 0.16.0 required)
+Install trunk
 ```
-cargo install --version 0.16.0 trunk
+cargo install trunk
 ```
 
 Other dependencies
