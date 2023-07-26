@@ -10,7 +10,7 @@ pub struct Props {
 pub fn time_context_provider(props: &Props) -> Html {
     let time_ctx = use_state(|| i32::default());
 
-    let offset = Local::now().offset().local_minus_utc() / 60;
+    let offset = Local::now().offset().local_minus_utc();
 
     {
         let time_ctx = time_ctx.clone();
@@ -51,13 +51,13 @@ impl TimeContext {
     }
     pub fn convert_to_local(&self, time: &chrono::NaiveDateTime) -> chrono::NaiveDateTime {
         let offset = self.offset();
-        let local: chrono::FixedOffset = chrono::FixedOffset::east_opt(offset * 60).unwrap();
+        let local: chrono::FixedOffset = chrono::FixedOffset::east_opt(offset).unwrap();
 
         local.from_utc_datetime(&time).naive_local()
     }
     pub fn convert_to_utc(&self, time: &chrono::NaiveDateTime) -> chrono::NaiveDateTime {
         let offset = self.offset();
-        let local: chrono::FixedOffset = chrono::FixedOffset::east_opt(offset * 60).unwrap();
+        let local: chrono::FixedOffset = chrono::FixedOffset::east_opt(offset).unwrap();
 
         local.from_local_datetime(&time).unwrap().naive_utc()
     }

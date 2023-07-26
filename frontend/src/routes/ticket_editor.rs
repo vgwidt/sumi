@@ -332,7 +332,6 @@ pub fn ticket_editor(props: &Props) -> Html {
                             <input type="datetime-local" style="width: fit-content;" value={
                                 if let Some(due_date) = update_info.due_date.clone() {
                                     Local.from_local_datetime(&due_date.clone()).unwrap().format("%Y-%m-%dT%H:%M").to_string()
-                                    //time_ctx.convert_to_local(&due_date).format("%Y-%m-%dT%H:%M").to_string()
                                 } else {
                                     "".to_string()
                                 }
