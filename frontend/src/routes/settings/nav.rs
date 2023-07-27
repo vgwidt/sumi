@@ -10,10 +10,7 @@ pub fn settings_nav() -> Html {
     let user_ctx = use_user_context();
     let language = use_language_context();
 
-    
-    //Settings will display the nav bar, then depending on the route, will display the appropriate page (Account settings, ticket settings, etc)
     html!{
-        //Match SettingsRoute to display the appropriate page
         <div class="settings">
             <div class="settings-nav">
                 <div class="settings-nav-header">
