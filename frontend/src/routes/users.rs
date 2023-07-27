@@ -1,7 +1,7 @@
 use yew::{prelude::*, suspense::use_future};
 use yew_router::prelude::{Link, Redirect};
 
-use crate::{hooks::use_user_context, services::users::get_users};
+use crate::{hooks::use_user_context, services::users::get_users, routes::SettingsRoute};
 
 use super::AppRoute;
 
@@ -33,9 +33,9 @@ pub fn users() -> Html {
                             for user_list.iter().map(|user| {
                                 html! {
                                     <tr>
-                                    <Link<AppRoute> to={AppRoute::SettingsOther { user_id: user.user_id.clone() }} classes="nav-link">
+                                    <Link<SettingsRoute> to={SettingsRoute::Account { user_id: user.user_id.clone() }} classes="nav-link">
                                         <td>{ &user.username }</td>
-                                    </Link<AppRoute>>
+                                    </Link<SettingsRoute>>
                                     </tr>
                                 }
                             })
