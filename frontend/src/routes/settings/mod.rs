@@ -1,26 +1,16 @@
-use web_sys::HtmlInputElement;
+mod account;
 
 use yew::prelude::*;
-use yew_router::Router;
-use yew_router::prelude::{use_navigator, use_route, Link};
+use yew_router::prelude::{use_route, Link};
 
-use crate::components::logout::Logout;
-use crate::components::select_locale::SelectLanguage;
 use crate::hooks::{use_language_context, use_user_context};
 use crate::routes::SettingsRoute;
-use crate::services::users::*;
-use crate::types::UserUpdateInfo;
 
 use super::AppRoute;
 
-#[derive(Clone, PartialEq, Properties)]
-pub struct Props {
-    pub user_id: Option<uuid::Uuid>,
-}
-
 /// Update user settings
 #[function_component(Settings)]
-pub fn settings(props: &Props) -> Html {
+pub fn settings() -> Html {
     let user_ctx = use_user_context();
     let language = use_language_context();
 
@@ -79,7 +69,7 @@ pub fn settings(props: &Props) -> Html {
                 } else if let SettingsRoute::Account { user_id } = route {
                     html!{
                         <div class="settings-body-header">
-                            <h1>{ "Account" }</h1>
+                            <account::AccountSettings user_id={Some(user_id.clone())}/>
                         </div>
                     }
                 } else {

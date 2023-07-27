@@ -83,9 +83,9 @@ pub fn switch(route: AppRoute) -> Html {
 
 pub fn switch_settings(route: SettingsRoute) -> Html {
     match route {
-        SettingsRoute::Profile => html! {<Settings user_id={None}/>},
-        SettingsRoute::Account { user_id }=> html! {<Settings user_id={Some(user_id.clone())}/>},
-        SettingsRoute::Tickets => html! {<Settings user_id={None}/>},
+        SettingsRoute::Profile => html! {<Settings />},
+        SettingsRoute::Account { user_id } => html! {<Settings />},
+        SettingsRoute::Tickets => html! {<Settings />},
         SettingsRoute::NotFound => html! {<Redirect<AppRoute> to={AppRoute::NotFound}/>}
     }
 }

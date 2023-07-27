@@ -17,7 +17,7 @@ pub struct Props {
 }
 
 /// Update user settings
-#[function_component(Account)]
+#[function_component(AccountSettings)]
 pub fn account(props: &Props) -> Html {
     let user_ctx = use_user_context();
     let language = use_language_context();
