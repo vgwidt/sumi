@@ -2,11 +2,12 @@ use super::super::DbPool;
 
 use actix_web::{delete, get, post, put, web, Error, HttpResponse};
 use diesel::prelude::*;
+use shared::models::response::Response;
 use crate::models::ticket_fields::*;
 
 type DbError = Box<dyn std::error::Error + Send + Sync>;
 
-#[post("/tickets_fields")]
+#[post("/ticket_fields")]
 async fn create_field(
     pool: web::Data<DbPool>,
     payload: web::Json<NewTicketCustomField>,
@@ -19,7 +20,13 @@ async fn create_field(
     .await?
     .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(field))
+    let response = Response {
+        success: true,
+        message: None,
+        data: Some(field),
+    };
+
+    Ok(HttpResponse::Ok().json(response))
 }
 
 fn create_field_query(
@@ -35,7 +42,7 @@ fn create_field_query(
 }
 
 //Get all fields
-#[get("/tickets_fields")]
+#[get("/ticket_fields")]
 async fn get_fields(
     pool: web::Data<DbPool>,
 ) -> Result<HttpResponse, Error> {
@@ -61,7 +68,7 @@ fn get_fields_query(
 }
 
 //Get specific field
-#[get("/tickets_fields/{field_id}")]
+#[get("/ticket_fields/{field_id}")]
 async fn get_field(
     pool: web::Data<DbPool>,
     field_id: web::Path<i32>,
@@ -90,7 +97,7 @@ fn get_field_query(
 }
 
 //Update field
-#[put("/tickets_fields/{field_id}")]
+#[put("/ticket_fields/{field_id}")]
 async fn update_field(
     pool: web::Data<DbPool>,
     field_id: web::Path<i32>,
@@ -121,7 +128,7 @@ fn update_field_query(
 }
 
 //Delete field
-#[delete("/tickets_fields/{field_id}")]
+#[delete("/ticket_fields/{field_id}")]
 async fn delete_field(
     pool: web::Data<DbPool>,
     field_id: web::Path<i32>,

@@ -46,10 +46,3 @@ pub struct TicketCustomFieldPayload {
     pub is_select: bool,
     pub select_values: Option<Vec<Option<String>>>,
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TicketCustomFieldDataPayload {
-    pub ticket_id: i32,
-    pub custom_field_id: i32,
-    pub field_value: String,
-}

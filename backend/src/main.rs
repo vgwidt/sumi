@@ -127,6 +127,11 @@ async fn main() -> std::io::Result<()> {
                     .service(handlers::documents::update)
                     .service(handlers::documents::delete)
                     .service(handlers::documents::revisions)
+                    .service(handlers::ticket_fields::create_field)
+                    .service(handlers::ticket_fields::delete_field)
+                    .service(handlers::ticket_fields::get_field)
+                    .service(handlers::ticket_fields::get_fields)
+                    .service(handlers::ticket_fields::update_field)
                     .wrap(from_fn(reject_anonymous_users)),
             )
             .service(
