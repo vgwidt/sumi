@@ -6,3 +6,4 @@ pub mod notes;
 pub mod tickets;
 pub mod user_preferences;
 pub mod users;
+pub mod ticket_fields;

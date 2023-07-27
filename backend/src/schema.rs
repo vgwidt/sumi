@@ -58,6 +58,26 @@ diesel::table! {
 }
 
 diesel::table! {
+    ticket_custom_field_data (id) {
+        id -> Int4,
+        ticket_id -> Nullable<Int4>,
+        custom_field_id -> Nullable<Int4>,
+        field_value -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
+    ticket_custom_fields (id) {
+        id -> Int4,
+        field_name -> Text,
+        field_type -> Text,
+        field_size -> Int4,
+        is_select -> Bool,
+        select_values -> Nullable<Array<Nullable<Text>>>,
+    }
+}
+
+diesel::table! {
     ticket_events (event_id) {
         event_id -> Uuid,
         ticket_id -> Int4,
@@ -124,6 +144,8 @@ diesel::joinable!(comments -> users (author));
 diesel::joinable!(document_revisions -> documents (document_id));
 diesel::joinable!(document_revisions -> users (updated_by));
 diesel::joinable!(notes -> users (owner));
+diesel::joinable!(ticket_custom_field_data -> ticket_custom_fields (custom_field_id));
+diesel::joinable!(ticket_custom_field_data -> tickets (ticket_id));
 diesel::joinable!(ticket_events -> tickets (ticket_id));
 diesel::joinable!(ticket_events -> users (user_id));
 diesel::joinable!(ticket_revisions -> tickets (ticket_id));
@@ -138,6 +160,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     document_revisions,
     documents,
     notes,
+    ticket_custom_field_data,
+    ticket_custom_fields,
     ticket_events,
     ticket_revisions,
     tickets,
