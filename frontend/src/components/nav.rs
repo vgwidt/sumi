@@ -107,7 +107,7 @@ pub fn navigation() -> Html {
                             <img src="./img/Enso.svg" alt="Enso Logo" class="logo" />
                         </Link<AppRoute>>
                         <div class="nav-user">
-                            <Link<AppRoute> to={AppRoute::Settings}>
+                            <Link<AppRoute> to={AppRoute::SettingsRoot}>
                                 { user_ctx.display_name.clone() }
                             </Link<AppRoute>>
                         </div>
@@ -138,6 +138,15 @@ pub fn navigation() -> Html {
                                 }
                                 }>
                                 { language.get("Users") }
+                            </Link<AppRoute>>
+                            <Link<AppRoute> to={AppRoute::SettingsRoot} classes={
+                                if route == AppRoute::Settings || route == AppRoute::SettingsRoot {
+                                "selected nav-link"
+                                } else {
+                                "nav-link"
+                                }
+                                }>
+                                { language.get("Settings") }
                             </Link<AppRoute>>
                             //{ "Contacts" }
                             //{ "Assets" }

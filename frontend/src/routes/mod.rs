@@ -36,15 +36,28 @@ pub enum AppRoute {
     #[at("/wiki/:document_id")]
     WikiDoc { document_id: uuid::Uuid },
     #[at("/settings")]
+    SettingsRoot,
+    #[at("/settings/*")]
     Settings,
-    #[at("/settings/:user_id")]
-    SettingsOther { user_id: uuid::Uuid },
     #[at("/users")]
     Users,
     #[at("/")]
     Home,
     #[not_found]
     #[at("/404")]
+    NotFound,
+}
+
+#[derive(Clone, Routable, PartialEq)]
+pub enum SettingsRoute {
+    #[at("/settings")]
+    Profile,
+    #[at("/settings/account/:user_id")]
+    Account { user_id: uuid::Uuid },
+    #[at("/settings/tickets")]
+    Tickets,
+    #[not_found]
+    #[at("/settings/404")]
     NotFound,
 }
 
@@ -58,11 +71,21 @@ pub fn switch(route: AppRoute) -> Html {
         }
         AppRoute::EditorCreate => html! {<TicketEditor />},
         AppRoute::Ticket { ticket_id } => html! {<Ticket ticket_id={ticket_id.clone()} />},
-        AppRoute::Settings => html! {<Settings />},
-        AppRoute::SettingsOther { user_id } => html! {<Settings user_id={user_id.clone()}/>},
+        // AppRoute::Settings => html! {<Settings />},
+        // AppRoute::SettingsOther { user_id } => html! {<Settings user_id={user_id.clone()}/>},
+        AppRoute::SettingsRoot | AppRoute::Settings => html! { <Switch<SettingsRoute> render={switch_settings} /> },
         AppRoute::Users => html! {<Users />},
         AppRoute::NotFound => html! { "Page not found" },
         AppRoute::WikiHome => html! {<Wiki document_id={None}/>},
         AppRoute::WikiDoc { document_id } => html!(<Wiki document_id={Some(document_id.clone())}/>),
+    }
+}
+
+pub fn switch_settings(route: SettingsRoute) -> Html {
+    match route {
+        SettingsRoute::Profile => html! {<Settings />},
+        SettingsRoute::Account { user_id: _ } => html! {<Settings />},
+        SettingsRoute::Tickets => html! {<Settings />},
+        SettingsRoute::NotFound => html! {<Redirect<AppRoute> to={AppRoute::NotFound}/>}
     }
 }
