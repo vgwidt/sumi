@@ -7,8 +7,8 @@ pub struct TicketCustomField {
     pub field_name: String,
     pub field_type: String,
     pub field_size: i32,
-    pub is_select: bool,
     pub select_values: Option<Vec<Option<String>>>,
+    pub order_index: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable)]
@@ -25,8 +25,8 @@ pub struct NewTicketCustomField {
     pub field_name: String,
     pub field_type: String,
     pub field_size: i32,
-    pub is_select: bool,
     pub select_values: Option<Vec<Option<String>>>,
+    pub order_index: i32,
 }
 
 #[derive(Debug, Insertable)]
@@ -43,6 +43,6 @@ pub struct TicketCustomFieldPayload {
     pub field_name: String,
     pub field_type: String,
     pub field_size: i32,
-    pub is_select: bool,
     pub select_values: Option<Vec<Option<String>>>,
+    pub order_index: i32,
 }

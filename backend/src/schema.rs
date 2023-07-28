@@ -72,8 +72,8 @@ diesel::table! {
         field_name -> Text,
         field_type -> Text,
         field_size -> Int4,
-        is_select -> Bool,
         select_values -> Nullable<Array<Nullable<Text>>>,
+        order_index -> Int4,
     }
 }
 

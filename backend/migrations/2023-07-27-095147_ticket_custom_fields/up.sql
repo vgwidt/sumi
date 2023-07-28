@@ -3,8 +3,8 @@ CREATE TABLE ticket_custom_fields (
     field_name TEXT NOT NULL,
     field_type TEXT NOT NULL, 
     field_size INTEGER NOT NULL,
-    is_select BOOLEAN NOT NULL,
-    select_values TEXT[]
+    select_values TEXT[],
+    order_index INTEGER NOT NULL
 );
 
 CREATE TABLE ticket_custom_field_data (
