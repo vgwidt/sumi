@@ -8,17 +8,27 @@ pub fn ticket_fields() -> Html {
     let language = use_language_context();
     let error = use_state(|| String::new());
     let fields = use_future(|| async { get_custom_fields().await.unwrap_or_default() });
+    let adding_field = use_state(|| false);
 
     let field_list = match fields {
         Ok(fields) => fields.clone(),
         Err(_) => vec![],
     };
 
-
-
     let onclick_add_field = {
-        //will call call a new ticket field component with new flag
-        
+        //set adding_field to true
+        let adding_field = adding_field.clone();
+        Callback::from(move |event: MouseEvent| {
+            adding_field.set(true);
+        })
+    };
+
+    let callback_field_added = {
+        let error = error.clone();
+        let adding_field = adding_field.clone();
+        Callback::from(move |field: TicketCustomField| {
+            adding_field.set(false);
+        })
     };
 
 
@@ -27,14 +37,36 @@ pub fn ticket_fields() -> Html {
             <h3 class="section-header">
                 {language.get("Ticket Fields")}
             </h3>
-            <button class="page-btn"> //onclick={onclick_add_field}>
+            <button class="btn" onclick={onclick_add_field}>
                 {language.get("Add Field")}
             </button>
-            { for field_list.iter().map(|field| {
+            <table>
+                <tr>
+                    <th>{language.get("Field Name")}</th>
+                    <th>{language.get("Field Type")}</th>
+                    <th>{language.get("Field Size")}</th>
+                    <th>{language.get("Select Values")}</th>
+                    <th>{language.get("Order Index")}</th>
+                </tr>
+                { for field_list.iter().map(|field| {
+                    html! {
+                        <TicketField field={field.clone()} />
+                    }
+                })}
+            </table>
+            {if *adding_field {
                 html! {
-                    <TicketField field={field.clone()} />
+                    <NewTicketField field={NewTicketCustomField {
+                        field_name: "".to_string(),
+                        field_type: "".to_string(),
+                        field_size: 0,
+                        select_values: None,
+                        order_index: 0,
+                    }} callback_added={callback_field_added.clone()}/>
                 }
-            })}
+            } else {
+                html! {}
+            }}
         </div>
     }
 }
@@ -52,9 +84,35 @@ pub fn ticket_field(props: &TicketFieldProps) -> Html {
     let language = use_language_context();
 
     html! {
-        <div class="custom_field">
-            <h3>{language.get("Field")}</h3>
-        </div>
+            <tr>
+                <td>
+                    {&props.field.field_name}
+                </td>
+                <td>
+                    {&props.field.field_type}
+                </td>
+                <td>
+                    {&props.field.field_size}
+                </td>
+                <td>
+                { if let Some(select_values) = &props.field.select_values {
+                    html! {
+                        <ul>
+                            { for select_values.iter().map(|value| {
+                                html! {
+                                    <li>{value.clone().unwrap_or_else(|| "".to_string())}</li>
+                                }
+                            })}
+                        </ul>
+                    }
+                } else {
+                    html! {}
+                }}
+                </td>
+                <td>
+                    {&props.field.order_index}
+                </td>
+            </tr>
     }
 
 }
@@ -146,8 +204,21 @@ pub fn new_ticket_field(props: &NewFieldProps) -> Html {
         Callback::from(move |e: InputEvent| {
             let input: HtmlInputElement = e.target_unchecked_into();
             let mut info = (*update_info).clone();
-            //split by enter
-            info.select_values = Some(input.value().split("\n").map(|s| Some(s.to_string())).collect());
+            //If empty, set to None. We'll prevent accepting values depending on field type later
+            if input.value().is_empty() {
+                info.select_values = None;
+            } else {
+                //Split by newlines
+                let values = input.value().split("\n").map(|value| {
+                    //If empty, set to None
+                    if value.is_empty() {
+                        None
+                    } else {
+                        Some(value.to_string())
+                    }
+                }).collect::<Vec<Option<String>>>();
+                info.select_values = Some(values);
+            }
             update_info.set(info);
         })
     };
@@ -195,7 +266,7 @@ pub fn new_ticket_field(props: &NewFieldProps) -> Html {
                 </label>
                 <label>
                     {language.get("Select Values")}
-                    <input type="textbox" name="select_values" oninput={oninput_select_values} />
+                    <textarea name="select_values" oninput={oninput_select_values} />
                 </label>
                 <label>
                     {language.get("Order Index")}

@@ -11,7 +11,7 @@ pub struct TicketCustomField {
     pub order_index: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize, Queryable)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Clone)]
 pub struct TicketCustomFieldData {
     pub id: i32,
     pub ticket_id: i32,
