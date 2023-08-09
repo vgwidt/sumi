@@ -27,6 +27,7 @@ once_cell = "1.18"
 serde_json = "1.0.103"
 ammonia = "3"
 js-sys = "0.3.64"
+html2md = "0.2.14"
 shared = { path = "../shared" }
 
 [dependencies.web-sys]
@@ -39,4 +40,6 @@ features = [
   "HtmlCollection",
   "HtmlInputElement",
   "HtmlSelectElement",
+  "ClipboardEvent",
+  "DataTransfer",
 ]

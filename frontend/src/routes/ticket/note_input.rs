@@ -1,5 +1,7 @@
 use stylist::yew::{styled_component, use_style};
-use web_sys::HtmlInputElement;
+use wasm_bindgen::JsCast;
+use web_sys::{HtmlInputElement, ClipboardEvent};
+use html2md::parse_html;
 
 use yew::prelude::*;
 
@@ -62,6 +64,26 @@ pub fn note_input(props: &Props) -> Html {
         )
     }
 
+    //Handle pasting from Excel
+    let handle_paste = {
+        let create_info = create_info.clone();
+        Callback::from(move |e: Event| {
+            let e: ClipboardEvent = e.unchecked_into();
+            let clipboard_data = e.clipboard_data().unwrap();
+            let text = clipboard_data.get_data("text/html").unwrap();
+            if text.contains("schemas-microsoft-com:office:excel") {
+                let start = text.find("<table").unwrap();
+                let end = text.find("</table>").unwrap();
+                let text = &text[start..end + 8];
+                let md = parse_html(text);
+                let mut info = (*create_info).clone();
+                info.text = md.to_string();
+                create_info.set(info);
+            }
+
+        })
+    };
+
     let onsubmit = {
         let submitted = submitted.clone();
         let create_info = create_info.clone();
@@ -111,7 +133,7 @@ pub fn note_input(props: &Props) -> Html {
                 <legend>{language.get("Add a note")}</legend>
                 <div>
                     <textarea placeholder="Note Description (Markdown)" style="width: 95%;" rows="5" value={create_info.text.clone()}
-                        oninput={oninput}>
+                        oninput={oninput} onpaste={handle_paste}>
                 </textarea>
                 </div>
                 <div>
