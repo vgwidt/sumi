@@ -28,38 +28,35 @@ pub fn note_input(props: &Props) -> Html {
         let error = error.clone();
         let ticket_id = props.ticket_id.clone();
         let callback = props.callback.clone();
-        use_effect_with_deps(
-            move |submitted| {
-                if **submitted {
-                    let create_info = create_info.clone();
-                    let error = error.clone();
-                    let submitted = submitted.clone();
-                    wasm_bindgen_futures::spawn_local(async move {
-                        let request = NoteCreateInfo {
-                            ticket: ticket_id.clone(),
-                            text: create_info.text.clone(),
-                            owner: Some(user_ctx.user_id),
-                            time: create_info.time.clone(),
-                        };
-                        let result = create(request).await;
-                        match result {
-                            Ok(note) => {
-                                create_info.set(NoteCreateInfo::default());
-                                submitted.set(false);
-                                callback.emit(note.clone());
-                                error.set(String::new());
-                            }
-                            Err(e) => {
-                                error.set(e.to_string());
-                                submitted.set(false);
-                            }
+        use_effect_with(submitted.clone(),move |submitted| {
+            if **submitted {
+                let create_info = create_info.clone();
+                let error = error.clone();
+                let submitted = submitted.clone();
+                wasm_bindgen_futures::spawn_local(async move {
+                    let request = NoteCreateInfo {
+                        ticket: ticket_id.clone(),
+                        text: create_info.text.clone(),
+                        owner: Some(user_ctx.user_id),
+                        time: create_info.time.clone(),
+                    };
+                    let result = create(request).await;
+                    match result {
+                        Ok(note) => {
+                            create_info.set(NoteCreateInfo::default());
+                            submitted.set(false);
+                            callback.emit(note.clone());
+                            error.set(String::new());
                         }
-                    });
-                }
-                || ()
-            },
-            submitted.clone(),
-        )
+                        Err(e) => {
+                            error.set(e.to_string());
+                            submitted.set(false);
+                        }
+                    }
+                });
+            }
+            || ()
+        })
     }
 
     let onsubmit = {

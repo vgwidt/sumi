@@ -2,7 +2,7 @@
 
 use stylist::{style, yew::styled_component};
 use uuid::Uuid;
-use yew::{prelude::*, suspense::use_future_with_deps};
+use yew::{prelude::*, suspense::use_future_with};
 
 use crate::{
     services::documents::document_revisions, types::DocumentRevision, utils::markdown_to_html,
@@ -22,19 +22,17 @@ pub fn revisions(props: &Props) -> Html {
     {
         let revisions = revisions.clone();
         let props = props.clone();
-        match use_future_with_deps(
-            move |_| async move {
-                let result = document_revisions(props.id).await;
-                match result {
-                    Ok(r) => {
-                        revisions.set(r);
-                    }
-                    Err(e) => {
-                        error.set(e.to_string());
-                    }
+        match use_future_with(props.id.clone(), move |_| async move {
+            let result = document_revisions(props.id).await;
+            match result {
+                Ok(r) => {
+                    revisions.set(r);
                 }
-            },
-            props.id.clone()) {
+                Err(e) => {
+                    error.set(e.to_string());
+                }
+            }
+        }) {
             Ok(_) => (),
             Err(_) => (),
         }

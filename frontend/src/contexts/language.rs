@@ -29,22 +29,19 @@ pub(crate) fn language_provider(props: &LanguageProviderProps) -> Html {
     {
         let loading = loading.clone();
         let language_ctx = language_ctx.clone();
-        use_effect_with_deps(
-            move |user_preferences| {
-                let language = match &user_preferences.locale {
-                    Some(locale) => match LanguageKind::from_str(&locale) {
-                        Some(language) => language,
-                        None => LanguageKind::English,
-                    },
+        use_effect_with(user_preferences,move |user_preferences| {
+            let language = match &user_preferences.locale {
+                Some(locale) => match LanguageKind::from_str(&locale) {
+                    Some(language) => language,
                     None => LanguageKind::English,
-                };
-                log::info!("Language: {:?}", language);
-                language_ctx.set(language);
-                loading.set(false);
-                || {}
-            },
-            user_preferences,
-        );
+                },
+                None => LanguageKind::English,
+            };
+            log::info!("Language: {:?}", language);
+            language_ctx.set(language);
+            loading.set(false);
+            || {}
+        });
     }
 
     let language_ctx = LanguageContext::new(language_ctx);

@@ -34,36 +34,33 @@ pub fn note(props: &Props) -> Html {
         let error = error.clone();
         let note_owner = note.owner.as_ref().unwrap().user_id;
         let callback_updated = props.callback_updated.clone();
-        use_effect_with_deps(
-            move |submitted| {
-                if **submitted {
-                    wasm_bindgen_futures::spawn_local(async move {
-                        let result = {
-                            let request = NoteCreateInfo {
-                                ticket: update_info.ticket,
-                                owner: Some(note_owner),
-                                text: update_info.text.clone(),
-                                time: update_info.time,
-                            };
-                            update_note(update_info.note_id, request).await
+        use_effect_with(submitted.clone(),move |submitted| {
+            if **submitted {
+                wasm_bindgen_futures::spawn_local(async move {
+                    let result = {
+                        let request = NoteCreateInfo {
+                            ticket: update_info.ticket,
+                            owner: Some(note_owner),
+                            text: update_info.text.clone(),
+                            time: update_info.time,
                         };
-
-                        match result {
-                            Ok(note) => {
-                                edit_mode.set(false);
-                                callback_updated.emit(note);
-                            }
-                            Err(e) => {
-                                error.set(e.to_string());
-                            }
+                        update_note(update_info.note_id, request).await
+                    };
+        
+                    match result {
+                        Ok(note) => {
+                            edit_mode.set(false);
+                            callback_updated.emit(note);
                         }
-                    });
-                    submitted.set(false);
-                }
-                || ()
-            },
-            submitted.clone(),
-        );
+                        Err(e) => {
+                            error.set(e.to_string());
+                        }
+                    }
+                });
+                submitted.set(false);
+            }
+            || ()
+        });
     }
 
     let on_submit = {

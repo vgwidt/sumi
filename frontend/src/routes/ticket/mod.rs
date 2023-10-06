@@ -32,16 +32,13 @@ pub fn ticket(props: &Props) -> Html {
     {
         let ticket = ticket.clone();
         let props = props.clone();
-        use_effect_with_deps(
-            move |_| {
-                wasm_bindgen_futures::spawn_local(async move {
-                    let ticket_data = get(props.ticket_id).await.unwrap();
-                    ticket.set(ticket_data);
-                });
-                || ()
-            },
-            props.ticket_id.clone(),
-        )
+        use_effect_with(props.ticket_id.clone(),move |_| {
+            wasm_bindgen_futures::spawn_local(async move {
+                let ticket_data = get(props.ticket_id).await.unwrap();
+                ticket.set(ticket_data);
+            });
+            || ()
+        })
     }
 
     //Adding this for now just to pass to events, but it will also be needed for inline editing in the future

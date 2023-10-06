@@ -69,11 +69,13 @@ pub fn switch(route: AppRoute) -> Html {
         AppRoute::Editor { ticket_id } => {
             html! {<TicketEditor ticket_id={Some(ticket_id.clone())}/>}
         }
-        AppRoute::EditorCreate => html! {<TicketEditor />},
+        AppRoute::EditorCreate => html! {<TicketEditor ticket_id={None} />},
         AppRoute::Ticket { ticket_id } => html! {<Ticket ticket_id={ticket_id.clone()} />},
         // AppRoute::Settings => html! {<Settings />},
         // AppRoute::SettingsOther { user_id } => html! {<Settings user_id={user_id.clone()}/>},
-        AppRoute::SettingsRoot | AppRoute::Settings => html! { <Switch<SettingsRoute> render={switch_settings} /> },
+        AppRoute::SettingsRoot | AppRoute::Settings => {
+            html! { <Switch<SettingsRoute> render={switch_settings} /> }
+        }
         AppRoute::Users => html! {<Users />},
         AppRoute::NotFound => html! { "Page not found" },
         AppRoute::WikiHome => html! {<Wiki document_id={None}/>},
@@ -86,6 +88,6 @@ pub fn switch_settings(route: SettingsRoute) -> Html {
         SettingsRoute::Profile => html! {<Settings />},
         SettingsRoute::Account { user_id: _ } => html! {<Settings />},
         SettingsRoute::Tickets => html! {<Settings />},
-        SettingsRoute::NotFound => html! {<Redirect<AppRoute> to={AppRoute::NotFound}/>}
+        SettingsRoute::NotFound => html! {<Redirect<AppRoute> to={AppRoute::NotFound}/>},
     }
 }

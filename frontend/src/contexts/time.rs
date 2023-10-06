@@ -14,16 +14,13 @@ pub fn time_context_provider(props: &Props) -> Html {
 
     {
         let time_ctx = time_ctx.clone();
-        use_effect_with_deps(
-            move |_| {
-                let time_ctx = time_ctx.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    time_ctx.set(offset);
-                });
-                || {}
-            },
-            (),
-        );
+        use_effect_with((),move |_| {
+            let time_ctx = time_ctx.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                time_ctx.set(offset);
+            });
+            || {}
+        });
     }
 
     html! {

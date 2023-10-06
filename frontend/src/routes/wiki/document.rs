@@ -8,8 +8,8 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 use crate::components::delete::{DeleteItem, ItemTypes};
-use crate::routes::wiki::revision_list::Revisions;
 use crate::hooks::{use_language_context, use_user_context};
+use crate::routes::wiki::revision_list::Revisions;
 use crate::routes::AppRoute;
 use crate::services::documents::{create_document, get_document, update_document};
 use crate::types::{DocumentCreateInfo, DocumentUpdateInfo};
@@ -40,62 +40,53 @@ pub fn wiki_document(props: &Props) -> Html {
         let update_info = update_info.clone();
         let document_id = props.document_id.clone();
         let is_new = is_new.clone();
-        use_effect_with_deps(
-            move |_| {
-                wasm_bindgen_futures::spawn_local(async move {
-                    if let Some(id) = document_id {
-                        if *is_new {
-                            return;
-                        } else {
-                            let result = get_document(&id).await;
-                            if let Ok(document) = result {
-                                update_info.set(DocumentUpdateInfo {
-                                    title: Some(document.title.clone()),
-                                    content: Some(document.content.clone()),
-                                    parent_id: Some(document.parent_id.clone()),
-                                    archived: Some(document.archived),
-                                    version: Some(document.updated_at),
-                                });
-                            }
-                        }
+        use_effect_with((props.document_id.clone(), edit_mode.clone()), move |_| {
+            wasm_bindgen_futures::spawn_local(async move {
+                if let Some(id) = document_id {
+                    if *is_new {
+                        return;
                     } else {
-                        update_info.set(DocumentUpdateInfo::default());
+                        let result = get_document(&id).await;
+                        if let Ok(document) = result {
+                            update_info.set(DocumentUpdateInfo {
+                                title: Some(document.title.clone()),
+                                content: Some(document.content.clone()),
+                                parent_id: Some(document.parent_id.clone()),
+                                archived: Some(document.archived),
+                                version: Some(document.updated_at),
+                            });
+                        }
                     }
-                });
-                || ()
-            },
-            (props.document_id.clone(), edit_mode.clone()),
-        );
+                } else {
+                    update_info.set(DocumentUpdateInfo::default());
+                }
+            });
+            || ()
+        });
     }
 
     //set edit_mode to false when props.document_id changes (i.e. clicks on a different document)
     {
         let edit_mode = edit_mode.clone();
         let is_new = is_new.clone();
-        use_effect_with_deps(
-            move |document_id| {
-                if document_id.is_some() {
-                    is_new.set(false);
-                    edit_mode.set(false);
-                }
-                || ()
-            },
-            props.document_id.clone(),
-        );
+        use_effect_with(props.document_id.clone(), move |document_id| {
+            if document_id.is_some() {
+                is_new.set(false);
+                edit_mode.set(false);
+            }
+            || ()
+        });
     }
 
     //clear update_info when props.document_id changes
     {
         let update_info = update_info.clone();
-        use_effect_with_deps(
-            move |document_id| {
-                if document_id.is_some() {
-                    update_info.set(DocumentUpdateInfo::default());
-                }
-                || ()
-            },
-            props.document_id.clone(),
-        );
+        use_effect_with(props.document_id.clone(), move |document_id| {
+            if document_id.is_some() {
+                update_info.set(DocumentUpdateInfo::default());
+            }
+            || ()
+        });
     }
 
     //Send update_info to server when submitted is true
@@ -109,54 +100,51 @@ pub fn wiki_document(props: &Props) -> Html {
         let submitted = submitted.clone();
         let navigator = navigator.clone();
         let props = props.clone();
-        use_effect_with_deps(
-            move |submitted| {
-                if **submitted {
-                    wasm_bindgen_futures::spawn_local(async move {
-                        //If it is an existing document, we only adjust the updated_by field
-                        let result = {
-                            if *is_new == false {
-                                let request = DocumentUpdateInfo {
-                                    title: update_info.title.clone(),
-                                    content: update_info.content.clone(),
-                                    parent_id: update_info.parent_id.clone(),
-                                    archived: update_info.archived,
-                                    version: update_info.version,
-                                };
-                                update_document(&document_id.unwrap_or_default(), request).await
-                            } else {
-                                //New document also gets created_by adjusted
-                                let request = DocumentCreateInfo {
-                                    title: update_info.title.clone().unwrap_or_default(),
-                                    content: update_info.content.clone().unwrap_or_default(),
-                                    parent_id: update_info.parent_id.clone().unwrap_or_default(),
-                                    created_by: user_ctx.user_id.clone(),
-                                    updated_by: user_ctx.user_id.clone(),
-                                };
-                                create_document(request).await
-                            }
-                        };
-                        if let Ok(document) = result {
-                            if document.success {
-                                edit_mode.set(false);
-                                is_new.set(false);
-                                props.needs_update.emit(true);
-                                navigator.push(&AppRoute::WikiDoc {
-                                    document_id: document.data.unwrap().document_id,
-                                });
-                            } else {
-                                error.set(document.message.unwrap_or("Unknown error".to_string()));
-                            }
+        use_effect_with(submitted.clone(), move |submitted| {
+            if **submitted {
+                wasm_bindgen_futures::spawn_local(async move {
+                    //If it is an existing document, we only adjust the updated_by field
+                    let result = {
+                        if *is_new == false {
+                            let request = DocumentUpdateInfo {
+                                title: update_info.title.clone(),
+                                content: update_info.content.clone(),
+                                parent_id: update_info.parent_id.clone(),
+                                archived: update_info.archived,
+                                version: update_info.version,
+                            };
+                            update_document(&document_id.unwrap_or_default(), request).await
                         } else {
-                            error.set(result.err().unwrap().to_string());
+                            //New document also gets created_by adjusted
+                            let request = DocumentCreateInfo {
+                                title: update_info.title.clone().unwrap_or_default(),
+                                content: update_info.content.clone().unwrap_or_default(),
+                                parent_id: update_info.parent_id.clone().unwrap_or_default(),
+                                created_by: user_ctx.user_id.clone(),
+                                updated_by: user_ctx.user_id.clone(),
+                            };
+                            create_document(request).await
                         }
-                    });
-                    submitted.set(false);
-                }
-                || ()
-            },
-            submitted.clone(),
-        );
+                    };
+                    if let Ok(document) = result {
+                        if document.success {
+                            edit_mode.set(false);
+                            is_new.set(false);
+                            props.needs_update.emit(true);
+                            navigator.push(&AppRoute::WikiDoc {
+                                document_id: document.data.unwrap().document_id,
+                            });
+                        } else {
+                            error.set(document.message.unwrap_or("Unknown error".to_string()));
+                        }
+                    } else {
+                        error.set(result.err().unwrap().to_string());
+                    }
+                });
+                submitted.set(false);
+            }
+            || ()
+        });
     }
 
     let oninput_title = {
@@ -236,8 +224,6 @@ pub fn wiki_document(props: &Props) -> Html {
     //         }
     //     })
     // };
-
-        
 
     let style = style! {
         r#"

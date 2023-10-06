@@ -32,33 +32,27 @@ pub fn note_list(props: &Props) -> Html {
     {
         let note_list = note_list.clone();
         let props = props.clone();
-        use_effect_with_deps(
-            move |_| {
-                let note_list = note_list.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    let notes = get_notes(props.ticket_id).await.unwrap();
-                    note_list.set(notes);
-                });
-                || ()
-            },
-            props.ticket_id.clone(),
-        )
+        use_effect_with(props.ticket_id.clone(),move |_| {
+            let note_list = note_list.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let notes = get_notes(props.ticket_id).await.unwrap();
+                note_list.set(notes);
+            });
+            || ()
+        })
     }
 
     {
         let event_list = event_list.clone();
         let props = props.clone();
-        use_effect_with_deps(
-            move |_| {
-                let event_list = event_list.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    let events = get_events(props.ticket_id).await.unwrap();
-                    event_list.set(events);
-                });
-                || ()
-            },
-            props.ticket_id.clone(),
-        )
+        use_effect_with(props.ticket_id.clone(),move |_| {
+            let event_list = event_list.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let events = get_events(props.ticket_id).await.unwrap();
+                event_list.set(events);
+            });
+            || ()
+        })
     }
 
 
