@@ -45,30 +45,27 @@ pub fn delete_item(props: &Props) -> Html {
         let deleted_item = deleted_item.clone();
         let delete_confirmation = delete_confirmation.clone();
         let props = props.clone();
-        use_effect_with_deps(
-            move |delete_confirmation| {
-                if **delete_confirmation {
-                    wasm_bindgen_futures::spawn_local(async move {
-                        let result = match props.item_type {
-                            ItemTypes::Document => {
-                                delete_document(Uuid::parse_str(&props.item_id).unwrap()).await
-                            }
-                            ItemTypes::Note => {
-                                delete_note(Uuid::parse_str(&props.item_id).unwrap()).await
-                            }
-                            ItemTypes::Ticket => {
-                                delete_ticket(props.item_id.parse::<i32>().unwrap()).await
-                            }
-                        };
-                        if let Ok(_) = result {
-                            deleted_item.set(Some(props.item_id));
+        use_effect_with(delete_confirmation,move |delete_confirmation| {
+            if **delete_confirmation {
+                wasm_bindgen_futures::spawn_local(async move {
+                    let result = match props.item_type {
+                        ItemTypes::Document => {
+                            delete_document(Uuid::parse_str(&props.item_id).unwrap()).await
                         }
-                    });
-                }
-                || ()
-            },
-            delete_confirmation,
-        )
+                        ItemTypes::Note => {
+                            delete_note(Uuid::parse_str(&props.item_id).unwrap()).await
+                        }
+                        ItemTypes::Ticket => {
+                            delete_ticket(props.item_id.parse::<i32>().unwrap()).await
+                        }
+                    };
+                    if let Ok(_) = result {
+                        deleted_item.set(Some(props.item_id));
+                    }
+                });
+            }
+            || ()
+        })
     }
 
     let onclick = {

@@ -22,43 +22,37 @@ pub fn new_user() -> Html {
         let register_info = register_info.clone();
         let navigator = navigator.clone();
         let error = error.clone();
-        use_effect_with_deps(
-            move |submitted| {
-                if *submitted {
-                    wasm_bindgen_futures::spawn_local(async move {
-                        let request = RegisterInfo {
-                            username: register_info.username.clone(),
-                            display_name: register_info.display_name.clone(),
-                            email: register_info.email.clone(),
-                            password: register_info.password.clone(),
-                            access: "1".to_string(),
-                        };
-                        let result = create(request).await;
-                        if let Err(err) = result {
-                            log::error!("Create user error: {:?}", err);
-                            error.set(err.to_string());
-                        } else if result.is_ok() {
-                            navigator.push(&AppRoute::Users);
-                        } else {
-                            log::error!("Create user failed without an error");
-                        }
-                    });
-                }
-                || {}
-            },
-            *submitted.clone(),
-        );
+        use_effect_with(*submitted.clone(),move |submitted| {
+            if *submitted {
+                wasm_bindgen_futures::spawn_local(async move {
+                    let request = RegisterInfo {
+                        username: register_info.username.clone(),
+                        display_name: register_info.display_name.clone(),
+                        email: register_info.email.clone(),
+                        password: register_info.password.clone(),
+                        access: "1".to_string(),
+                    };
+                    let result = create(request).await;
+                    if let Err(err) = result {
+                        log::error!("Create user error: {:?}", err);
+                        error.set(err.to_string());
+                    } else if result.is_ok() {
+                        navigator.push(&AppRoute::Users);
+                    } else {
+                        log::error!("Create user failed without an error");
+                    }
+                });
+            }
+            || {}
+        });
     }
 
     {
         let submitted = submitted.clone();
-        use_effect_with_deps(
-            move |_| {
-                submitted.set(false);
-                || {}
-            },
-            error.clone(),
-        );
+        use_effect_with(error.clone(),move |_| {
+            submitted.set(false);
+            || {}
+        });
     }
 
     let onsubmit = {

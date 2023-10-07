@@ -57,44 +57,41 @@ pub fn ticket_editor(props: &Props) -> Html {
         let update_info = update_info.clone();
         let retrieved_ticket = retrieved_ticket.clone();
         let time_ctx = time_ctx.clone();
-        use_effect_with_deps(
-            move |_| {
-                wasm_bindgen_futures::spawn_local(async move {
-                    if let Some(ticket_id) = props.ticket_id {
-                        let result = get(ticket_id).await;
-                        match result {
-                            Ok(ticket) => {
-                                retrieved_ticket.set(ticket.clone());
-                                update_info.set(TicketCreateInfo {
-                                    title: ticket.title,
-                                    description: ticket.description,
-                                    assignee: if let Some(assignee) = ticket.assignee {
-                                        Some(assignee.user_id)
+        use_effect_with(props.ticket_id.clone(),move |_| {
+            wasm_bindgen_futures::spawn_local(async move {
+                if let Some(ticket_id) = props.ticket_id {
+                    let result = get(ticket_id).await;
+                    match result {
+                        Ok(ticket) => {
+                            retrieved_ticket.set(ticket.clone());
+                            update_info.set(TicketCreateInfo {
+                                title: ticket.title,
+                                description: ticket.description,
+                                assignee: if let Some(assignee) = ticket.assignee {
+                                    Some(assignee.user_id)
+                                } else {
+                                    None
+                                },
+                                contact: ticket.contact,
+                                priority: ticket.priority,
+                                status: ticket.status,
+                                due_date:
+                                    if let Some(due_date) = ticket.due_date {
+                                        Some(time_ctx.convert_to_local(&due_date))
                                     } else {
                                         None
                                     },
-                                    contact: ticket.contact,
-                                    priority: ticket.priority,
-                                    status: ticket.status,
-                                    due_date:
-                                        if let Some(due_date) = ticket.due_date {
-                                            Some(time_ctx.convert_to_local(&due_date))
-                                        } else {
-                                            None
-                                        },
-                                });
-                            }
-                            Err(e) => {
-                                error.set(e.to_string());
-                            }
+                            });
+                        }
+                        Err(e) => {
+                            error.set(e.to_string());
                         }
                     }
-                    loading.set(false);
-                });
-                || ()
-            },
-            props.ticket_id.clone(),
-        )
+                }
+                loading.set(false);
+            });
+            || ()
+        })
     }
 
     {
@@ -106,62 +103,59 @@ pub fn ticket_editor(props: &Props) -> Html {
         let props = props.clone();
         let retrieved_ticket = retrieved_ticket.clone();
         let time_ctx = time_ctx.clone();
-        use_effect_with_deps(
-            move |submitted| {
-                if **submitted {
-                    wasm_bindgen_futures::spawn_local(async move {
-                        let result = if let Some(ticket_id) = props.ticket_id {
-                            let request = TicketUpdateInfo {
-                                title: Some(update_info.title.clone()),
-                                description: Some(update_info.description.clone()),
-                                assignee: match update_info.assignee {
-                                    Some(assignee) => {
-                                        if assignee == Uuid::nil() {
-                                            Some("".to_string())
-                                        } else {
-                                            Some(assignee.to_string())
-                                        }
+        use_effect_with(submitted.clone(),move |submitted| {
+            if **submitted {
+                wasm_bindgen_futures::spawn_local(async move {
+                    let result = if let Some(ticket_id) = props.ticket_id {
+                        let request = TicketUpdateInfo {
+                            title: Some(update_info.title.clone()),
+                            description: Some(update_info.description.clone()),
+                            assignee: match update_info.assignee {
+                                Some(assignee) => {
+                                    if assignee == Uuid::nil() {
+                                        Some("".to_string())
+                                    } else {
+                                        Some(assignee.to_string())
                                     }
-                                    //Workaround until we know if the field was actually changed and needs to be sent or not
-                                    None => Some("".to_string()),
-                                },
-                                contact: Some(update_info.contact.clone()),
-                                priority: Some(update_info.priority.clone()),
-                                status: Some(update_info.status.clone()),
-                                due_date: Some( if let Some(due_date) = update_info.due_date {
-                                    Some(time_ctx.convert_to_utc(&due_date))
-                                } else {
-                                    None
                                 }
-                                ),
-                                version: Some(retrieved_ticket.revision.clone()),
-                            };
-                            update(ticket_id, &request).await
-                        } else {
-                            create(&update_info).await
-                        };
-                        match result {
-                            Ok(response) => {
-                                if response.success {
-                                    navigator.push(&AppRoute::Ticket {
-                                        ticket_id: response.data.unwrap().ticket_id,
-                                    });
-                                } else {
-                                    error.set(
-                                        response.message.unwrap_or("Unknown error".to_string()),
-                                    );
-                                }
+                                //Workaround until we know if the field was actually changed and needs to be sent or not
+                                None => Some("".to_string()),
+                            },
+                            contact: Some(update_info.contact.clone()),
+                            priority: Some(update_info.priority.clone()),
+                            status: Some(update_info.status.clone()),
+                            due_date: Some( if let Some(due_date) = update_info.due_date {
+                                Some(time_ctx.convert_to_utc(&due_date))
+                            } else {
+                                None
                             }
-                            Err(e) => {
-                                error.set(e.to_string());
+                            ),
+                            version: Some(retrieved_ticket.revision.clone()),
+                        };
+                        update(ticket_id, &request).await
+                    } else {
+                        create(&update_info).await
+                    };
+                    match result {
+                        Ok(response) => {
+                            if response.success {
+                                navigator.push(&AppRoute::Ticket {
+                                    ticket_id: response.data.unwrap().ticket_id,
+                                });
+                            } else {
+                                error.set(
+                                    response.message.unwrap_or("Unknown error".to_string()),
+                                );
                             }
                         }
-                    });
-                }
-                || ()
-            },
-            submitted.clone(),
-        );
+                        Err(e) => {
+                            error.set(e.to_string());
+                        }
+                    }
+                });
+            }
+            || ()
+        });
     }
 
     let onsubmit = {

@@ -2,7 +2,7 @@ use stylist::yew::styled_component;
 
 use uuid::Uuid;
 use yew::prelude::*;
-use yew::suspense::use_future_with_deps;
+use yew::suspense::use_future_with;
 use yew::virtual_dom::VNode;
 use yew_router::prelude::*;
 
@@ -19,13 +19,10 @@ pub struct Props {
 
 #[styled_component(WikiTree)]
 pub fn wiki_tree(props: &Props) -> Html {
-    let documents = match use_future_with_deps(
-        |_| {
-            props.updated.emit(true);
-            get_doc_tree()
-        },
-        props.uptodate,
-    ) {
+    let documents = match use_future_with(props.uptodate, |_| {
+        props.updated.emit(true);
+        get_doc_tree()
+    }) {
         Ok(documents) => documents,
         Err(_) => {
             return html! {

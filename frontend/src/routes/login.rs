@@ -23,47 +23,41 @@ pub fn login_page() -> Html {
         let login_info = login_info.clone();
         let login_error = login_error.clone();
         let user_ctx = user_ctx.clone();
-        use_effect_with_deps(
-            move |login_flag| {
-                if *login_flag {
-                    wasm_bindgen_futures::spawn_local(async move {
-                        let result = login(&*login_info.clone()).await;
-                        if let Err(err) = result {
-                            log::error!("Login error: {:?}", err);
-                            login_error.set(err.to_string());
-                        } else if let Ok(user_info) = result {
-                            if user_info.success {
-                                wasm_bindgen_futures::spawn_local(async move {
-                                    let res = current().await;
-                                    if let Ok(user) = res {
-                                        user_ctx.login(user);
-                                    } else if let Err(err) = res {
-                                        log::error!("Login error: {:?}", err);
-                                    }
-                                });
-                            } else {
-                                login_error.set(user_info.message);
-                            }
+        use_effect_with(*login_flag.clone(),move |login_flag| {
+            if *login_flag {
+                wasm_bindgen_futures::spawn_local(async move {
+                    let result = login(&*login_info.clone()).await;
+                    if let Err(err) = result {
+                        log::error!("Login error: {:?}", err);
+                        login_error.set(err.to_string());
+                    } else if let Ok(user_info) = result {
+                        if user_info.success {
+                            wasm_bindgen_futures::spawn_local(async move {
+                                let res = current().await;
+                                if let Ok(user) = res {
+                                    user_ctx.login(user);
+                                } else if let Err(err) = res {
+                                    log::error!("Login error: {:?}", err);
+                                }
+                            });
                         } else {
-                            log::error!("Login failed without an error");
+                            login_error.set(user_info.message);
                         }
-                    });
-                }
-                || {}
-            },
-            *login_flag.clone(),
-        );
+                    } else {
+                        log::error!("Login failed without an error");
+                    }
+                });
+            }
+            || {}
+        });
     }
 
     {
         let login_flag = login_flag.clone();
-        use_effect_with_deps(
-            move |_| {
-                login_flag.set(false);
-                || {}
-            },
-            login_error.clone(),
-        );
+        use_effect_with(login_error.clone(),move |_| {
+            login_flag.set(false);
+            || {}
+        });
     }
 
     let onsubmit = {

@@ -35,23 +35,20 @@ pub fn account(props: &Props) -> Html {
     {
         let user_id = user_id.clone();
         let update_info = update_info.clone();
-        use_effect_with_deps(
-            move |_| {
-                let update_info = update_info.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    let result = get_userinfo(user_id).await.unwrap();
-                    update_info.set(UserUpdateInfo {
-                        email: result.email.clone(),
-                        username: result.username.clone(),
-                        display_name: result.display_name.clone(),
-                        access: result.access.clone(),
-                        password: None,
-                    })
-                });
-                || ()
-            },
-            user_id.clone(),
-        )
+        use_effect_with(user_id.clone(),move |_| {
+            let update_info = update_info.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let result = get_userinfo(user_id).await.unwrap();
+                update_info.set(UserUpdateInfo {
+                    email: result.email.clone(),
+                    username: result.username.clone(),
+                    display_name: result.display_name.clone(),
+                    access: result.access.clone(),
+                    password: None,
+                })
+            });
+            || ()
+        })
     }
 
     {
@@ -59,49 +56,43 @@ pub fn account(props: &Props) -> Html {
         let error = error.clone();
         let password = password.clone();
         let user_id = user_id.clone();
-        use_effect_with_deps(
-            move |submitted| {
-                if *submitted {
-                    wasm_bindgen_futures::spawn_local(async move {
-                        let mut request = UserUpdateInfo {
-                            username: update_info.username.clone(),
-                            display_name: update_info.display_name.clone(),
-                            email: update_info.email.clone(),
-                            access: update_info.access.clone(),
-                            password: update_info.password.clone(),
-                        };
-                        if !(*password).is_empty() {
-                            request.password = Some((*password).clone());
+        use_effect_with(*submitted.clone(),move |submitted| {
+            if *submitted {
+                wasm_bindgen_futures::spawn_local(async move {
+                    let mut request = UserUpdateInfo {
+                        username: update_info.username.clone(),
+                        display_name: update_info.display_name.clone(),
+                        email: update_info.email.clone(),
+                        access: update_info.access.clone(),
+                        password: update_info.password.clone(),
+                    };
+                    if !(*password).is_empty() {
+                        request.password = Some((*password).clone());
+                    }
+                    let result = save(user_id, request).await;
+                    if let Err(err) = result {
+                        log::error!("Update user error: {:?}", err);
+                        error.set(err.to_string());
+                    } else if let Ok(user_info) = result {
+                        if user_info.user_id == user_ctx.user_id {
+                            user_ctx.update_info(user_info.clone());
                         }
-                        let result = save(user_id, request).await;
-                        if let Err(err) = result {
-                            log::error!("Update user error: {:?}", err);
-                            error.set(err.to_string());
-                        } else if let Ok(user_info) = result {
-                            if user_info.user_id == user_ctx.user_id {
-                                user_ctx.update_info(user_info.clone());
-                            }
-                            navigator.push(&AppRoute::Users);
-                        } else {
-                            log::error!("Update user failed without an error");
-                        }
-                    });
-                }
-                || {}
-            },
-            *submitted.clone(),
-        );
+                        navigator.push(&AppRoute::Users);
+                    } else {
+                        log::error!("Update user failed without an error");
+                    }
+                });
+            }
+            || {}
+        });
     }
 
     {
         let submitted = submitted.clone();
-        use_effect_with_deps(
-            move |_| {
-                submitted.set(false);
-                || {}
-            },
-            error.clone(),
-        );
+        use_effect_with(error.clone(),move |_| {
+            submitted.set(false);
+            || {}
+        });
     }
 
     let onsubmit = {

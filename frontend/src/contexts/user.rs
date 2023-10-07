@@ -17,27 +17,24 @@ pub fn user_context_provider(props: &Props) -> Html {
     {
         let user_ctx = user_ctx.clone();
         let loading = loading.clone();
-        use_effect_with_deps(
-            move |_| {
-                let user_ctx = user_ctx.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    let result = current().await;
-                    if let Ok(user) = result {
-                        user_ctx.set(user);
-                    } else if let Err(err) = result {
-                        match err {
-                            Error::Unauthorized | Error::Forbidden => {
-                                user_ctx.set(MyUser::default());
-                            }
-                            _ => (),
+        use_effect_with((),move |_| {
+            let user_ctx = user_ctx.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let result = current().await;
+                if let Ok(user) = result {
+                    user_ctx.set(user);
+                } else if let Err(err) = result {
+                    match err {
+                        Error::Unauthorized | Error::Forbidden => {
+                            user_ctx.set(MyUser::default());
                         }
+                        _ => (),
                     }
-                    loading.set(false);
-                });
-                || {}
-            },
-            (),
-        );
+                }
+                loading.set(false);
+            });
+            || {}
+        });
     }
 
     if *loading {
