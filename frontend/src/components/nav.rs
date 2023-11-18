@@ -104,7 +104,7 @@ pub fn navigation() -> Html {
                 <nav class="sidenav">
                     <div class="nav-main">
                         <Link<AppRoute> to={AppRoute::Home} classes="navbar-brand">
-                            <img src="./img/Enso.svg" alt="Enso Logo" class="logo" />
+                            { "Sumi" }
                         </Link<AppRoute>>
                         <div class="nav-user">
                             <Link<AppRoute> to={AppRoute::SettingsRoot}>

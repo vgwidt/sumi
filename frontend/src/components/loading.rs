@@ -15,7 +15,7 @@ pub fn loading() -> Html {
 
     html! {
         <div class={style}>
-            <img src="/img/Enso.svg" alt="Logo" />
+                <span>{"Loading..."}</span>
         </div>
     }
 }

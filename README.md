@@ -1,8 +1,4 @@
-<h1><picture>
-  <source media="(prefers-color-scheme: dark)" srcset="/docs/img/logo_wh.png?raw=true">
-  <source media="(prefers-color-scheme: light)" srcset="/docs/img/logo_bl.png?raw=true">
-  <img align="left" alt="Test" src="/docs/img/logo_bl.png?raw=true" width="68px">
-</picture> Sumi</h1>
+<h1>Sumi</h1>
 
 A multi-user issue tracking system built with Yew frontend and actix-web backend.
 
