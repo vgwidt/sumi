@@ -49,6 +49,7 @@ pub fn navigation() -> Html {
             display: flex;
             justify-content: center;
             text-decoration: none;
+            font-weight: bold;
           }
           .nav-user {
             font-size: 16px;
@@ -103,9 +104,11 @@ pub fn navigation() -> Html {
             <div class={style}>
                 <nav class="sidenav">
                     <div class="nav-main">
-                        <Link<AppRoute> to={AppRoute::Home} classes="navbar-brand">
-                            { "Sumi" }
-                        </Link<AppRoute>>
+                        <div class="logo">
+                            <Link<AppRoute> to={AppRoute::Home}>
+                                { "Sumi" }
+                            </Link<AppRoute>>
+                        </div>
                         <div class="nav-user">
                             <Link<AppRoute> to={AppRoute::SettingsRoot}>
                                 { user_ctx.display_name.clone() }

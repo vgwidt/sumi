@@ -25,10 +25,6 @@ pub fn global_style() -> Html {
             a {
                 color: ${text};
             }
-            .logo {
-                width: 50%;
-                filter: invert(${logo_inversion});
-            }
             a:hover {
                 color: ${link};
             }
@@ -162,7 +158,6 @@ pub fn global_style() -> Html {
             bg = theme.background.clone(),
             text = theme.font_color.clone(),
             link = theme.link_color.clone(),
-            logo_inversion = theme.logo_inversion.clone(),
             input_bg = theme.input_background.clone(),
             code_bg = theme.code_background.clone(),
             border = theme.border.clone(),
