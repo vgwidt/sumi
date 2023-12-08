@@ -1,6 +1,7 @@
 use crate::schema::{ticket_events, ticket_revisions, tickets};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::models::ticket_fields::TicketCustomFieldData;
 
 use super::users::User;
 
@@ -21,6 +22,7 @@ pub struct Ticket {
     pub updated_by: Option<Uuid>,
     pub revision: chrono::NaiveDateTime,
     pub revision_by: Option<Uuid>,
+    //pub custom_fields: Option<Vec<TicketCustomFieldData>>,
 }
 
 #[derive(Debug, Insertable)]
@@ -101,6 +103,7 @@ pub struct TicketRepresentation {
     pub priority: String,
     pub status: String,
     pub revision: chrono::NaiveDateTime,
+    //pub custom_fields: Option<Vec<TicketCustomFieldData>>,
 }
 
 impl From<(Ticket, Option<User>)> for TicketRepresentation {
@@ -130,6 +133,7 @@ impl From<(Ticket, Option<User>)> for TicketRepresentation {
             priority: values.0.priority,
             status: values.0.status,
             revision: values.0.revision,
+            //custom_fields: None,
         }
     }
 }

@@ -1,5 +1,6 @@
 mod account;
 mod nav;
+mod ticket_fields;
 
 use stylist::style;
 use yew::prelude::*;
@@ -9,6 +10,7 @@ use crate::contexts::theme;
 use crate::routes::SettingsRoute;
 use crate::routes::settings::account::AccountSettings;
 use crate::routes::settings::nav::SettingsNav;
+use crate::routes::settings::ticket_fields::TicketFields;
 
 use super::AppRoute;
 
@@ -93,7 +95,8 @@ pub fn settings() -> Html {
                     } else if let SettingsRoute::Tickets = route {
                         html!{
                             <div class="settings-body-header">
-                                <h1>{ "Tickets" }</h1>
+                                <h1>{ "Ticket Settings" }</h1>
+                                <TicketFields />
                             </div>
                         }
                     } else if let SettingsRoute::Account { user_id } = route {
