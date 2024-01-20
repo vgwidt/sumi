@@ -163,11 +163,23 @@ pub fn ticket_list() -> Html {
         r#"
         table.ticket-table {
             background-color: ${table_header};
+            width: 100%;
         }
         th {
             background-color: ${table_header};
             cursor: pointer;
             user-select: none;
+            height: 31px;
+            text-align: left;
+        }
+        th, td {
+            padding-left: 4px;
+            padding-right: 4px;
+            white-space: nowrap;
+        }
+        th:nth-child(2), td:nth-child(2) {
+            width: 100%;
+            white-space: unset;
         }
         tr:nth-child(odd)
         {
@@ -183,41 +195,11 @@ pub fn ticket_list() -> Html {
         }
         td a { 
             display: block; 
-            padding: 10px 0px;
+            padding: 6px 4px;
         }
         .ticket-table {
             margin-top: 12px;
             width: 100%; 
-        }
-        th:nth-child(1) {
-            width: 7%;
-        }
-        th:nth-child(2) {
-            width: 42%;
-        }
-        th:nth-child(3) {
-            width: 10%;
-        }
-        th:nth-child(4) {
-            width: 10%;
-        }
-        th:nth-child(5) {
-            width: 10%;
-        }
-        th:nth-child(6) {
-            width: 10%;
-        }
-        th:nth-child(7) {
-            width: 7%;
-        }
-        th:nth-child(8) {
-            width: 4%;
-        }
-        tr {
-            height: 32px;
-        }
-        td {
-            padding-left: 2px;
         }
         td.priority {
             text-align: center;
@@ -423,14 +405,13 @@ pub fn ticket_list() -> Html {
                 <table class="table ticket-table">
                     <thead>
                         <tr>
-                            <th onclick={onclick_sort_by("ticket_id", &filter, &loading)} scope="col">{language.get("Ticket No.")}{if filter.sort_by.clone().unwrap() == "ticket_id" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
+                            <th onclick={onclick_sort_by("ticket_id", &filter, &loading)} scope="col">{language.get("No.")}{if filter.sort_by.clone().unwrap() == "ticket_id" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th onclick={onclick_sort_by("title", &filter, &loading)} scope="col">{language.get("Title")}{if filter.sort_by.clone().unwrap() == "title" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th onclick={onclick_sort_by("assignee", &filter, &loading)} scope="col">{language.get("Assignee")}{if filter.sort_by.clone().unwrap() == "assignee" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th onclick={onclick_sort_by("created_at", &filter, &loading)} scope="col">{language.get("Created")}{if filter.sort_by.clone().unwrap() == "created_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th onclick={onclick_sort_by("updated_at", &filter, &loading)} scope="col">{language.get("Updated")}{if filter.sort_by.clone().unwrap() == "updated_at" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th onclick={onclick_sort_by("due_date", &filter, &loading)} scope="col">{language.get("Due")}{if filter.sort_by.clone().unwrap() == "due_date" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
                             <th onclick={onclick_sort_by("priority", &filter, &loading)} scope="col">{language.get("Priority")}{if filter.sort_by.clone().unwrap() == "priority" {if filter.sort_order.clone().unwrap() == "asc" {html! {"▼"}} else {html! {"▲"}}} else {html! {"　"}}}</th>
-                            <th scope="col"></th>
                         </tr>
                     </thead>
                     {
@@ -501,14 +482,14 @@ pub fn ticket_list() -> Html {
                                     { &ticket.priority }
                                 </span>
                             </td>
-                            <td>
-                                <div class="edit-button">
-                                    <Link<AppRoute>
-                                        to={AppRoute::Editor {ticket_id: ticket.ticket_id.clone() }} >
-                                        {language.get("Edit")}
-                                    </Link<AppRoute>>
-                                </div>
-                            </td>
+                            // <td>
+                            //     <div class="edit-button">
+                            //         <Link<AppRoute>
+                            //             to={AppRoute::Editor {ticket_id: ticket.ticket_id.clone() }} >
+                            //             {language.get("Edit")}
+                            //         </Link<AppRoute>>
+                            //     </div>
+                            // </td>
                         </tr>
                         }
                         })}

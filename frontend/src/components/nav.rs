@@ -48,25 +48,28 @@ pub fn navigation() -> Html {
             padding: 2px;
             display: flex;
             justify-content: center;
-            text-decoration: none;
             font-weight: bold;
-          }
-          .nav-user {
+            font-size: 1.2em;
+        }
+        .logo a {
+            text-decoration: none;
+        }
+        .nav-user {
             font-size: 16px;
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
-          }
-          .nav-headers {
-          }
-          .sidenav a {
+        }
+            .nav-headers {
+        }
+            .sidenav a {
             display: block;
-          }
-          .sidenav .nav-link:hover {
+        }
+        .sidenav .nav-link:hover {
             border: 1px solid ${border};
             border-radius: 8px;
           }
-          .nav-link {
+        .nav-link {
             font-size: 20px;
             margin-left: 8px;
             margin-right: 8px;
@@ -75,18 +78,18 @@ pub fn navigation() -> Html {
             padding-left: 16px;
             text-decoration: none;
             border: 1px solid transparent;
-          }
-          .nav-theme-toggle {
+        }
+        .nav-theme-toggle {
             font-size: 16px;
             padding-bottom: 4px;
             display: flex;
             justify-content: center;
-          }
-          .footer {
+        }
+        .footer {
             display: flex;
             justify-content: center;
-          }
-          .selected {
+        }
+        .selected {
             border: 1px solid ${border};
             border-radius: 8px;
             background: ${bg};
