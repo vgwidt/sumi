@@ -1,4 +1,4 @@
-use shared::models::{response::Response, tickets::TicketFilterPayload};
+use shared::models::{response::Response, tickets::{TicketFilterPayload, TicketCustomFieldDataPayload}};
 
 use super::{request_delete, request_get, request_post, request_put};
 use crate::types::{*, events::TicketEvent};
@@ -129,4 +129,15 @@ pub async fn get_events(ticket_id: i32) -> Result<Vec<TicketEvent>, Error> {
     events.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
     Ok(events)
+}
+
+//Custom fields
+pub async fn get_custom_fields() -> Result<Vec<TicketCustomField>, Error> {
+    let fields: Vec<TicketCustomField> = request_get::<Vec<TicketCustomField>>(format!("/ticket_fields")).await?;
+
+    Ok(fields)
+}
+
+pub async fn create_custom_field(field: &NewTicketCustomField) -> Result<Response<TicketCustomField>, Error> {
+    request_post::<&NewTicketCustomField, Response<TicketCustomField>>("/ticket_fields".to_string(), field).await
 }

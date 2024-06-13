@@ -1,0 +1,2 @@
+DROP TABLE ticket_custom_field_data;
+DROP TABLE ticket_custom_fields;

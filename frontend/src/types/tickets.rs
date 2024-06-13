@@ -128,3 +128,22 @@ pub struct TicketStatusInfo {
 //     }
 
 // }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
+pub struct TicketCustomField {
+    pub id: i32,
+    pub field_name: String,
+    pub field_type: String,
+    pub field_size: i32,
+    pub select_values: Option<Vec<Option<String>>>,
+    pub order_index: i32,
+}
+
+#[derive(Deserialize, Debug, Serialize, Clone, PartialEq)]
+pub struct NewTicketCustomField {
+    pub field_name: String,
+    pub field_type: String,
+    pub field_size: i32,
+    pub select_values: Option<Vec<Option<String>>>,
+    pub order_index: i32,
+}

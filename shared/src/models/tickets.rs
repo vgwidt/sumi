@@ -34,3 +34,10 @@ pub struct TicketFilterPayload {
     pub sort_order: Option<String>,
     pub search: Option<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TicketCustomFieldDataPayload {
+    pub ticket_id: i32,
+    pub custom_field_id: i32,
+    pub field_value: String,
+}

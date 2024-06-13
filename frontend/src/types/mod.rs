@@ -8,7 +8,7 @@ pub mod events;
 
 pub use tickets::{
     TicketCreateInfo, TicketInfo, TicketInfoWrapper, TicketListInfo, TicketStatusInfo,
-    TicketUpdateInfo,
+    TicketUpdateInfo, TicketCustomField, NewTicketCustomField
 };
 
 pub use auth::{
