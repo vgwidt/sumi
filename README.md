@@ -1,4 +1,4 @@
-<h1>Sumi</h1>
+# Sumi
 
 A multi-user issue tracking system built with Yew frontend and actix-web backend.
 
@@ -131,7 +131,13 @@ Note, in a clean Linux environment using Docker for Redis without reverse proxie
 
 ### Build
 
-Run `./run.sh` (Linux, set to executable with `chmod +x ./run.sh`) or `.\run.bat` (Windows).  This will execute the database migration, use trunk to build the frontend, then run the backend with cargo.
+Execute the following to check for and execute database migrations, compile the frontend with trunk, then run the backend:
+
+```
+diesel migration run --config-file ./backend/diesel.toml
+trunk build -d dist ./frontend/index.html
+cargo run --manifest-path ./backend/Cargo.toml
+```
 
 ## Getting Started
 
